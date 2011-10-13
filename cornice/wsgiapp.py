@@ -87,7 +87,7 @@ class api(object):
             # if the decorator was attached to a method in a class, or
             # otherwise executed at class scope, we need to set an
             # 'attr' into the settings if one isn't already in there
-            if kw['attr'] is None:
+            if 'attr' not in kw:
                 kw['attr'] = func.__name__
 
         kw['_info'] = info.codeinfo # fbo "action_method"
