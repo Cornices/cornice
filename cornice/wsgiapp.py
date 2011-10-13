@@ -198,7 +198,7 @@ def main(package=None):
                             authentication_policy=authn_policy)
 
         # set up custom forbidden view
-        config.add_view("demoapp.security.forbidden_view",
+        config.add_view("cornice.security.forbidden_view",
                         context="pyramid.exceptions.Forbidden")
 
         # adding default views: __heartbeat__, __apis__
