@@ -1,3 +1,6 @@
+"""
+IP-based authentication plugin for pyramid.
+"""
 
 import re
 import socket

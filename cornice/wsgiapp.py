@@ -6,9 +6,6 @@ from webob.exc import HTTPNotFound
 from pyramid.config import Configurator
 
 from pyramid.authorization import ACLAuthorizationPolicy
-from pyramid_who.whov2 import WhoV2AuthenticationPolicy
-from pyramid.interfaces import IAuthenticationPolicy
-from zope.interface import implements
 
 from pyramid.view import view_config
 from pyramid.interfaces import IRoutesMapper
@@ -16,17 +13,6 @@ import venusian
 
 from cornice.resources import Root
 from cornice.config import Config
-
-
-def dict2ini(mapping):
-    res = []
-    for section, values in mapping.items():
-        res.append('[%s]' % section)
-        for key, value in values.items():
-            if isinstance(value, list):
-                value = '\n'.join(value)
-            res.append('%s = %s' % (key, value))
-    return '\n'.join(res)
 
 
 def is_local(request):
@@ -130,52 +116,6 @@ def manage(request):
     return {'config': config}
 
 
-def _prefixed_sections(config, prefix):
-    res = {}
-    for section in config.sections():
-        if not section.startswith(prefix):
-            continue
-        res[section[len(prefix):]] = config.get_map(section)
-    return res
-
-
-def _null_callback(identity, request):
-    return ()
-
-
-class WhoAuth(WhoV2AuthenticationPolicy):
-    implements(IAuthenticationPolicy)
-
-    def __init__(self, conf_dir, config, identifier_id, callback=_null_callback):
-        identifiers = authenticators = challengers = mdproviders = ()
-        request_classifier = None
-        challenge_decider = None
-
-        from repoze.who.config import WhoConfig
-        parser = WhoConfig(conf_dir)
-        parser.parse(config)
-        identifiers = parser.identifiers
-        authenticators = parser.authenticators
-        challengers = parser.challengers
-        mdproviders = parser.mdproviders
-        request_classifier = parser.request_classifier
-        challenge_decider = parser.challenge_decider
-
-        from repoze.who.api import APIFactory
-
-        self._api_factory = APIFactory(identifiers,
-                                       authenticators,
-                                       challengers,
-                                       mdproviders,
-                                       request_classifier,
-                                       challenge_decider,
-                                       remote_user_key='REMOTE_USER',
-                                        logger=None,
-                                        )
-        self._identifier_id = identifier_id
-        self._callback = callback
-
-
 def main(package=None):
     def _main(global_config, **settings):
         config_file = global_config['__file__']
@@ -188,18 +128,13 @@ def main(package=None):
         settings['config'] = config = Config(config_file)
         conf_dir, _ = os.path.split(config_file)
 
-        # extracting the who config
-        who_config = _prefixed_sections(config, 'who:')
-        who_ini = dict2ini(who_config)
-        authn_policy = WhoAuth(conf_dir, who_ini, "basicauth")
         authz_policy = ACLAuthorizationPolicy()
         config = Configurator(root_factory=Root, settings=settings,
-                            authorization_policy=authz_policy,
-                            authentication_policy=authn_policy)
+                              authorization_policy=authz_policy)
 
-        # set up custom forbidden view
-        config.add_view("cornice.security.forbidden_view",
-                        context="pyramid.exceptions.Forbidden")
+        # add auth via repoze.who
+        # eventually the app will have to do this explicitly
+        config.include("cornice.auth.whoauth")
 
         # adding default views: __heartbeat__, __apis__
         config.add_route('heartbeat', '/__heartbeat__',
