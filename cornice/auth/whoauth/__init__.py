@@ -21,7 +21,7 @@ def forbidden_view(request):
     api = request.environ.get("repoze.who.api")
     challenge_app = api.challenge()
     if challenge_app:
-        return request.get_response(api.challenge())
+        return request.get_response(challenge_app)
     return Response("403 Forbidden", status="403 Forbidden")
 
 
