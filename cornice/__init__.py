@@ -1,1 +1,1 @@
-from wsgiapp import Service  # NOQA
+from cornice.service import Service  # NOQA

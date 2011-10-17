@@ -1,5 +1,4 @@
 import os
-
 from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -17,7 +16,7 @@ requires = ['pyramid', 'pyramid_debugtoolbar', 'cef', 'coverage',
 setup(name='cornice',
       version='0.1',
       description='cornice',
-      long_description=README + '\n\n' +  CHANGES,
+      long_description=README + '\n\n' + CHANGES,
       classifiers=[
         "Programming Language :: Python",
         "Framework :: Pylons",
@@ -34,6 +33,4 @@ setup(name='cornice',
       install_requires=requires,
       tests_require=requires,
       test_suite="cornice",
-      paster_plugins=['pyramid'],
-      )
-
+      paster_plugins=['pyramid'])

@@ -1,7 +1,7 @@
 Cornice
 =======
 
-__Cornice__ contains Pyramid extensions that can be used to build a Services 
+__Cornice__ contains Pyramid extensions that can be used to build a Services
 server application, such as:
 
 * an authentication system based on __repoze.who__;
