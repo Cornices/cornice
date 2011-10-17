@@ -19,7 +19,7 @@
             <h2>APIs</h2>
         %for api, value in routes:
         <h3>${api[1]} ${api[0]}</h3>
-        <p>${value['docstring']}</p>
+        <p>${util.rst2html(value['docstring']) | n}</p>
         %endfor
        </div>
     </div>

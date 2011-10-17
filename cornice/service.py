@@ -5,11 +5,17 @@ from webob.exc import HTTPNotFound, HTTPMethodNotAllowed
 from pyramid.config import Configurator
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.view import view_config
+from pyramid.events import BeforeRender
 
 import venusian
 
 from cornice.resources import Root
 from cornice.config import Config
+from cornice import util
+
+
+def add_renderer_globals(event):
+    event['util'] = util
 
 
 def add_apidoc(config, pattern, docstring, renderer):
@@ -164,6 +170,7 @@ def main(package=None):
         config.add_directive('add_apidoc', add_apidoc)
         config.add_route('apidocs', '/__apidocs__')
         config.add_view(_notfound, context=HTTPNotFound)
+        config.add_subscriber(add_renderer_globals, BeforeRender)
         config.scan()
         config.scan(package=package)
         return config.make_wsgi_app()

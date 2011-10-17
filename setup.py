@@ -10,7 +10,8 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
 requires = ['pyramid', 'pyramid_debugtoolbar', 'cef', 'coverage',
-            'simplejson', 'pyramid_who', 'repoze.who', 'netaddr']
+            'simplejson', 'pyramid_who', 'repoze.who', 'netaddr',
+            'docutils']
 
 
 setup(name='cornice',
