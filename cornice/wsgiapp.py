@@ -1,19 +1,15 @@
 import os
-from collections import defaultdict
 
 from webob.exc import HTTPNotFound, HTTPMethodNotAllowed
+
 from pyramid.config import Configurator
-
 from pyramid.authorization import ACLAuthorizationPolicy
-
 from pyramid.view import view_config
-#from pyramid.interfaces import IRoutesMapper
+
 import venusian
 
 from cornice.resources import Root
 from cornice.config import Config
-
-_METHODS = ('GET', 'POST', 'PUT', 'DELETE', 'HEAD')
 
 
 def add_apidoc(config, pattern, docstring, renderer):
@@ -24,8 +20,6 @@ def add_apidoc(config, pattern, docstring, renderer):
 
 
 _SERVICES = {}
-
-from pyramid.httpexceptions import HTTPNotFound
 
 
 def _notfound(request):
@@ -46,8 +40,10 @@ def _notfound(request):
 
 class Service(object):
     def __init__(self, **kw):
-        self.defined_methods = []
         self.route_pattern = kw.pop('path')
+        if self.route_pattern in _SERVICES:
+            raise ValueError('%r already defined' % self.route_pattern)
+        self.defined_methods = []
         self.route_name = self.route_pattern
         self.renderer = kw.pop('renderer', 'json')
         self.kw = kw
@@ -79,7 +75,6 @@ class Service(object):
             def callback(context, name, ob):
                 config = context.config.with_package(info.module)
                 self._define(config, method)
-                route_name = self.route_name
                 config.add_apidoc((self.route_pattern, method),
                                    docstring, self.renderer)
                 config.add_view(view=ob, route_name=self.route_name,
