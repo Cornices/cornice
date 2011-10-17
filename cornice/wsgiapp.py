@@ -1,7 +1,7 @@
 import os
 from collections import defaultdict
 
-from webob.exc import HTTPNotFound
+from webob.exc import HTTPNotFound, HTTPMethodNotAllowed
 from pyramid.config import Configurator
 
 from pyramid.authorization import ACLAuthorizationPolicy
@@ -13,6 +13,8 @@ import venusian
 from cornice.resources import Root
 from cornice.config import Config
 
+_METHODS = ('GET', 'POST', 'PUT', 'DELETE', 'HEAD')
+
 
 def add_apidoc(config, pattern, docstring, renderer):
     apidocs = config.registry.settings.setdefault('apidocs', {})
@@ -23,15 +25,52 @@ def add_apidoc(config, pattern, docstring, renderer):
 
 class Service(object):
     def __init__(self, **kw):
-        self.methods = defaultdict(dict)
+        self.defined_methods = []
         self.route_pattern = kw.pop('path')
+        self.route_name = self.route_pattern
         self.renderer = kw.pop('renderer', 'json')
         self.kw = kw
+        self._catchall_set = False
+
+    def _refresh_catchall(self, config, method):
+        # registring the method
+        if method not in self.defined_methods:
+            self.defined_methods.append(method)
+
+        # updating or creatin the 405 route for this pattern
+        mapper = config.get_routes_mapper()
+
+        if not self._catchall_set:
+            # adding a catchall for all *other* methods
+            methods = list(_METHODS)
+            methods.remove(method)
+            config.add_route(self.route_name, self.route_pattern)
+            config.add_view(view=self._not_allowed,
+                            route_name=self.route_name,
+                            request_method=methods)
+
+            self._catchall_set = True
+        else:
+            # updating by removing the defined method from the 405
+            config.commit()   # XXX not sure what's the impact here
+            route = config.get_routes_mapper().routes[self.route_name]
+
+            # here we want to update the 405 pattern
+            #
+            pass
+
+    def _not_allowed(self, request):
+        # not declared, let's 405
+        res = HTTPMethodNotAllowed()
+        res.allow = self.methods.keys()
+        raise res
 
     def api(self, **kw):
         method = kw.pop('method', 'GET')
-        api_kw = self.methods[method]
+        api_kw = {}
+        #self.methods[method]
         api_kw.update(kw)
+
         if 'renderer' not in api_kw:
             api_kw['renderer'] = self.renderer
 
@@ -41,13 +80,12 @@ class Service(object):
 
             def callback(context, name, ob):
                 config = context.config.with_package(info.module)
-                route_name = func.__name__
+                route_name = self.route_name
                 config.add_apidoc((self.route_pattern, method),
                                    docstring, self.renderer)
-                config.add_route(route_name, self.route_pattern,
-                                 request_method=method)
-                config.add_view(view=ob, route_name=route_name,
+                config.add_view(view=ob, route_name=self.route_name,
                                 **_api_kw)
+                self._refresh_catchall(config, method)
 
             info = venusian.attach(func, callback, category='pyramid')
 
@@ -66,7 +104,6 @@ class Service(object):
 @view_config(route_name='apidocs', renderer='apidocs.mako')
 def apidocs(request):
     routes = []
-    #request.registry.getUtility(IRoutesMapper)
     for k, v in request.registry.settings['apidocs'].items():
         routes.append((k, v))
     return {'routes': routes}
