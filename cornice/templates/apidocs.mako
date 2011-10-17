@@ -7,6 +7,8 @@
   <meta name="description" content="pyramid web application" />
   <link rel="shortcut icon" href="${request.static_url('cornice:static/favicon.ico')}" />
   <link rel="stylesheet" href="${request.static_url('cornice:static/pylons.css')}" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="${request.static_url('cornice:static/cornice.css')}" type="text/css" media="screen" charset="utf-8" />
+
   <link rel="stylesheet" href="http://static.pylonsproject.org/fonts/nobile/stylesheet.css" media="screen" />
   <link rel="stylesheet" href="http://static.pylonsproject.org/fonts/neuton/stylesheet.css" media="screen" />
   <!--[if lte IE 6]>
@@ -16,10 +18,13 @@
 <body>
     <div id="wrap">
         <div style="padding: 20px">
-            <h2>APIs</h2>
-        %for api, value in routes:
-        <h3>${api[1]} ${api[0]}</h3>
-        <p>${util.rst2html(value['docstring']) | n}</p>
+            <h2>Resources</h2>
+            <hr/>
+            %for api, value in routes:
+        <div class="resource"> 
+          <div class="resource-title"><h3>${api[1]} ${api[0]}</h3></div>
+          <div class="resource-description">${util.rst2html(value['docstring']) | n}</div>
+        </div>
         %endfor
        </div>
     </div>
