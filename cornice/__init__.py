@@ -1,1 +1,1 @@
-from cornice.service import Service  # NOQA
+from cornice.service import Service, make_main  # NOQA

@@ -154,11 +154,11 @@ def main(package=None):
         # adding default views: __heartbeat__, __apis__
         config.add_route('heartbeat', '/__heartbeat__',
                         renderer='string',
-                        view='cornice.wsgiapp.heartbeat')
+                        view='cornice.service.heartbeat')
 
         config.add_route('manage', '/__config__',
                         renderer='config.mako',
-                        view='cornice.wsgiapp.manage')
+                        view='cornice.service.manage')
 
         config.add_static_view('static', 'cornice:static', cache_max_age=3600)
         config.add_directive('add_apidoc', add_apidoc)
