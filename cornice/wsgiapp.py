@@ -23,6 +23,27 @@ def add_apidoc(config, pattern, docstring, renderer):
     info['renderer'] = renderer
 
 
+_SERVICES = {}
+
+from pyramid.httpexceptions import HTTPNotFound
+
+
+def _notfound(request):
+    match = request.matchdict
+    # the route exists, raising a 405
+    if match is not None:
+        pattern = request.matched_route.pattern
+        if pattern in _SERVICES:
+
+            service = _SERVICES[pattern]
+            res = HTTPMethodNotAllowed()
+            res.allow = service.defined_methods
+            return res
+
+    # 404
+    return HTTPNotFound()
+
+
 class Service(object):
     def __init__(self, **kw):
         self.defined_methods = []
@@ -30,45 +51,22 @@ class Service(object):
         self.route_name = self.route_pattern
         self.renderer = kw.pop('renderer', 'json')
         self.kw = kw
-        self._catchall_set = False
+        _SERVICES[self.route_pattern] = self
+        self._defined = False
 
-    def _refresh_catchall(self, config, method):
+    def _define(self, config, method):
         # registring the method
         if method not in self.defined_methods:
             self.defined_methods.append(method)
 
-        # updating or creatin the 405 route for this pattern
-        mapper = config.get_routes_mapper()
-
-        if not self._catchall_set:
-            # adding a catchall for all *other* methods
-            methods = list(_METHODS)
-            methods.remove(method)
+        if not self._defined:
+            # defining the route
             config.add_route(self.route_name, self.route_pattern)
-            config.add_view(view=self._not_allowed,
-                            route_name=self.route_name,
-                            request_method=methods)
-
-            self._catchall_set = True
-        else:
-            # updating by removing the defined method from the 405
-            config.commit()   # XXX not sure what's the impact here
-            route = config.get_routes_mapper().routes[self.route_name]
-
-            # here we want to update the 405 pattern
-            #
-            pass
-
-    def _not_allowed(self, request):
-        # not declared, let's 405
-        res = HTTPMethodNotAllowed()
-        res.allow = self.methods.keys()
-        raise res
+            self._defined = True
 
     def api(self, **kw):
-        method = kw.pop('method', 'GET')
+        method = kw.get('request_method', 'GET')
         api_kw = {}
-        #self.methods[method]
         api_kw.update(kw)
 
         if 'renderer' not in api_kw:
@@ -80,12 +78,12 @@ class Service(object):
 
             def callback(context, name, ob):
                 config = context.config.with_package(info.module)
+                self._define(config, method)
                 route_name = self.route_name
                 config.add_apidoc((self.route_pattern, method),
                                    docstring, self.renderer)
                 config.add_view(view=ob, route_name=self.route_name,
                                 **_api_kw)
-                self._refresh_catchall(config, method)
 
             info = venusian.attach(func, callback, category='pyramid')
 
@@ -170,6 +168,7 @@ def main(package=None):
         config.add_static_view('static', 'cornice:static', cache_max_age=3600)
         config.add_directive('add_apidoc', add_apidoc)
         config.add_route('apidocs', '/__apidocs__')
+        config.add_view(_notfound, context=HTTPNotFound)
         config.scan()
         config.scan(package=package)
         return config.make_wsgi_app()
