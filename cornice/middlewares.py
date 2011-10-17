@@ -101,7 +101,6 @@ def _resolve_name(name):
     return ret
 
 
-
 class CatchErrorMiddleware(object):
     """Middleware that catches error, log them and return a 500"""
     def __init__(self, app, config):
@@ -114,15 +113,14 @@ class CatchErrorMiddleware(object):
         self.logger = logging.getLogger(logger_name)
         try:
             hook = config.get('global', 'logger_hook')
-            self.hook = resolve_name(hook)
+            self.hook = _resolve_name(hook)
         except NoOptionError:
             self.hook = None
 
         try:
             self.ctype = config.get('global', 'logger_type')
         except NoOptionError:
-            ctype = 'application/json'
-        self.ctype = type
+            self.ctype = 'application/json'
 
     def __call__(self, environ, start_response):
         try:

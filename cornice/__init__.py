@@ -1,3 +1,1 @@
-
-from wsgiapp import api
-
+from wsgiapp import Service  # NOQA

@@ -1,4 +1,2 @@
-import unittest
-
-from pyramid import testing
-
+import unittest  # NOQA
+from pyramid import testing  # NOQA
