@@ -21,7 +21,9 @@
             <h2>Resources</h2>
             <hr/>
             %for api, value in routes:
-        <div class="resource"> 
+            <div class="resource"> 
+          <div class="resource-renderer">${value['renderer']}</div>
+
           <div class="resource-title"><h3>${api[1]} ${api[0]}</h3></div>
           <div class="resource-description">${util.rst2html(value['docstring']) | n}</div>
         </div>
