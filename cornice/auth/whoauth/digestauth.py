@@ -41,8 +41,6 @@ A repoze.who plugin for authentication via HTTP-Digest-Auth:
 
 """
 
-from __future__ import with_statement
-
 import os
 import re
 import time

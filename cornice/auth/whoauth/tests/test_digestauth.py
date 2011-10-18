@@ -11,11 +11,11 @@ from repoze.who.interfaces import IChallenger
 
 from cornice.auth.whoauth.digestauth import DigestAuthPlugin, make_plugin
 from cornice.auth.whoauth.digestauth import SignedNonceManager
-from cornice.auth.whoauth.digestauth import parse_auth_header,\
-                                            calculate_digest_response,\
-                                            calculate_pwdhash,\
-                                            validate_digest_parameters,\
-                                            validate_digest_uri
+from cornice.auth.whoauth.digestauth import (parse_auth_header,
+                                             calculate_digest_response,
+                                             calculate_pwdhash,
+                                             validate_digest_parameters,
+                                             validate_digest_uri)
 
 from cornice.auth.whoauth.tests.helpers import make_environ, get_response
 
