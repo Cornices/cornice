@@ -33,12 +33,7 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-import os
-
-from webob.exc import HTTPNotFound
-from pyramid.view import view_config
 import venusian
-
 
 
 _SERVICES = {}
