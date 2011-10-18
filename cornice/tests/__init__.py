@@ -14,7 +14,7 @@
 # The Original Code is Cornice (Sagrada)
 #
 # The Initial Developer of the Original Code is the Mozilla Foundation.
-# Portions created by the Initial Developer are Copyright (C) 2011
+# Portions created by the Initial Developer are Copyright (C) 2010
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
@@ -33,8 +33,3 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-
-
-class Root(object):
-    def __init__(self, request):
-        self.request = request
