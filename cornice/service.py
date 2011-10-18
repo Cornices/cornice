@@ -35,48 +35,17 @@
 # ***** END LICENSE BLOCK *****
 import os
 
-from webob.exc import HTTPNotFound, HTTPMethodNotAllowed
-
-from pyramid.config import Configurator
-from pyramid.authorization import ACLAuthorizationPolicy
+from webob.exc import HTTPNotFound
 from pyramid.view import view_config
-from pyramid.events import BeforeRender
-
 import venusian
 
-from cornice.resources import Root
-from cornice.config import Config
-from cornice import util
-
-
-def add_renderer_globals(event):
-    event['util'] = util
-
-
-def add_apidoc(config, pattern, docstring, renderer):
-    apidocs = config.registry.settings.setdefault('apidocs', {})
-    info = apidocs.setdefault(pattern, {})
-    info['docstring'] = docstring
-    info['renderer'] = renderer
 
 
 _SERVICES = {}
 
 
-def _notfound(request):
-    match = request.matchdict
-    # the route exists, raising a 405
-    if match is not None:
-        pattern = request.matched_route.pattern
-        if pattern in _SERVICES:
-
-            service = _SERVICES[pattern]
-            res = HTTPMethodNotAllowed()
-            res.allow = service.defined_methods
-            return res
-
-    # 404
-    return HTTPNotFound()
+def get_service(pattern):
+    return _SERVICES.get(pattern)
 
 
 class Service(object):
@@ -133,85 +102,3 @@ class Service(object):
             kw['_info'] = info.codeinfo   # fbo "action_method"
             return func
         return _api
-
-
-@view_config(route_name='apidocs', renderer='apidocs.mako')
-def apidocs(request):
-    routes = []
-    for k, v in request.registry.settings['apidocs'].items():
-        routes.append((k, v))
-    return {'routes': routes}
-
-
-HERE = os.path.dirname(__file__)
-
-
-def get_config(request):
-    return request.registry.settings.get('config')
-
-
-def heartbeat(request):
-    # checks the server's state -- if wrong, return a 503 here
-    return 'OK'
-
-
-def manage(request):
-    ## if it's not a local call, this does not exist
-
-    # XXX protect with new auth APIs
-    #if not is_local(request):
-    #    raise HTTPNotFound()
-
-    # now let's see if the config allows the debug mode
-    config = get_config(request)
-    if (not config.has_option('global', 'debug') or
-        not config.get('global', 'debug')):
-        raise HTTPNotFound()
-
-    # local + activated
-    return {'config': config}
-
-
-def main(package=None):
-    def _main(global_config, **settings):
-        config_file = global_config['__file__']
-        config_file = os.path.abspath(
-                        os.path.normpath(
-                        os.path.expandvars(
-                            os.path.expanduser(
-                            config_file))))
-
-        settings['config'] = config = Config(config_file)
-        conf_dir, _ = os.path.split(config_file)
-
-        authz_policy = ACLAuthorizationPolicy()
-        config = Configurator(root_factory=Root, settings=settings,
-                              authorization_policy=authz_policy)
-
-        # add auth via repoze.who
-        # eventually the app will have to do this explicitly
-        config.include("cornice.auth.whoauth")
-
-        # adding default views: __heartbeat__, __apis__
-        config.add_route('heartbeat', '/__heartbeat__',
-                        renderer='string',
-                        view='cornice.service.heartbeat')
-
-        config.add_route('manage', '/__config__',
-                        renderer='config.mako',
-                        view='cornice.service.manage')
-
-        config.add_static_view('static', 'cornice:static', cache_max_age=3600)
-        config.add_directive('add_apidoc', add_apidoc)
-        config.add_route('apidocs', '/__apidocs__')
-        config.add_view(_notfound, context=HTTPNotFound)
-        config.add_subscriber(add_renderer_globals, BeforeRender)
-        config.scan()
-        config.scan(package=package)
-        return config.make_wsgi_app()
-    return _main
-
-
-def make_main(package=None):
-    """Factory to build apps."""
-    return main(package)

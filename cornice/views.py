@@ -33,39 +33,38 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-from docutils import core
-from docutils.writers.html4css1 import Writer, HTMLTranslator
+""" Cornice default views/.
+"""
+from pyramid.view import view_config
+from webob.exc import HTTPNotFound
+from cornice.util import get_config
 
 
-__all__ = ['rst2html', 'get_config']
+def heartbeat(request):
+    # checks the server's state -- if wrong, return a 503 here
+    return 'OK'
 
 
-class _HTMLFragmentTranslator(HTMLTranslator):
-    def __init__(self, document):
-        HTMLTranslator.__init__(self, document)
-        self.head_prefix = ['', '', '', '', '']
-        self.body_prefix = []
-        self.body_suffix = []
-        self.stylesheet = []
+def manage(request):
+    ## if it's not a local call, this does not exist
 
-    def astext(self):
-        return ''.join(self.body)
+    # XXX protect with new auth APIs
+    #if not is_local(request):
+    #    raise HTTPNotFound()
 
+    # now let's see if the config allows the debug mode
+    config = get_config(request)
+    if (not config.has_option('global', 'debug') or
+        not config.get('global', 'debug')):
+        raise HTTPNotFound()
 
-class _FragmentWriter(Writer):
-    translator_class = _HTMLFragmentTranslator
-
-    def apply_template(self):
-        subs = self.interpolation_dict()
-        return subs['body']
+    # local + activated
+    return {'config': config}
 
 
-def rst2html(data):
-    """Converts a reStructuredText into its HTML
-    """
-    return core.publish_string(data, writer=_FragmentWriter())
-
-
-def get_config(request):
-    """Returns the config object."""
-    return request.registry.settings.get('config')
+@view_config(route_name='apidocs', renderer='apidocs.mako')
+def apidocs(request):
+    routes = []
+    for k, v in request.registry.settings['apidocs'].items():
+        routes.append((k, v))
+    return {'routes': routes}

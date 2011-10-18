@@ -1,4 +1,4 @@
-import unittest
+import unittest2
 import socket
 
 from pyramid.testing import DummyRequest
@@ -7,7 +7,7 @@ from pyramid.security import Everyone, Authenticated
 from cornice.auth.ipauth import IPAuthenticationPolicy, make_ip_set, IPAddress
 
 
-class IPAuthPolicyTests(unittest.TestCase):
+class IPAuthPolicyTests(unittest2.TestCase):
 
     def test_remote_addr(self):
         policy = IPAuthenticationPolicy(["123.123.0.0/16"], "user")
