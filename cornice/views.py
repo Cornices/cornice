@@ -36,30 +36,6 @@
 """ Cornice default views/.
 """
 from pyramid.view import view_config
-from webob.exc import HTTPNotFound
-from cornice.util import get_config
-
-
-def heartbeat(request):
-    # checks the server's state -- if wrong, return a 503 here
-    return 'OK'
-
-
-def manage(request):
-    ## if it's not a local call, this does not exist
-
-    # XXX protect with new auth APIs
-    #if not is_local(request):
-    #    raise HTTPNotFound()
-
-    # now let's see if the config allows the debug mode
-    config = get_config(request)
-    if (not config.has_option('global', 'debug') or
-        not config.get('global', 'debug')):
-        raise HTTPNotFound()
-
-    # local + activated
-    return {'config': config}
 
 
 @view_config(route_name='apidocs', renderer='apidocs.mako')

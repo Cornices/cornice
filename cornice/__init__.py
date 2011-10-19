@@ -44,7 +44,7 @@ from pyramid.events import BeforeRender
 from cornice.resources import Root
 from cornice.config import Config
 from cornice import util
-from cornice.service import Service     # NOQA
+from cornice.service import Service, get_service     # NOQA
 
 
 def add_renderer_globals(event):
@@ -72,47 +72,12 @@ def _notfound(request):
     # 404
     return HTTPNotFound()
 
-
-def main(package=None):
-    def _main(global_config, **settings):
-        config_file = global_config['__file__']
-        config_file = os.path.abspath(
-                        os.path.normpath(
-                        os.path.expandvars(
-                            os.path.expanduser(
-                            config_file))))
-
-        settings['config'] = config = Config(config_file)
-        conf_dir, _ = os.path.split(config_file)
-
-        authz_policy = ACLAuthorizationPolicy()
-        config = Configurator(root_factory=Root, settings=settings,
-                              authorization_policy=authz_policy)
-
-        # add auth via repoze.who
-        # eventually the app will have to do this explicitly
-        config.include("cornice.auth.whoauth")
-
-        # adding default views: __heartbeat__, __apis__
-        config.add_route('heartbeat', '/__heartbeat__',
-                        renderer='string',
-                        view='cornice.views.heartbeat')
-
-        config.add_route('manage', '/__config__',
-                        renderer='config.mako',
-                        view='cornice.views.manage')
-
-        config.add_static_view('static', 'cornice:static', cache_max_age=3600)
-        config.add_directive('add_apidoc', add_apidoc)
-        config.add_route('apidocs', '/__apidocs__')
-        config.add_view(_notfound, context=HTTPNotFound)
-        config.add_subscriber(add_renderer_globals, BeforeRender)
-        config.scan()
-        config.scan(package=package)
-        return config.make_wsgi_app()
-    return _main
-
-
-def make_main(package=None):
-    """Factory to build apps."""
-    return main(package)
+def includeme(config):
+    """Include the Cornice definitions
+    """
+    config.add_static_view('static', 'cornice:static', cache_max_age=3600)
+    config.add_directive('add_apidoc', add_apidoc)
+    config.add_route('apidocs', '/__apidocs__')
+    config.add_view(_notfound, context=HTTPNotFound)
+    config.add_subscriber(add_renderer_globals, BeforeRender)
+    config.scan('cornice.views')
