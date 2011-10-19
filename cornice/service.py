@@ -36,13 +36,6 @@
 import venusian
 
 
-_SERVICES = {}
-
-
-def get_service(pattern):
-    return _SERVICES.get(pattern)
-
-
 class Service(object):
     def __init__(self, **kw):
         self.route_pattern = kw.pop('path')
@@ -52,10 +45,14 @@ class Service(object):
         self.route_name = self.route_pattern
         self.renderer = kw.pop('renderer', 'json')
         self.kw = kw
-        _SERVICES[self.route_pattern] = self
         self._defined = False
 
     def _define(self, config, method):
+        # setup the services hash if it isn't already
+        services = config.registry.setdefault('cornice_services', {})
+        if self.route_pattern not in services:
+            services[self.route_pattern] = self
+
         # registring the method
         if method not in self.defined_methods:
             self.defined_methods.append(method)

@@ -44,7 +44,7 @@ from pyramid.events import BeforeRender
 from cornice.resources import Root
 from cornice.config import Config
 from cornice import util
-from cornice.service import Service, get_service     # NOQA
+from cornice.service import Service     # NOQA
 
 
 def add_renderer_globals(event):
@@ -63,7 +63,7 @@ def _notfound(request):
     # the route exists, raising a 405
     if match is not None:
         pattern = request.matched_route.pattern
-        service = get_service(pattern)
+        service = request.registry['cornice_services'].get(pattern)
         if service is not None:
             res = HTTPMethodNotAllowed()
             res.allow = service.defined_methods
