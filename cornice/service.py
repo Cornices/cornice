@@ -39,8 +39,6 @@ import venusian
 class Service(object):
     def __init__(self, **kw):
         self.route_pattern = kw.pop('path')
-        if self.route_pattern in _SERVICES:
-            raise ValueError('%r already defined' % self.route_pattern)
         self.defined_methods = []
         self.route_name = self.route_pattern
         self.renderer = kw.pop('renderer', 'json')

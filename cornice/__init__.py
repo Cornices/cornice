@@ -33,18 +33,12 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-import os
-
 from webob.exc import HTTPNotFound, HTTPMethodNotAllowed
 
-from pyramid.config import Configurator
-from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.events import BeforeRender
 
-from cornice.resources import Root
-from cornice.config import Config
 from cornice import util
-from cornice.service import Service, get_service     # NOQA
+from cornice.service import Service   # NOQA
 
 
 def add_renderer_globals(event):
@@ -71,6 +65,7 @@ def _notfound(request):
 
     # 404
     return HTTPNotFound()
+
 
 def includeme(config):
     """Include the Cornice definitions
