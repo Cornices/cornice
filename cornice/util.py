@@ -63,6 +63,8 @@ class _FragmentWriter(Writer):
 def rst2html(data):
     """Converts a reStructuredText into its HTML
     """
+    if not data:
+        return ''
     return core.publish_string(data, writer=_FragmentWriter())
 
 
