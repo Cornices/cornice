@@ -60,6 +60,22 @@ class Service(object):
             config.add_route(self.route_name, self.route_pattern)
             self._defined = True
 
+    #
+    # Aliases for the three most common verbs
+    #
+    def post(self, **kw):
+        return self.api(request_method='POST', **kw)
+
+    def get(self, **kw):
+        return self.api(request_method='GET', **kw)
+
+    def put(self, **kw):
+        return self.api(request_method='PUT', **kw)
+
+    def delete(self, **kw):
+        return self.api(request_method='DELETE', **kw)
+
+    # the actual decorator
     def api(self, **kw):
         method = kw.get('request_method', 'GET')
         api_kw = {}
