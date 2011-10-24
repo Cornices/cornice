@@ -38,7 +38,7 @@
 from pyramid.view import view_config
 
 
-@view_config(route_name='apidocs', renderer='apidocs.mako')
+@view_config(route_name='apidocs', renderer='cornice:templates/apidocs.mako')
 def apidocs(request):
     routes = []
     for k, v in request.registry.settings['apidocs'].items():
