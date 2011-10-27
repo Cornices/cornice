@@ -36,6 +36,7 @@
 import simplejson as json
 from docutils import core
 from docutils.writers.html4css1 import Writer, HTMLTranslator
+import docutils
 
 
 __all__ = ['rst2html', 'get_config']
@@ -67,6 +68,21 @@ def rst2html(data):
     if not data:
         return ''
     return core.publish_string(data, writer=_FragmentWriter())
+
+
+def rst2node(data):
+    """Converts a reStructuredText into its node
+    """
+    if not data:
+        return
+    parser = docutils.parsers.rst.Parser()
+    document = docutils.utils.new_document('<>')
+    document.settings = docutils.frontend.OptionParser().get_default_values()
+    document.settings.tab_width = 4
+    document.settings.pep_references = False
+    document.settings.rfc_references = False
+    parser.parse(data, document)
+    return document.children[0]
 
 
 def get_config(request):
