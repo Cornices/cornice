@@ -41,9 +41,13 @@ class Service(object):
         self.route_pattern = kw.pop('path')
         self.defined_methods = []
         self.route_name = self.route_pattern
-        self.renderer = kw.pop('renderer', 'json')
+        self.renderer = kw.pop('renderer', 'simplejson')
         self.kw = kw
         self._defined = False
+
+    def __repr__(self):
+        return "<%s Service at %s>" % (self.renderer.capitalize(),
+                                       self.route_name)
 
     def _define(self, config, method):
         # setup the services hash if it isn't already
@@ -92,7 +96,7 @@ class Service(object):
                 config = context.config.with_package(info.module)
                 self._define(config, method)
                 config.add_apidoc((self.route_pattern, method),
-                                   docstring, self.renderer)
+                                   docstring, self.renderer, self)
                 config.add_view(view=ob, route_name=self.route_name,
                                 **_api_kw)
 

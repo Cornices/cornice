@@ -11,7 +11,7 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
 
 requires = ['pyramid', 'pyramid_debugtoolbar', 'cef', 'coverage',
             'simplejson', 'pyramid_who', 'repoze.who', 'netaddr',
-            'docutils', 'unittest2']
+            'docutils', 'unittest2', 'Sphinx']
 
 
 setup(name='cornice',

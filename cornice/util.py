@@ -33,6 +33,7 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
+import simplejson as json
 from docutils import core
 from docutils.writers.html4css1 import Writer, HTMLTranslator
 
@@ -71,3 +72,14 @@ def rst2html(data):
 def get_config(request):
     """Returns the config object."""
     return request.registry.settings.get('config')
+
+
+def json_renderer(helper):
+    return _JsonRenderer()
+
+
+class _JsonRenderer(object):
+    def __call__(self, data, context):
+        response = context['request'].response
+        response.content_type = 'application/json'
+        return json.dumps(data, use_decimal=True)

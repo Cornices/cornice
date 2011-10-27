@@ -45,11 +45,12 @@ def add_renderer_globals(event):
     event['util'] = util
 
 
-def add_apidoc(config, pattern, docstring, renderer):
+def add_apidoc(config, pattern, docstring, renderer, service):
     apidocs = config.registry.settings.setdefault('apidocs', {})
     info = apidocs.setdefault(pattern, {})
     info['docstring'] = docstring
     info['renderer'] = renderer
+    info['service'] = service
 
 
 def _notfound(request):
@@ -75,4 +76,5 @@ def includeme(config):
     config.add_route('apidocs', '/__apidocs__')
     config.add_view(_notfound, context=HTTPNotFound)
     config.add_subscriber(add_renderer_globals, BeforeRender)
+    config.add_renderer('simplejson', util.json_renderer)
     config.scan('cornice.views')
