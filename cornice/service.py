@@ -38,10 +38,12 @@ import venusian
 
 class Service(object):
     def __init__(self, **kw):
+        self.name = kw.pop('name')
         self.route_pattern = kw.pop('path')
         self.defined_methods = []
         self.route_name = self.route_pattern
         self.renderer = kw.pop('renderer', 'simplejson')
+        self.description = kw.pop('description')
         self.kw = kw
         self._defined = False
 

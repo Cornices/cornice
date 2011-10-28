@@ -40,7 +40,7 @@ from collections import defaultdict
 from docutils import nodes
 from docutils.parsers.rst import directives
 
-from sphinx.util.compat import Directive, make_admonition
+from sphinx.util.compat import Directive
 from cornice.util import rst2node
 
 
@@ -50,72 +50,79 @@ class ServiceDirective(Directive):
     option_spec = {'package': directives.unchanged,
                    'service': directives.unchanged}
 
-    def run(self):
+    def _render_service(self, path, service, methods):
         env = self.state.document.settings.env
+        service_id = "service-%d" % env.new_serialno('service')
+        service_node = nodes.section(ids=[service_id])
+        service_node += nodes.title(text='Service at %s' %
+                                    service.route_name)
+        if service.description is not None:
+            service_node += rst2node(service.description)
 
-        # composing our little rendering
-        service = nodes.title('Some services')
+        for method, info in methods.items():
+            method_id = '%s-%s' % (service_id, method)
+            method_node = nodes.section(ids=[method_id])
+            method_node += nodes.title(text=method)
+            node = rst2node(info['docstring'])
+            if node is not None:
+                method_node += node
 
-        pkg = self.options['package']
+            renderer = info['renderer']
+            if renderer == 'simplejson':
+                renderer = 'json'
+
+            response = nodes.paragraph()
+            response += nodes.strong(text='Response: %s' % renderer)
+            method_node += response
+            service_node += method_node
+
+        return service_node
+
+    def _get_services(self, package):
         from pyramid.config import Configurator
         conf = Configurator()
         conf.include('cornice')
-        conf.scan(pkg)
-
+        conf.scan(package)
         by_service = defaultdict(dict)
         apidocs = conf.registry.settings.get('apidocs', [])
+
         for (path, method), apidoc in apidocs.items():
             service = apidoc['service']
             by_service[path, service][method] = apidoc
 
-        # ordered injection
-        services_id = "services-%d" % env.new_serialno('services')
-        services_node = nodes.section(ids=[services_id])
-        services_node += nodes.title(text='Services')
+        return by_service
 
-        for (path, service), methods in by_service.items():
-            service_id = "service-%d" % env.new_serialno('service')
-            service_node = nodes.section(ids=[service_id])
-            service_node += nodes.title(text='Service at %s' %
-                                        service.route_name)
+    def run(self):
+        env = self.state.document.settings.env
+        # getting the options
+        pkg = self.options['package']
+        service_name = self.options.get('service')
+        all_services = service_name is None
 
-            for method, info in methods.items():
-                # title, e.g. GET /blablablaba
-                title = '%s %s' % (method, service.route_pattern)
-                method_node = make_admonition(ServiceNode, self.name, [title],
-                                              self.options,
-                                              self.content, self.lineno,
-                                              self.content_offset,
-                                              self.block_text, self.state,
-                                              self.state_machine)
+        # listing the services for the package
+        services = self._get_services(pkg)
 
-                service_node += method_node
+        if all_services:
+            # we want to list all of them
+            services_id = "services-%d" % env.new_serialno('services')
+            services_node = nodes.section(ids=[services_id])
+            services_node += nodes.title(text='Services')
 
-                node = rst2node(info['docstring'])
-                if node is not None:
-                    service_node += node
+            for (path, service), methods in services.items():
+                services_node += self._render_service(path, service, methods)
 
-            services_node += service_node
-
-        return [services_node]
-
-
-class ServiceNode(nodes.Admonition, nodes.Element):
-    pass
-
-
-def visit_todo_node(self, node):
-    self.visit_admonition(node)
-
-
-def depart_todo_node(self, node):
-    self.depart_admonition(node)
+            return [services_node]
+        else:
+            # we just want a single service
+            #
+            # XXX not efficient
+            for (path, service), methods in services.items():
+                if service.name != service_name:
+                    continue
+                return [self._render_service(path, service, methods)]
+            return []
 
 
 def setup(app):
-    app.add_node(ServiceNode,
-                 html=(visit_todo_node, depart_todo_node),
-                 text=(visit_todo_node, depart_todo_node),
-                 latex=(visit_todo_node, depart_todo_node))
-
+    """Sphinx setup."""
     app.add_directive('services', ServiceDirective)
