@@ -44,6 +44,7 @@ class Service(object):
         self.route_name = self.route_pattern
         self.renderer = kw.pop('renderer', 'simplejson')
         self.description = kw.pop('description')
+        self.acl_factory = kw.pop('acl', None)
         self.kw = kw
         self._defined = False
 
@@ -63,8 +64,19 @@ class Service(object):
 
         if not self._defined:
             # defining the route
-            config.add_route(self.route_name, self.route_pattern)
+            route_kw = {}
+            if self.acl_factory is not None:
+                route_kw["factory"] = self._make_route_factory()
+            config.add_route(self.route_name, self.route_pattern, **route_kw)
             self._defined = True
+
+    def _make_route_factory(self):
+        acl_factory = self.acl_factory
+        class ACLResource(object):
+            def __init__(self, request):
+                self.request = request
+                self.__acl__ = acl_factory(request)
+        return ACLResource
 
     #
     # Aliases for the three most common verbs
