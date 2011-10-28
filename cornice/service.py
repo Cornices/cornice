@@ -43,7 +43,10 @@ class Service(object):
         self.defined_methods = []
         self.route_name = self.route_pattern
         self.renderer = kw.pop('renderer', 'simplejson')
-        self.description = kw.pop('description')
+        if 'description' in kw:
+            self.description = kw.pop('description')
+        else:
+            self.description = None
         self.acl_factory = kw.pop('acl', None)
         self.kw = kw
         self._defined = False

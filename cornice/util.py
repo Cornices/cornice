@@ -82,7 +82,13 @@ def rst2node(data):
     document.settings.pep_references = False
     document.settings.rfc_references = False
     parser.parse(data, document)
-    return document.children[0]
+    if len(document.children) == 1:
+        return document.children[0]
+    else:
+        par = docutils.nodes.paragraph()
+        for child in document.children:
+            par += child
+        return par
 
 
 def get_config(request):

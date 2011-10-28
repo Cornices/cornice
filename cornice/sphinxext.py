@@ -44,6 +44,45 @@ from sphinx.util.compat import Directive
 from cornice.util import rst2node
 
 
+def _dedent(text):
+    if text is None:
+        return
+
+    text = text.strip()
+
+    # if, starting at line 2, every line starts with
+    # the same amount of space, we strip it.
+    lines = text.split('\n')
+    if len(lines) < 2 or (lines[1] != '' and len(lines[1]) == 0):
+        return text
+
+    def _space_count(line):
+        indent = 0
+        while indent < len(line) and line[indent] == ' ':
+            indent += 1
+        return indent
+
+    # first indent ?
+    first_line = 1
+    while lines[first_line] == '':
+        first_line += 1
+
+    first_indent = _space_count(lines[first_line])
+    if first_indent == 0:
+        return text
+
+    new_text = [line for line in lines[:first_line]]
+
+    # now loooking at other lines
+    for line in lines[first_line:]:
+        if line != '' and _space_count(line) < first_indent:
+            return text
+        new_text.append(line[first_indent:])
+
+    # we're good
+    return '\n'.join(new_text)
+
+
 class ServiceDirective(Directive):
     # this enables content in the directive
     has_content = True
@@ -57,13 +96,14 @@ class ServiceDirective(Directive):
         service_node += nodes.title(text='Service at %s' %
                                     service.route_name)
         if service.description is not None:
-            service_node += rst2node(service.description)
+            service_node += rst2node(_dedent(service.description))
 
         for method, info in methods.items():
             method_id = '%s-%s' % (service_id, method)
             method_node = nodes.section(ids=[method_id])
             method_node += nodes.title(text=method)
-            node = rst2node(info['docstring'])
+
+            node = rst2node(_dedent(info['docstring']))
             if node is not None:
                 method_node += node
 
