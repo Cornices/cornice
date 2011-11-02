@@ -73,8 +73,6 @@ def includeme(config):
     """
     config.add_static_view('static', 'cornice:static', cache_max_age=3600)
     config.add_directive('add_apidoc', add_apidoc)
-    config.add_route('apidocs', '/__apidocs__')
     config.add_view(_notfound, context=HTTPNotFound)
     config.add_subscriber(add_renderer_globals, BeforeRender)
     config.add_renderer('simplejson', util.json_renderer)
-    config.scan('cornice.views')

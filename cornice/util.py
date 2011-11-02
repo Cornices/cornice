@@ -91,11 +91,6 @@ def rst2node(data):
         return par
 
 
-def get_config(request):
-    """Returns the config object."""
-    return request.registry.settings.get('config')
-
-
 def json_renderer(helper):
     return _JsonRenderer()
 

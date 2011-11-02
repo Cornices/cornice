@@ -33,7 +33,6 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-
 import unittest2
 from cornice.util import rst2html
 
@@ -44,5 +43,4 @@ class TestUtil(unittest2.TestCase):
         text = '**simple render**'
         res = rst2html(text)
         self.assertEquals(res, '<p><strong>simple render</strong></p>')
-
         self.assertEquals(rst2html(''), '')

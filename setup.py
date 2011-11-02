@@ -9,8 +9,8 @@ with open(os.path.join(here, 'README.txt')) as f:
 with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
-requires = ['pyramid', 'pyramid_debugtoolbar', 'cef', 'coverage',
-            'simplejson', 'pyramid_who', 'repoze.who', 'netaddr',
+
+requires = ['pyramid', 'coverage', 'simplejson',
             'docutils', 'unittest2', 'Sphinx']
 
 
@@ -24,9 +24,9 @@ setup(name='cornice',
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
         ],
-      author='',
-      author_email='',
-      url='',
+      author='Mozilla Services',
+      author_email='services-dev@mozilla.org',
+      url='https://github.com/mozilla-services/cornice',
       keywords='web pyramid pylons',
       packages=find_packages(),
       include_package_data=True,

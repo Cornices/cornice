@@ -41,6 +41,7 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from sphinx.util.compat import Directive
+
 from cornice.util import rst2node
 
 
@@ -84,7 +85,10 @@ def _dedent(text):
 
 
 class ServiceDirective(Directive):
-    # this enables content in the directive
+    """ Service directive.
+
+    Will inject sections in the documentation.
+    """
     has_content = True
     option_spec = {'package': directives.unchanged,
                    'service': directives.unchanged}
