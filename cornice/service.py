@@ -75,10 +75,12 @@ class Service(object):
 
     def _make_route_factory(self):
         acl_factory = self.acl_factory
+
         class ACLResource(object):
             def __init__(self, request):
                 self.request = request
                 self.__acl__ = acl_factory(request)
+
         return ACLResource
 
     #

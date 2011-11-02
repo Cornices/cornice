@@ -39,7 +39,7 @@ from docutils.writers.html4css1 import Writer, HTMLTranslator
 import docutils
 
 
-__all__ = ['rst2html', 'get_config']
+__all__ = ['rst2html']
 
 
 class _HTMLFragmentTranslator(HTMLTranslator):
