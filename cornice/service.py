@@ -49,7 +49,6 @@ class Service(object):
             self.description = None
         self.acl_factory = kw.pop('acl', None)
         self.kw = kw
-        self._defined = False
 
     def __repr__(self):
         return "<%s Service at %s>" % (self.renderer.capitalize(),
@@ -58,20 +57,18 @@ class Service(object):
     def _define(self, config, method):
         # setup the services hash if it isn't already
         services = config.registry.setdefault('cornice_services', {})
+
+        # define the route if it isn't already
         if self.route_pattern not in services:
             services[self.route_pattern] = self
-
-        # registring the method
-        if method not in self.defined_methods:
-            self.defined_methods.append(method)
-
-        if not self._defined:
-            # defining the route
             route_kw = {}
             if self.acl_factory is not None:
                 route_kw["factory"] = self._make_route_factory()
             config.add_route(self.route_name, self.route_pattern, **route_kw)
-            self._defined = True
+
+        # registering the method
+        if method not in self.defined_methods:
+            self.defined_methods.append(method)
 
     def _make_route_factory(self):
         acl_factory = self.acl_factory
