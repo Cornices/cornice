@@ -33,8 +33,19 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
+import functools
 import venusian
 from webob.exc import HTTPBadRequest
+
+
+def _apply_validator(func, validator):
+  @functools.wraps(func)
+  def __apply(request):
+      res = validator(request)
+      if res:
+          raise HTTPBadRequest(res)
+      return func(request)
+  return __apply
 
 
 class Service(object):
@@ -112,15 +123,7 @@ class Service(object):
             docstring = func.__doc__
 
             if validator is not None:
-                def _func(func_):
-                    def __func(request):
-                        res = validator(request)
-                        if res:
-                            raise HTTPBadRequest(res)
-                        return func_(request)
-                    return __func
-
-                func = _func(func)
+                func = _apply_validator(func, validator)
 
 
             def callback(context, name, ob):
