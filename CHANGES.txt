@@ -1,5 +1,5 @@
-0.3 - ?
-=======
+0.3 - 2011-11-23
+================
 
 - remove singleton "_defined" state from Service class; this allows service
   definitions to be loaded into more than one Configurator.

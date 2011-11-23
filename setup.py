@@ -15,7 +15,7 @@ requires = ['pyramid', 'coverage', 'simplejson',
 
 
 setup(name='cornice',
-      version='0.1',
+      version='0.3',
       description='Define Web Services in Pyramid.',
       long_description=README + '\n\n' + CHANGES,
       classifiers=[
