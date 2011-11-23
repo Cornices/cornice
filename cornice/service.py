@@ -104,9 +104,21 @@ class Service(object):
         if 'renderer' not in api_kw:
             api_kw['renderer'] = self.renderer
 
+        validator = api_kw.pop('validator', None)
+
         def _api(func):
             _api_kw = api_kw.copy()
             docstring = func.__doc__
+
+            if validator is not None:
+                def _func(func_):
+                    def __func(request):
+                        request = validator(request)
+                        return func_(request)
+                    return __func
+
+                func = _func(func)
+
 
             def callback(context, name, ob):
                 config = context.config.with_package(info.module)
@@ -126,5 +138,6 @@ class Service(object):
                     kw['attr'] = func.__name__
 
             kw['_info'] = info.codeinfo   # fbo "action_method"
+
             return func
         return _api
