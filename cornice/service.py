@@ -34,6 +34,7 @@
 #
 # ***** END LICENSE BLOCK *****
 import venusian
+from webob.exc import HTTPBadRequest
 
 
 class Service(object):
@@ -113,7 +114,9 @@ class Service(object):
             if validator is not None:
                 def _func(func_):
                     def __func(request):
-                        request = validator(request)
+                        res = validator(request)
+                        if res:
+                            raise HTTPBadRequest(res)
                         return func_(request)
                     return __func
 

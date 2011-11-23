@@ -6,7 +6,7 @@ from webob.exc import HTTPBadRequest
 
 class GetSchema(object):
     def __call__(self, request):
-        return request
+        pass
 
 
 class PostSchema(object):
@@ -14,9 +14,7 @@ class PostSchema(object):
         try:
             json.loads(request.body)
         except ValueError:
-            raise HTTPBadRequest()
-
-        return request
+            return 'Malformed JSON'
 
 
 
