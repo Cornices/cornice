@@ -16,3 +16,11 @@ class TestServiceDefinition(unittest.TestCase):
         res = app.post('/service', params=json.dumps('buh'))
 
         self.assertEqual(res.body, json.dumps({'body': '"buh"'}))
+
+        app.get('/service')
+
+        # valid = foo is one
+        app.get('/service?foo=1')
+
+        # invalid value for foo
+        self.assertRaises(AppError, app.get, '/service?foo=buh')
