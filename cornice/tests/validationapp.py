@@ -1,7 +1,6 @@
 import json
 from cornice import Service
 from pyramid.config import Configurator
-from webob.exc import HTTPBadRequest
 
 
 class GetSchema(object):
@@ -17,8 +16,8 @@ class PostSchema(object):
             return 'Malformed JSON'
 
 
-
 service = Service(name="service", path="/service")
+
 
 @service.get(validator=GetSchema())
 def get1(request):

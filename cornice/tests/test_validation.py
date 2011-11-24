@@ -12,7 +12,6 @@ class TestServiceDefinition(unittest.TestCase):
         app = TestApp(main({}))
         app.get('/service')
 
-
         self.assertRaises(AppError, app.post, '/service', params='buh')
         res = app.post('/service', params=json.dumps('buh'))
 
