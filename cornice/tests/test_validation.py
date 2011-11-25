@@ -20,7 +20,8 @@ class TestServiceDefinition(unittest.TestCase):
         app.get('/service')
 
         # valid = foo is one
-        app.get('/service?foo=1')
+        res = app.get('/service?foo=1')
+        self.assertEqual(res.json['foo'], 1)
 
         # invalid value for foo
         self.assertRaises(AppError, app.get, '/service?foo=buh')

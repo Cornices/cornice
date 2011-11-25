@@ -65,3 +65,70 @@ class JsonBody(object):
         except ValueError:
             return 'Not a json body'
 
+
+class Field(object):
+    def __init__(self, name, required=False):
+        self.name = name
+        self.required = required
+
+    def convert(self, value):
+        return value
+
+    def get_description(self):
+        return name
+
+class Integer(Field):
+    def __init__(self, name, min=None, max=None, required=False):
+        super(Integer, self).__init__(name, required)
+        self.min = min
+        self.max = max
+
+    def convert(self, value):
+        value = int(value)
+
+        if self.min and value < self.min:
+            raise ValueError('%r is too small' % name)
+
+        if self.max and value > self.max:
+            raise ValueError('%r is too big' % name)
+
+        return value
+
+    def get_description(self):
+        desc = '%r must be an Integer.'
+        if self.min:
+            desc += ', min value: %d' % self.min
+        if self.max:
+            desc += ', max value: %d' % self.max
+        if self.required:
+            desc += ' (required)'
+
+        return desc
+
+
+class FormChecker(object):
+    fields = []
+
+    def _get_form(self, request):
+        raise NotImplementedError()
+
+    def __call__(self, request):
+        form = self._get_form(request)
+
+        for field in self.fields:
+            if field.name not in form:
+                if field.required:
+                    raise HTTPBadRequest('%r missing' % name)
+                else:
+                    continue
+            try:
+                value = field.convert(form[field.name])
+            except ValueError, e:
+                return e.message
+
+            save_converted(request, field.name, value)
+
+
+class GetChecker(FormChecker):
+    def _get_form(self, request):
+        return request.GET

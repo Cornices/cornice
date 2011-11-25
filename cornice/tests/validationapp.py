@@ -1,28 +1,23 @@
 from pyramid.config import Configurator
 
 from cornice import Service
-from cornice.schemas import JsonBody, save_converted
+from cornice.schemas import *
 
 
-class GetSchema(object):
-    """Makes sure the foo param is an int if given
-    """
-    def __call__(self, request):
-        if 'foo' in request.GET:
-            foo = request.GET['foo']
-            try:
-                # converting it
-                save_converted(request, 'foo', int(foo))
-            except ValueError:
-                return "Could not convert 'foo' to int : %r" % foo
+class Checker(GetChecker):
+    fields = [Integer('foo')]
 
 
 service = Service(name="service", path="/service")
 
 
-@service.get(validator=GetSchema())
+@service.get(validator=Checker())
 def get1(request):
-    return {"test": "succeeded"}
+    res = {"test": "succeeded"}
+    if ('converted' in request.environ and
+        'foo' in request.environ['converted']):
+        res['foo'] = request.environ['converted']['foo']
+    return res
 
 
 @service.post(validator=JsonBody())
