@@ -25,3 +25,8 @@ class TestServiceDefinition(unittest.TestCase):
 
         # invalid value for foo
         self.assertRaises(AppError, app.get, '/service?foo=buh')
+
+        # let's see the docstring !
+        apidocs = app.app.registry.settings['apidocs']
+        post_doc = apidocs[('/service', 'POST')]['docstring']
+        self.assertEqual(post_doc, 'The request body should be a JSON object.')

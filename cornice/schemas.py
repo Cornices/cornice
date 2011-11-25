@@ -77,6 +77,7 @@ class Field(object):
     def get_description(self):
         return name
 
+
 class Integer(Field):
     def __init__(self, name, min=None, max=None, required=False):
         super(Integer, self).__init__(name, required)
@@ -109,8 +110,20 @@ class Integer(Field):
 class FormChecker(object):
     fields = []
 
+    def __init__(self, description=None):
+        if description is not None:
+            self.__doc__ = description
+        else:
+            self.__doc__ = self._set_description()
+
     def _get_form(self, request):
         raise NotImplementedError()
+
+    def _set_description(self):
+        desc = []
+        for field in self.fields:
+            desc.append(field.get_description())
+        self.__doc__ = '\n'.join(desc).strip()
 
     def __call__(self, request):
         form = self._get_form(request)

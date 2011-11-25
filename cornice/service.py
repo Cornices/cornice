@@ -125,6 +125,12 @@ class Service(object):
             if validator is not None:
                 func = _apply_validator(func, validator)
 
+                if validator.__doc__ is not None:
+                    if docstring is not None:
+                        docstring += validator.__doc__.strip()
+                    else:
+                        docstring = validator.__doc__.strip()
+
             def callback(context, name, ob):
                 config = context.config.with_package(info.module)
                 self._define(config, method)
