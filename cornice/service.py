@@ -116,13 +116,16 @@ class Service(object):
         if 'renderer' not in api_kw:
             api_kw['renderer'] = self.renderer
 
-        validator = api_kw.pop('validator', None)
+        validators = api_kw.pop('validator', [])
+        if not isinstance(validators, (list, tuple)):
+            validators = [validators]
 
         def _api(func):
             _api_kw = api_kw.copy()
             docstring = func.__doc__
 
-            if validator is not None:
+
+            for validator in validators:
                 func = _apply_validator(func, validator)
 
                 if validator.__doc__ is not None:

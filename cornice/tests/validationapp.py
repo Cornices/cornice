@@ -14,9 +14,11 @@ service = Service(name="service", path="/service")
 @service.get(validator=Checker())
 def get1(request):
     res = {"test": "succeeded"}
-    if ('converted' in request.environ and
-        'foo' in request.environ['converted']):
-        res['foo'] = request.environ['converted']['foo']
+    try:
+        res['foo'] = get_converted(request, 'foo')
+    except KeyError:
+        pass
+
     return res
 
 

@@ -38,6 +38,9 @@
 import json
 
 
+_CONVKEY = '_cornice_converted'
+
+
 def save_converted(request, name, value, forced=False):
     """Saves the converted value in the request.
 
@@ -46,13 +49,25 @@ def save_converted(request, name, value, forced=False):
     If the value is already set a ValueError is raised,
     unless forced is set to True : the value is updated
     """
-    if 'converted' not in request.environ:
-        converted = request.environ['converted'] = {}
+    if _CONVKEY not in request.environ:
+        converted = request.environ[_CONVKEY] = {}
     else:
-        converted = request.environ['converted']
+        converted = request.environ[_CONVKEY]
+
     if name in converted and not forced:
         raise ValueError('%r was already set' % name)
+
     converted[name] = value
+
+
+def get_converted(request, name):
+    """Returns a converted value.
+
+    If the value was not set, returns a KeyError
+    """
+    if _CONVKEY not in request.environ:
+        raise KeyError(name)
+    return request.environ[_CONVKEY][name]
 
 
 class JsonBody(object):
@@ -75,7 +90,7 @@ class Field(object):
         return value
 
     def get_description(self):
-        return name
+        return self.name
 
 
 class Integer(Field):
@@ -88,10 +103,10 @@ class Integer(Field):
         value = int(value)
 
         if self.min and value < self.min:
-            raise ValueError('%r is too small' % name)
+            raise ValueError('%r is too small' % self.name)
 
         if self.max and value > self.max:
-            raise ValueError('%r is too big' % name)
+            raise ValueError('%r is too big' % self.name)
 
         return value
 
@@ -131,7 +146,7 @@ class FormChecker(object):
         for field in self.fields:
             if field.name not in form:
                 if field.required:
-                    raise HTTPBadRequest('%r missing' % name)
+                    return '%r missing' % field.name
                 else:
                     continue
             try:
