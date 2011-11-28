@@ -11,7 +11,12 @@ class Checker(GetChecker):
 service = Service(name="service", path="/service")
 
 
-@service.get(validator=Checker())
+def has_payed(request):
+    if not 'paid' in request.GET:
+        return 402, 'You must pay!'
+
+
+@service.get(validator=(Checker(), has_payed))
 def get1(request):
     res = {"test": "succeeded"}
     try:

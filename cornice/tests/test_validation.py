@@ -10,21 +10,23 @@ class TestServiceDefinition(unittest.TestCase):
 
     def test_validation(self):
         app = TestApp(main({}))
-        app.get('/service')
+
+        # 413
+        self.assertRaises(AppError, app.get, '/service')
 
         self.assertRaises(AppError, app.post, '/service', params='buh')
         res = app.post('/service', params=json.dumps('buh'))
 
         self.assertEqual(res.body, json.dumps({'body': '"buh"'}))
 
-        app.get('/service')
+        app.get('/service?paid=yup')
 
         # valid = foo is one
-        res = app.get('/service?foo=1')
+        res = app.get('/service?foo=1&paid=yup')
         self.assertEqual(res.json['foo'], 1)
 
         # invalid value for foo
-        self.assertRaises(AppError, app.get, '/service?foo=buh')
+        self.assertRaises(AppError, app.get, '/service?foo=buh&paid=yup')
 
         # let's see the docstring !
         apidocs = app.app.registry.settings['apidocs']

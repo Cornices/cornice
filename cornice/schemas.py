@@ -78,7 +78,7 @@ class JsonBody(object):
             body = json.loads(request.body)
             save_converted(request, 'body', body)
         except ValueError:
-            return 'Not a json body'
+            return 400, 'Not a json body'
 
 
 class Field(object):
@@ -146,13 +146,13 @@ class FormChecker(object):
         for field in self.fields:
             if field.name not in form:
                 if field.required:
-                    return '%r missing' % field.name
+                    return 400, '%r missing' % field.name
                 else:
                     continue
             try:
                 value = field.convert(form[field.name])
             except ValueError, e:
-                return e.message
+                return 400, e.message
 
             save_converted(request, field.name, value)
 

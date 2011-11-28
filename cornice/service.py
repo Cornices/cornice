@@ -35,15 +35,16 @@
 # ***** END LICENSE BLOCK *****
 import functools
 import venusian
-from webob.exc import HTTPBadRequest
+from cornice.util import code2exception
 
 
 def _apply_validator(func, validator):
     @functools.wraps(func)
     def __apply(request):
         res = validator(request)
-        if res:
-            raise HTTPBadRequest(res)
+        if res is not None:
+            code, detail = res
+            raise code2exception(code, res)
         return func(request)
     return __apply
 
@@ -123,7 +124,6 @@ class Service(object):
         def _api(func):
             _api_kw = api_kw.copy()
             docstring = func.__doc__
-
 
             for validator in validators:
                 func = _apply_validator(func, validator)
