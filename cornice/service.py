@@ -33,7 +33,20 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
+import functools
 import venusian
+from cornice.util import code2exception
+
+
+def _apply_validator(func, validator):
+    @functools.wraps(func)
+    def __apply(request):
+        res = validator(request)
+        if res is not None:
+            code, detail = res
+            raise code2exception(code, res)
+        return func(request)
+    return __apply
 
 
 class Service(object):
@@ -104,9 +117,22 @@ class Service(object):
         if 'renderer' not in api_kw:
             api_kw['renderer'] = self.renderer
 
+        validators = api_kw.pop('validator', [])
+        if not isinstance(validators, (list, tuple)):
+            validators = [validators]
+
         def _api(func):
             _api_kw = api_kw.copy()
             docstring = func.__doc__
+
+            for validator in validators:
+                func = _apply_validator(func, validator)
+
+                if validator.__doc__ is not None:
+                    if docstring is not None:
+                        docstring += validator.__doc__.strip()
+                    else:
+                        docstring = validator.__doc__.strip()
 
             def callback(context, name, ob):
                 config = context.config.with_package(info.module)
@@ -126,5 +152,6 @@ class Service(object):
                     kw['attr'] = func.__name__
 
             kw['_info'] = info.codeinfo   # fbo "action_method"
+
             return func
         return _api

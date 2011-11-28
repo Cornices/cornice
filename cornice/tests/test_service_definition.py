@@ -11,6 +11,7 @@ from cornice import Service
 
 service1 = Service(name="service1", path="/service1")
 
+
 @service1.get()
 def get1(request):
     return {"test": "succeeded"}

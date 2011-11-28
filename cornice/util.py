@@ -33,6 +33,7 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
+from webob import exc
 import simplejson as json
 from docutils import core
 from docutils.writers.html4css1 import Writer, HTMLTranslator
@@ -100,3 +101,57 @@ class _JsonRenderer(object):
         response = context['request'].response
         response.content_type = 'application/json'
         return json.dumps(data, use_decimal=True)
+
+
+def code2exception(code, detail):
+    """Transforms a code + detail into a WebOb exception"""
+    if code == 400:
+        return exc.HTTPBadRequest(detail)
+    if code == 401:
+        return exc.HTTPUnauthorized(detail)
+    if code == 402:
+        return exc.HTTPPaymentRequired(detail)
+    if code == 403:
+        return exc.HTTPForbidden(detail)
+    if code == 404:
+        return exc.HTTPNotFound(detail)
+    if code == 405:
+        return exc.HTTPMethodNotAllowed(detail)
+    if code == 406:
+        return exc.HTTPNotAcceptable(detail)
+    if code == 407:
+        return exc.HTTPProxyAuthenticationRequired(detail)
+    if code == 408:
+        return exc.HTTPRequestTimeout(detail)
+    if code == 409:
+        return exc.HTTPConflict(detail)
+    if code == 410:
+        return exc.HTTPGone(detail)
+    if code == 411:
+        return exc.HTTPLengthRequired(detail)
+    if code == 412:
+        return exc.HTTPPreconditionFailed(detail)
+    if code == 413:
+        return exc.HTTPRequestEntityTooLarge(detail)
+    if code == 414:
+        return exc.HTTPRequestURITooLong(detail)
+    if code == 415:
+        return exc.HTTPUnsupportedMediaType(detail)
+    if code == 416:
+        return exc.HTTPRequestRangeNotSatisfiable(detail)
+    if code == 417:
+        return exc.HTTPExpectationFailed(detail)
+    if code == 500:
+        return exc.HTTPInternalServerError(detail)
+    if code == 501:
+        return exc.HTTPNotImplemented(detail)
+    if code == 502:
+        return exc.HTTPBadGateway(detail)
+    if code == 503:
+        return exc.HTTPServiceUnavailable(detail)
+    if code == 504:
+        return exc.HTTPGatewayTimeout(detail)
+    if code == 505:
+        return exc.HTTPVersionNotSupported(detail)
+
+    raise NotImplementedError(code)
