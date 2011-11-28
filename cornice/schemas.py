@@ -157,3 +157,8 @@ class FormChecker(object):
 class GetChecker(FormChecker):
     def _get_form(self, request):
         return request.GET
+
+
+class PostChecker(FormChecker):
+    def _get_form(self, request):
+        return request.POST
