@@ -49,7 +49,7 @@ def save_converted(request, name, value, forced=False):
     If the value is already set a ValueError is raised,
     unless forced is set to True : the value is updated
     """
-    converted = request.registry.setdefault(_CONVKEY, {})
+    converted = request.environ.setdefault(_CONVKEY, {})
 
     if name in converted and not forced:
         raise ValueError('%r was already set' % name)
@@ -62,9 +62,9 @@ def get_converted(request, name):
 
     If the value was not set, returns a KeyError
     """
-    if _CONVKEY not in request.registry:
+    if _CONVKEY not in request.environ:
         raise KeyError(name)
-    return request.registry[_CONVKEY][name]
+    return request.environ[_CONVKEY][name]
 
 
 class JsonBody(object):
