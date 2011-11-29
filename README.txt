@@ -204,7 +204,7 @@ Here's how you can do::
 
     @service.post(validator=check_person)
     def data_posted(request):
-        person = get_converted('person')
+        person = get_converted(request, 'person')
         ... do the work on person ...
 
 
