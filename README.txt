@@ -109,7 +109,7 @@ required) ::
             return 402, 'You need to pay'
 
 
-    @values.get(validator='has_paid')
+    @foo.get(validator='has_paid')
     def get_value(request):
         """Returns the value.
         """
@@ -140,7 +140,9 @@ In the example below, we create a Checker that controls that the param
 
     from cornice.schemas import Checker, get_converted
 
+
     class Checker(GetChecker):
+        """When provided, the **foo** param must be an integer"""
         fields = [Integer('foo')]
 
 
