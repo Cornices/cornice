@@ -138,7 +138,7 @@ In the example below, we create a Checker that controls that the param
 **foo** in a GET request is an integer::
 
 
-    from cornice.schemas import Checker, get_converted
+    from cornice.schemas import GetChecker, get_converted
 
 
     class Checker(GetChecker):
