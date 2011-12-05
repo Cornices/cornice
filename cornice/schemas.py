@@ -38,33 +38,12 @@
 import json
 
 
-_CONVKEY = '_cornice_converted'
-
-
-def save_converted(request, name, value, forced=False):
-    """Saves the converted value in the request.
-
-    Converted values are kept in request.environ['converted']
-
-    If the value is already set a ValueError is raised,
-    unless forced is set to True : the value is updated
+def wrap_request(request):
+    """Adds a "validated" dict to the request object if it doesn't
+    already exists
     """
-    converted = request.environ.setdefault(_CONVKEY, {})
-
-    if name in converted and not forced:
-        raise ValueError('%r was already set' % name)
-
-    converted[name] = value
-
-
-def get_converted(request, name):
-    """Returns a converted value.
-
-    If the value was not set, returns a KeyError
-    """
-    if _CONVKEY not in request.environ:
-        raise KeyError(name)
-    return request.environ[_CONVKEY][name]
+    if not hasattr(request, 'validated'):
+        setattr(request, 'validated', {})
 
 
 class JsonBody(object):
@@ -73,7 +52,7 @@ class JsonBody(object):
     def __call__(self, request):
         try:
             body = json.loads(request.body)
-            save_converted(request, 'body', body)
+            request.validated['body'] = body
         except ValueError:
             return 400, 'Not a json body'
 
@@ -151,7 +130,7 @@ class FormChecker(object):
             except ValueError, e:
                 return 400, e.message
 
-            save_converted(request, field.name, value)
+            request.validated[field.name] = value
 
 
 class GetChecker(FormChecker):

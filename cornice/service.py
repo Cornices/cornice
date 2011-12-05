@@ -35,7 +35,9 @@
 # ***** END LICENSE BLOCK *****
 import functools
 import venusian
+
 from cornice.util import code2exception
+from cornice.schemas import wrap_request
 
 
 def _apply_validator(func, validator):
@@ -45,6 +47,14 @@ def _apply_validator(func, validator):
         if res is not None:
             code, detail = res
             raise code2exception(code, res)
+        return func(request)
+    return __apply
+
+
+def _apply_request_wrapper(func):
+    @functools.wraps(func)
+    def __apply(request):
+        wrap_request(request)
         return func(request)
     return __apply
 
@@ -133,6 +143,8 @@ class Service(object):
                         docstring += validator.__doc__.strip()
                     else:
                         docstring = validator.__doc__.strip()
+
+            func = _apply_request_wrapper(func)
 
             def callback(context, name, ob):
                 config = context.config.with_package(info.module)

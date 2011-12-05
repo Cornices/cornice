@@ -1,7 +1,7 @@
 from pyramid.config import Configurator
 
 from cornice import Service
-from cornice.schemas import *
+from cornice.schemas import *  # NOQA
 
 
 class Checker(GetChecker):
@@ -20,7 +20,7 @@ def has_payed(request):
 def get1(request):
     res = {"test": "succeeded"}
     try:
-        res['foo'] = get_converted(request, 'foo')
+        res['foo'] = request.validated['foo']
     except KeyError:
         pass
 
