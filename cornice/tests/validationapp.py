@@ -13,7 +13,7 @@ service = Service(name="service", path="/service")
 
 def has_payed(request):
     if not 'paid' in request.GET:
-        return 402, 'You must pay!'
+        request.errors.add('body', 'paid', 'You must pay!')
 
 
 @service.get(validator=(Checker(), has_payed))

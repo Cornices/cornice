@@ -1,5 +1,5 @@
 import unittest
-import json
+import simplejson as json
 
 from webtest import TestApp
 from cornice.tests.validationapp import main

@@ -35,15 +35,32 @@
 # ***** END LICENSE BLOCK *****
 """ Validators.
 """
-import json
+import simplejson as json
 
 
 def wrap_request(request):
-    """Adds a "validated" dict to the request object if it doesn't
-    already exists
+    """Adds a "validated" dict and a custom "errors" object to
+    the request object if they don't already exists
     """
     if not hasattr(request, 'validated'):
         setattr(request, 'validated', {})
+
+    if not hasattr(request, 'errors'):
+        setattr(request, 'errors', Errors(request))
+
+
+class Errors(list):
+
+    def __init__(self, request):
+        self.request = request
+        super(Errors, self).__init__()
+
+    def add(self, location, name="", description=""):
+        """Registers a new error."""
+        self.append(dict(
+            location=location,
+            name=name,
+            description=description))
 
 
 class JsonBody(object):
@@ -54,7 +71,7 @@ class JsonBody(object):
             body = json.loads(request.body)
             request.validated['body'] = body
         except ValueError:
-            return 400, 'Not a json body'
+            request.errors.add('body', description='Not a json body')
 
 
 class Field(object):
@@ -122,15 +139,14 @@ class FormChecker(object):
         for field in self.fields:
             if field.name not in form:
                 if field.required:
-                    return 400, '%r missing' % field.name
-                else:
-                    continue
-            try:
-                value = field.convert(form[field.name])
-            except ValueError, e:
-                return 400, e.message
-
-            request.validated[field.name] = value
+                    request.errors.add('body', field.name,
+                            '%r missing' % field.name)
+            else:
+                try:
+                    value = field.convert(form[field.name])
+                    request.validated[field.name] = value
+                except ValueError, e:
+                    request.errors.add('body', field.name, e.message)
 
 
 class GetChecker(FormChecker):
