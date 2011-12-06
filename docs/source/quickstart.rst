@@ -24,7 +24,6 @@ implement various methods HTTP on the path with simple decorators.
 Cornice will automatically return a 405 error with the right Allow header
 if a method that was not implemented is requested.
 
-
 For example, let's
 define a service where you can **GET** and **POST** a value at
 **/values/{value}**, where *value* is an ascii value representing the
@@ -62,4 +61,4 @@ name of the value::
         return True
 
 
-By default, Cornice uses a Json rendered.
+By default, Cornice uses a Json renderer.

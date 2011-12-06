@@ -24,7 +24,7 @@ A **full** Cornice WGSI application looks like this::
 
     _USERS = {}
 
-    @user.get(accept='text/plan'):
+    @user.get(accept='text/plain'):
     def get_user(request):
         """Returns the user"""
         uid = request.matchdict['id']
@@ -32,7 +32,7 @@ A **full** Cornice WGSI application looks like this::
             raise HTTPNotFound(uid)
         return _USERS[uid]
 
-    @user.post(validation=extract_user)
+    @user.post(validator=extract_user)
     def post_user(request):
         """Update the user"""
         user = request.validated['user']
@@ -40,6 +40,7 @@ A **full** Cornice WGSI application looks like this::
 
     def main(global_config, **settings):
         config = Configurator(settings={})
+        config.scan("example")
         config.include("cornice")
         return config.make_wsgi_app()
 
@@ -50,9 +51,9 @@ What Cornice will do for you here is:
 - automatically generate your doc via a Sphinx directive.
 - provide a validation framework that will return a nice JSON structure
   in Bad Request 400 responses explaining what's wrong.
-- provide an acceptable content-type whenver you send an HTTP "accept" header 
-  to it, resulting in a 406 NOT ACCEPTABLE with the list of acceptable ones
-  if it can answer.
+- provide an acceptable **content-type** whenever you send an HTTP "Accept" header 
+  to it, resulting in a *406 Not Acceptable* with the list of acceptable ones
+  if it can't answer.
 
 
 Documentation content
