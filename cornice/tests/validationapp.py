@@ -33,6 +33,22 @@ def post1(request):
     return {"body": request.body}
 
 
+service2 = Service(name="service2", path="/service2")
+
+
+@service2.get(accept="text/json")
+def get2(request):
+    return {"body": "yay!"}
+
+
+service3 = Service(name="service3", path="/service3")
+
+
+@service3.get(accept=lambda x: ('text/html',))
+def get3(request):
+    return {"body": "yay!"}
+
+
 def includeme(config):
     config.include("cornice")
     config.scan("cornice.tests.validationapp")

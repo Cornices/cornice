@@ -111,3 +111,35 @@ like this::
         """
         return 'Hello'
 
+
+Content-Type validation
+-----------------------
+
+Cornice can automatically deal with content type validation for you.
+If you want it to, you have to pass the `accept` argument to the decorator,
+like this::
+
+    @service.get(accept="text/html")
+    def foo(request):
+        return 'Foo'
+
+In case the client send a request, asking for some particular content-types
+(using the HTTP "accept" header), cornice will check that it is able to handle
+it.
+
+If not, it will return a 406 HTTP code, with the list of accepted
+content-types.
+
+The `accept` argument can either be a callable, a string or a list of accepted
+values. When a callable is specified, it is called *before* the request is
+passed to the destination function, with the `request` object as an argument.
+
+The callable should return a list of accepted content types::
+
+    def _accept(request):
+        # interact with request if needed
+        return ("text/xml", "text/json")
+
+    @service.get(accept=_accept)
+    def foo(request):
+        return 'Foo'
