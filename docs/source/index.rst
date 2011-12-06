@@ -6,43 +6,10 @@ Welcome to Cornice's documentation!
 with Pyramid, with decent default behaviors.
 
 
-A **full** Cornice WGSI application looks like this::
+A **full** Cornice WGSI application looks like this (this example is taken from
+the `demoapp project <https://github.com/mozilla-services/demoapp>`_
 
-
-    from cornice import Service
-    from pyramid.config import Configurator
-    from pyramid.httpexceptions import HTTPNotFound
-
-
-    user = Service('user', '/user/{id}', description='Users WS')
-
-    def extract_user(request):
-        try:
-            request.validated['user'] = json.dumps(request.body)
-        except ValueError:
-            request.errors.add('body', description='Invalid record')
-
-    _USERS = {}
-
-    @user.get(accept='text/plain'):
-    def get_user(request):
-        """Returns the user"""
-        uid = request.matchdict['id']
-        if uid not in _USERS:
-            raise HTTPNotFound(uid)
-        return _USERS[uid]
-
-    @user.post(validator=extract_user)
-    def post_user(request):
-        """Update the user"""
-        user = request.validated['user']
-
-
-    def main(global_config, **settings):
-        config = Configurator(settings={})
-        config.scan("example")
-        config.include("cornice")
-        return config.make_wsgi_app()
+.. literalinclude:: /../../examples/demoapp/demoapp/views.py
 
 
 What Cornice will do for you here is:
