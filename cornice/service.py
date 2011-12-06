@@ -35,7 +35,6 @@
 # ***** END LICENSE BLOCK *****
 import functools
 import venusian
-from webob.exc import HTTPBadRequest
 import simplejson as json
 
 from cornice.schemas import wrap_request
@@ -46,7 +45,11 @@ def _apply_validator(func, validator):
     def __apply(request):
         validator(request)
         if len(request.errors) > 0:
-            raise HTTPBadRequest(json.dumps(request.errors, use_decimal=True))
+            request.response.status = 400
+            request.response.content_type = "application/json"
+            request.response.body = json.dumps(request.errors,
+                    use_decimal=True)
+            return request.response
         return func(request)
     return __apply
 

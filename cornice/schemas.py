@@ -51,16 +51,30 @@ def wrap_request(request):
 
 class Errors(list):
 
-    def __init__(self, request):
+    def __init__(self, request=None):
         self.request = request
         super(Errors, self).__init__()
 
-    def add(self, location, name="", description=""):
+    def add(self, location, name=None, description=None):
         """Registers a new error."""
         self.append(dict(
             location=location,
             name=name,
             description=description))
+
+    @classmethod
+    def from_json(cls, string):
+        """Transforms a json string into an `Errors` instance"""
+        return Errors.from_list(json.loads(string))
+
+    @classmethod
+    def from_list(cls, object):
+        """Transforms a python list into an `Errors` instance"""
+        errors = Errors()
+        for error in object:
+            errors.add(error['location'], error['name'],
+                    error['description'])
+        return errors
 
 
 class JsonBody(object):
