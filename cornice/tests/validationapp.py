@@ -2,6 +2,7 @@ from pyramid.config import Configurator
 
 from cornice import Service
 from cornice.schemas import *  # NOQA
+from cornice.tests import CatchErrors
 
 
 class Checker(GetChecker):
@@ -40,4 +41,4 @@ def includeme(config):
 def main(global_config, **settings):
     config = Configurator(settings={})
     config.include(includeme)
-    return config.make_wsgi_app()
+    return CatchErrors(config.make_wsgi_app())
