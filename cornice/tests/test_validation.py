@@ -1,16 +1,16 @@
 import unittest
-import json
+import simplejson as json
 
 from webtest import TestApp
-from webtest.app import AppError
 from cornice.tests.validationapp import main
+from cornice.schemas import Errors
 
 
 class TestServiceDefinition(unittest.TestCase):
 
     def test_validation(self):
         app = TestApp(main({}))
-        app.get('/service', status=402)
+        app.get('/service', status=400)
 
         res = app.post('/service', params='buh', status=400)
         self.assertTrue('Not a json body' in res.body)
@@ -26,7 +26,11 @@ class TestServiceDefinition(unittest.TestCase):
         self.assertEqual(res.json['foo'], 1)
 
         # invalid value for foo
-        self.assertRaises(AppError, app.get, '/service?foo=buh&paid=yup')
+        res = app.get('/service?foo=buh&paid=yup', status=400)
+
+        # check that json is returned
+        errors = Errors.from_json(res.body)
+        self.assertEqual(len(errors), 1)
 
         # let's see the docstring !
         apidocs = app.app.registry.settings['apidocs']
