@@ -45,11 +45,11 @@ def _apply_validator(func, validator):
     def __apply(request):
         validator(request)
         if len(request.errors) > 0:
-            request.response.status = 400
-            request.response.content_type = "application/json"
-            request.response.body = json.dumps(request.errors,
-                    use_decimal=True)
-            return request.response
+            resp = request.response
+            resp.status = 400
+            resp.content_type = "application/json"
+            resp.body = json.dumps(request.errors, use_decimal=True)
+            return resp
         return func(request)
     return __apply
 

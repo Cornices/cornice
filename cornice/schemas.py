@@ -68,12 +68,11 @@ class Errors(list):
         return Errors.from_list(json.loads(string))
 
     @classmethod
-    def from_list(cls, object):
+    def from_list(cls, obj):
         """Transforms a python list into an `Errors` instance"""
         errors = Errors()
-        for error in object:
-            errors.add(error['location'], error['name'],
-                    error['description'])
+        for error in obj:
+            errors.add(**error)
         return errors
 
 
