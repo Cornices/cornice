@@ -1,5 +1,4 @@
 # ***** BEGIN LICENSE BLOCK *****
-
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
 # The contents of this file are subject to the Mozilla Public License Version
@@ -93,10 +92,10 @@ def rst2node(data):
 
 
 def json_renderer(helper):
-    return JsonRenderer()
+    return _JsonRenderer()
 
 
-class JsonRenderer(object):
+class _JsonRenderer(object):
     def __call__(self, data, context):
         response = context['request'].response
         response.content_type = 'application/json'

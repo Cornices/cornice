@@ -143,8 +143,8 @@ class FormChecker(object):
                             '%r missing' % field.name)
             else:
                 try:
-                    value = field.convert(form[field.name])
-                    request.validated[field.name] = value
+                    request.validated[field.name] = \
+                            field.convert(form[field.name])
                 except ValueError, e:
                     request.errors.add('body', field.name, e.message)
 
