@@ -24,7 +24,7 @@ A **full** Cornice WGSI application looks like this::
 
     _USERS = {}
 
-    @user.get():
+    @user.get(accept='text/plan'):
     def get_user(request):
         """Returns the user"""
         uid = request.matchdict['id']
@@ -50,6 +50,9 @@ What Cornice will do for you here is:
 - automatically generate your doc via a Sphinx directive.
 - provide a validation framework that will return a nice JSON structure
   in Bad Request 400 responses explaining what's wrong.
+- provide an acceptable content-type whenver you send an HTTP "accept" header 
+  to it, resulting in a 406 NOT ACCEPTABLE with the list of acceptable ones
+  if it can answer.
 
 
 Documentation content
