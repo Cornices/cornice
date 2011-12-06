@@ -140,7 +140,7 @@ class Service(object):
 
                 if validator.__doc__ is not None:
                     if docstring is not None:
-                        docstring += validator.__doc__.strip()
+                        docstring += '\n' + validator.__doc__.strip()
                     else:
                         docstring = validator.__doc__.strip()
 

@@ -62,3 +62,15 @@ Documentation content
    validation
    sphinx
    testing
+
+
+Contribution & Feedback
+-----------------------
+
+Cornice is a project initiated at Mozilla Services, where we build Web 
+Services for features like Firefox Sync.
+
+We welcome Contributors and Feedback !
+
+- Developers Mailing List: https://mail.mozilla.org/listinfo/services-dev
+- Repository: https://github.com/mozilla-services/cornice
