@@ -42,16 +42,19 @@ class TestServiceDefinition(unittest.TestCase):
         app = TestApp(main({}))
 
         # requesting the wrong accept header should return a 406 ...
-        res = app.get('/service2', headers={'accept': 'audio/*'}, status=406)
+        res = app.get('/service2', headers={'Accept': 'audio/*'}, status=406)
 
         # ... with the list of accepted content-types
         self.assertTrue('text/json' in res.json)
 
-        app.get('/service2', headers={'accept': 'text/*'}, status=200)
+        app.get('/service2', headers={'Accept': 'text/*'}, status=200)
+
+        # it should also work with multiple Accept headers
+        app.get('/service2', headers={'Accept': 'audio/*, text/*'}, status=200)
 
         # test that using a callable to define what's accepted works as well
-        app.get('/service3', headers={'accept': 'audio/*'}, status=406)
-        app.get('/service3', headers={'accept': 'text/*'}, status=200)
+        app.get('/service3', headers={'Accept': 'audio/*'}, status=406)
+        app.get('/service3', headers={'Accept': 'text/*'}, status=200)
 
         # if we are not asking for a particular content-type, everything
         # should work just fine
