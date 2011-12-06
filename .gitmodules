@@ -1,0 +1,3 @@
+[submodule "examples/demoapp"]
+	path = examples/demoapp
+	url = git@github.com:mozilla-services/demoapp.git
