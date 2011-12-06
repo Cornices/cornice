@@ -3,15 +3,14 @@ Validation
 
 Cornice provides a *validator* option that you can use to control the request
 before it's passed to the code. A validator is a simple callable that gets
-the request object and fills **request.error** in case the request has some
+the request object and fills **request.errors** in case the request has some
 errors.
 
 Validators can also convert values and saves them so they can be reused
 by the code. This is done by filling the **request.validated** dictionary.
 
 Let's take an example: we want to make sure the incoming request has an
-**X-Paid** header. If not, we want the server to return a 402 (payment
-required) ::
+**X-Verified** header. If not, we want the server to return a 400::
 
 
     from cornice import Service
@@ -20,8 +19,8 @@ required) ::
 
 
     def has_paid(request):
-        if not 'X-Paid' in request.headers:
-            request.errors.add('header', 'X-Paid', 'You need to pay')
+        if not 'X-Verified' in request.headers:
+            request.errors.add('header', 'X-Verified', 'You need to provied a token')
 
 
     @foo.get(validator=has_paid)
