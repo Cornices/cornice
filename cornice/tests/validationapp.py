@@ -5,10 +5,6 @@ from cornice.schemas import *  # NOQA
 from cornice.tests import CatchErrors
 
 
-class Checker(GetChecker):
-    fields = [Integer('foo')]
-
-
 service = Service(name="service", path="/service")
 
 
@@ -17,7 +13,16 @@ def has_payed(request):
         request.errors.add('body', 'paid', 'You must pay!')
 
 
-@service.get(validator=(Checker(), has_payed))
+def foo_int(request):
+    if 'foo' not in request.GET:
+        return
+    try:
+        request.validated['foo'] = int(request.GET['foo'])
+    except ValueError:
+        request.errors.add('url', 'foo', 'Not an int')
+
+
+@service.get(validator=(has_payed, foo_int))
 def get1(request):
     res = {"test": "succeeded"}
     try:
@@ -28,7 +33,15 @@ def get1(request):
     return res
 
 
-@service.post(validator=JsonBody())
+def _json(request):
+    """The request body should be a JSON object."""
+    try:
+        request.validated['json'] = json.loads(request.body)
+    except ValueError:
+        request.errors.add('body', 'json', 'Not a json body')
+
+
+@service.post(validator=_json)
 def post1(request):
     return {"body": request.body}
 
