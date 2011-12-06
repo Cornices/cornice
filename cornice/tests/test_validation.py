@@ -2,19 +2,19 @@ import unittest
 import json
 
 from webtest import TestApp
-from cornice.tests.validationapp import main
 from webtest.app import AppError
+from cornice.tests.validationapp import main
 
 
 class TestServiceDefinition(unittest.TestCase):
 
     def test_validation(self):
         app = TestApp(main({}))
+        app.get('/service', status=402)
 
-        # 413
-        self.assertRaises(AppError, app.get, '/service')
+        res = app.post('/service', params='buh', status=400)
+        self.assertTrue('Not a json body' in res.body)
 
-        self.assertRaises(AppError, app.post, '/service', params='buh')
         res = app.post('/service', params=json.dumps('buh'))
 
         self.assertEqual(res.body, json.dumps({'body': '"buh"'}))

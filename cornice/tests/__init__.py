@@ -33,3 +33,20 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
+from webob.dec import wsgify
+from webob import exc
+from pyramid.httpexceptions import HTTPException
+
+
+class CatchErrors(object):
+    def __init__(self, app):
+        self.app = app
+        if hasattr(app, 'registry'):
+            self.registry = app.registry
+
+    @wsgify
+    def __call__(self, request):
+        try:
+            return request.get_response(self.app)
+        except (exc.HTTPException, HTTPException), e:
+            return e

@@ -42,6 +42,7 @@ from pyramid import testing
 from pyramid.exceptions import HTTPNotFound
 
 from cornice import Service
+from cornice.tests import CatchErrors
 
 
 service1 = Service(name="service1", path="/service1")
@@ -81,13 +82,14 @@ class TestServiceDefinition(unittest.TestCase):
         testing.tearDown()
 
     def test_basic_service_operation(self):
-        app = self.config.make_wsgi_app()
+        app = CatchErrors(self.config.make_wsgi_app())
 
         # An unknown URL raises HTTPNotFound
         def start_response(status, headers, exc_info=None):
             pass
         req = make_request(PATH_INFO="/unknown")
-        self.assertRaises(HTTPNotFound, app, req.environ, start_response)
+        res = app(req.environ, start_response)
+        self.assertTrue(res[0].startswith('404'))
 
         # A request to the service calls the apppriate view function.
         req = make_request(PATH_INFO="/service1")
