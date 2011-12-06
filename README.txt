@@ -86,14 +86,11 @@ Validation
 
 Cornice provides a *validator* option that you can use to control the request
 before it's passed to the code. A validator is a simple callable that gets
-the request object and returns an HTTP Error code followed by an explanation
-in case the request does not comply.
-
-When it returns nothing, the request is considered valid.
+the request object and fills **request.error** in case the request has some
+errors.
 
 Validators can also convert values and saves them so they can be reused
-by the code. This is done with the **save_converted**, **get_converted**
-functions from the **cornice.schemas** module.
+by the code. This is done by filling the **request.validated** dictionary.
 
 Let's take an example: we want to make sure the incoming request has an
 **X-Paid** header. If not, we want the server to return a 402 (payment
@@ -104,70 +101,21 @@ required) ::
 
     foo = Service(name='foo', path='/foo')
 
+
     def has_paid(request):
         if not 'X-Paid' in request.headers:
-            return 402, 'You need to pay'
+            request.errors.add('header', 'X-Paid', 'You need to pay')
 
 
-    @foo.get(validator='has_paid')
+    @foo.get(validator=has_paid)
     def get_value(request):
         """Returns the value.
         """
         return 'Hello'
 
 
-Cornice comes with built-in validators:
-
-- **JsonBody**: makes sure a POST body is a Json object
-- **GetChecker**: checks the params for a GET
-- **PostChecker**: checks a POST form
-
 Notice that you can chain the validators by passing a sequence
 to the **validator** option.
-
-**GetChecker** and **PostChecker** are classes you can use to control
-a request params. The classes have a **fields** attribute you
-can fill with fields you expect in the request to have.
-
-Each field is defined by a Field object. Cornice defines one built-in
-field object: **Integer**. This field makes sure the value is an
-integer then saves it with **save_converted**.
-
-
-In the example below, we create a Checker that controls that the param
-**foo** in a GET request is an integer::
-
-
-    from cornice.schemas import GetChecker, get_converted
-
-
-    class Checker(GetChecker):
-        """When provided, the **foo** param must be an integer"""
-        fields = [Integer('foo')]
-
-
-    service = Service(name="service", path="/service")
-
-
-    def has_payed(request):
-        if not 'paid' in request.GET:
-            return 402, 'You must pay!'
-
-
-    @service.get(validator=(Checker(), has_payed))
-    def get1(request):
-        res = {"test": "succeeded"}
-        try:
-            res['foo'] = get_converted(request, 'foo')
-        except KeyError:
-            pass
-
-        return res
-
-
-The **get1** function uses two validators here, and grabs back the **foo**
-value that was converted by the **Checker** validator. Notice that the
-**foo** option is optional here.
 
 
 Colander integration
@@ -192,21 +140,23 @@ Here's how you can do::
       try:
           person = json.loads(request)
       except ValueError:
-          return 400, 'Bad Json data!'
+          request.errors.append('body', 'person', 'Bad Json data!')
+          # let's quit
+          return
 
       schema = Person()
       try:
           deserialized = schema.deserialized(person)
       except InvalidError, e:
            # the struct is invalid
-           return 400, e.message
-
-      save_converted(request, 'person', deserialized)
+           request.errors.append('body', 'person', e.message)
+      else:
+           request.validated['person'] = deserialized
 
 
     @service.post(validator=check_person)
     def data_posted(request):
-        person = get_converted(request, 'person')
+        person = request['validated'] = 'person'
         ... do the work on person ...
 
 
@@ -214,3 +164,32 @@ Here, Colander takes care of validating the data against its
 schema then converting it into an object you can work with
 in your code.
 
+
+FormEncode integration
+----------------------
+
+FormEncode (http://www.formencode.org/en/latest/index.html) is yet another
+validation system that can be used with Cornice.
+
+For example, if you want to make sure the optional query option **max**
+is an integer, and convert it, you can use FormEncode in a Cornice validator
+like this::
+
+
+    from cornice import Service
+    from formencode import validators
+
+    foo = Service(name='foo', path='/foo')
+    validator = validators.Int()
+
+    def validate(request):
+        try:
+            request.validated['max'] = validator.to_python(request.GET['max'])
+        except formencode.Invalid, e:
+            request.errors.add('url', 'max', e.message)
+
+    @foo.get(validator=validate)
+    def get_value(request):
+        """Returns the value.
+        """
+        return 'Hello'
