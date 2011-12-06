@@ -62,6 +62,43 @@ def _apply_request_wrapper(func):
     return __apply
 
 
+def _apply_accept(func, accept):
+    """
+    Decorator checking that the accept headers sent by the client
+    match what can be handled by the function, if specified.
+
+    If not, returns a HTTP 406 NOT ACCEPTABLE with the list of available
+    choices
+    """
+
+    @functools.wraps(func)
+    def __apply(request):
+        # only check if the client is sending an accept header
+        if not 'accept' in request.headers:
+            return func(request)
+
+        if callable(accept):
+            acceptable = accept(request)
+        else:
+            acceptable = accept
+
+        if not isinstance(acceptable, (list, tuple)):
+            acceptable = (acceptable,)
+
+        # does it comply with the headers sent by the client?
+        best_match = request.accept.best_match(acceptable)
+        if best_match:
+            return func(request)
+        else:
+            # if not, return the list of accepted headers
+            resp = request.response
+            resp.status = 406
+            resp.content_type = "application/json"
+            resp.body = json.dumps(acceptable)
+            return resp
+    return __apply
+
+
 class Service(object):
     def __init__(self, **kw):
         self.name = kw.pop('name')
@@ -146,6 +183,9 @@ class Service(object):
                         docstring += validator.__doc__.strip()
                     else:
                         docstring = validator.__doc__.strip()
+
+            if 'accept' in _api_kw:
+                func = _apply_accept(func, _api_kw.pop('accept'))
 
             func = _apply_request_wrapper(func)
 
