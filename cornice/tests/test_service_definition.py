@@ -39,7 +39,6 @@ import json
 from StringIO import StringIO
 
 from pyramid import testing
-from pyramid.exceptions import HTTPNotFound
 
 from cornice import Service
 from cornice.tests import CatchErrors
