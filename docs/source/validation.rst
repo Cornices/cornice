@@ -142,3 +142,12 @@ The callable should return a list of accepted content types::
     @service.get(accept=_accept)
     def foo(request):
         return 'Foo'
+
+Managing ACLs
+=============
+
+You can also specify a way to deal with ACLs: pass in a function that takes 
+a request and returns an ACL, and that ACL will be applied to all views 
+in the service::
+
+    foo = Service(name='foo', path='/foo', acl=_check_acls)
