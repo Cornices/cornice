@@ -1,5 +1,5 @@
 0.4 - 2011-12-07
-=======
+================
 
 - Added a way to plug validators easily.
 - Fixed documentation
