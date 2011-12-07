@@ -174,7 +174,7 @@ class Service(object):
 
         def _api(func):
             _api_kw = api_kw.copy()
-            docstring = func.__doc__
+            docstring = func.__doc__ or ""
 
             for validator in validators:
                 func = _apply_validator(func, validator)

@@ -57,7 +57,12 @@ def get2(request):
 service3 = Service(name="service3", path="/service3")
 
 
-@service3.get(accept=lambda x: ('text/html',))
+def _accept(request):
+    """Accepts text/html"""
+    return ('text/html',)
+
+
+@service3.get(accept=_accept)
 def get3(request):
     return {"body": "yay!"}
 
