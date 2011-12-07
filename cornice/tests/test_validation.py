@@ -35,7 +35,8 @@ class TestServiceDefinition(unittest.TestCase):
         # let's see the docstring !
         apidocs = app.app.registry.settings['apidocs']
         post_doc = apidocs[('/service', 'POST')]['docstring']
-        self.assertEqual(post_doc, 'The request body should be a JSON object.')
+        self.assertEqual(post_doc.strip(),
+                         'The request body should be a JSON object.')
 
     def test_accept(self):
         # tests that the accept headers are handled the proper way
