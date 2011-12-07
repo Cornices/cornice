@@ -45,12 +45,13 @@ def add_renderer_globals(event):
     event['util'] = util
 
 
-def add_apidoc(config, pattern, docstring, renderer, service):
+def add_apidoc(config, pattern, docstring, renderer, accept, service):
     apidocs = config.registry.settings.setdefault('apidocs', {})
     info = apidocs.setdefault(pattern, {})
     info['docstring'] = docstring
     info['renderer'] = renderer
     info['service'] = service
+    info['accept'] = accept
 
 
 def _notfound(request):

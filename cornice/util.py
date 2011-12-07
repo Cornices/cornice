@@ -100,3 +100,10 @@ class _JsonRenderer(object):
         response = context['request'].response
         response.content_type = 'application/json'
         return json.dumps(data, use_decimal=True)
+
+
+def to_list(obj):
+    """Convert an object to a list if it is not already one"""
+    if not isinstance(obj, (list, tuple)):
+        obj = (obj,)
+    return obj

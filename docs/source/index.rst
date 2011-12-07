@@ -33,6 +33,7 @@ Documentation content
    validation
    sphinx
    testing
+   exampledoc
 
 
 Contribution & Feedback

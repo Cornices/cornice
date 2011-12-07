@@ -116,8 +116,23 @@ class ServiceDirective(Directive):
                 renderer = 'json'
 
             response = nodes.paragraph()
+
             response += nodes.strong(text='Response: %s' % renderer)
             method_node += response
+
+            accept = info['accept']
+            if accept is not None and not callable(accept):
+                accept_node = nodes.strong(text='Accepted content types:')
+                node_accept_list = nodes.bullet_list()
+                accept_node += node_accept_list
+
+                for item in accept:
+                    temp = nodes.list_item()
+                    temp += nodes.inline(text=item)
+                    node_accept_list += temp
+
+                method_node += accept_node
+
             service_node += method_node
 
         return service_node

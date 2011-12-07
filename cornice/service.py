@@ -38,6 +38,7 @@ import venusian
 import simplejson as json
 
 from cornice.schemas import wrap_request
+from cornice.util import to_list
 
 
 def _apply_validator(func, validator):
@@ -78,12 +79,9 @@ def _apply_accept(func, accept):
             return func(request)
 
         if callable(accept):
-            acceptable = accept(request)
+            acceptable = to_list(accept(request))
         else:
             acceptable = accept
-
-        if not isinstance(acceptable, (list, tuple)):
-            acceptable = (acceptable,)
 
         # does it comply with the headers sent by the client?
         best_match = request.accept.best_match(acceptable)
@@ -187,8 +185,14 @@ class Service(object):
                     else:
                         docstring = validator.__doc__.strip()
 
-            if 'accept' in _api_kw:
-                func = _apply_accept(func, _api_kw.pop('accept'))
+            accept = _api_kw.pop('accept', None)
+            if accept:
+                func = _apply_accept(func, accept)
+                if callable(accept):
+                    if accept.__doc__:
+                        docstring += accept.__doc__.strip()
+                else:
+                    accept = to_list(accept)
 
             func = _apply_request_wrapper(func)
 
@@ -196,7 +200,7 @@ class Service(object):
                 config = context.config.with_package(info.module)
                 self._define(config, method)
                 config.add_apidoc((self.route_pattern, method),
-                                   docstring, self.renderer, self)
+                                   docstring, self.renderer, accept, self)
                 config.add_view(view=ob, route_name=self.route_name,
                                 **_api_kw)
 
