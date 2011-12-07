@@ -112,6 +112,7 @@ class Service(object):
             self.description = None
         self.acl_factory = kw.pop('acl', None)
         self.kw = kw
+        self.index = -1
 
     def __repr__(self):
         return "<%s Service at %s>" % (self.renderer.capitalize(),
@@ -120,6 +121,8 @@ class Service(object):
     def _define(self, config, method):
         # setup the services hash if it isn't already
         services = config.registry.setdefault('cornice_services', {})
+        if self.index == -1:
+            self.index = len(services)
 
         # define the route if it isn't already
         if self.route_pattern not in services:
