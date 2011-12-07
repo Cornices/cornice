@@ -50,7 +50,8 @@ def wrap_request(request):
 
 
 class Errors(list):
-
+    """Holds Request errors
+    """
     def __init__(self, request=None):
         self.request = request
         super(Errors, self).__init__()
@@ -74,99 +75,3 @@ class Errors(list):
         for error in obj:
             errors.add(**error)
         return errors
-
-
-class JsonBody(object):
-    """The request body should be a JSON object.
-    """
-    def __call__(self, request):
-        try:
-            body = json.loads(request.body)
-            request.validated['body'] = body
-        except ValueError:
-            request.errors.add('body', description='Not a json body')
-
-
-class Field(object):
-    def __init__(self, name, required=False):
-        self.name = name
-        self.required = required
-
-    def convert(self, value):
-        return value
-
-    def get_description(self):
-        return self.name
-
-
-class Integer(Field):
-    def __init__(self, name, min=None, max=None, required=False):
-        super(Integer, self).__init__(name, required)
-        self.min = min
-        self.max = max
-
-    def convert(self, value):
-        value = int(value)
-
-        if self.min and value < self.min:
-            raise ValueError('%r is too small' % self.name)
-
-        if self.max and value > self.max:
-            raise ValueError('%r is too big' % self.name)
-
-        return value
-
-    def get_description(self):
-        desc = '%r must be an Integer.'
-        if self.min:
-            desc += ', min value: %d' % self.min
-        if self.max:
-            desc += ', max value: %d' % self.max
-        if self.required:
-            desc += ' (required)'
-
-        return desc
-
-
-class FormChecker(object):
-    fields = []
-
-    def __init__(self, description=None):
-        if description is not None:
-            self.__doc__ = description
-        else:
-            self.__doc__ = self._set_description()
-
-    def _get_form(self, request):
-        raise NotImplementedError()
-
-    def _set_description(self):
-        desc = []
-        for field in self.fields:
-            desc.append(field.get_description())
-        self.__doc__ = '\n'.join(desc).strip()
-
-    def __call__(self, request):
-        form = self._get_form(request)
-
-        for field in self.fields:
-            if field.name not in form:
-                if field.required:
-                    request.errors.add('body', field.name,
-                            '%r missing' % field.name)
-            else:
-                try:
-                    request.validated[field.name] = \
-                            field.convert(form[field.name])
-                except ValueError, e:
-                    request.errors.add('body', field.name, e.message)
-
-
-class GetChecker(FormChecker):
-    def _get_form(self, request):
-        return request.GET
-
-
-class PostChecker(FormChecker):
-    def _get_form(self, request):
-        return request.POST

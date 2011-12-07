@@ -3,15 +3,14 @@ Validation
 
 Cornice provides a *validator* option that you can use to control the request
 before it's passed to the code. A validator is a simple callable that gets
-the request object and fills **request.error** in case the request has some
+the request object and fills **request.errors** in case the request has some
 errors.
 
 Validators can also convert values and saves them so they can be reused
 by the code. This is done by filling the **request.validated** dictionary.
 
 Let's take an example: we want to make sure the incoming request has an
-**X-Paid** header. If not, we want the server to return a 402 (payment
-required) ::
+**X-Verified** header. If not, we want the server to return a 400::
 
 
     from cornice import Service
@@ -20,8 +19,8 @@ required) ::
 
 
     def has_paid(request):
-        if not 'X-Paid' in request.headers:
-            request.errors.add('header', 'X-Paid', 'You need to pay')
+        if not 'X-Verified' in request.headers:
+            request.errors.add('header', 'X-Verified', 'You need to provied a token')
 
 
     @foo.get(validator=has_paid)
@@ -113,7 +112,7 @@ like this::
 
 
 Content-Type validation
------------------------
+=======================
 
 Cornice can automatically deal with content type validation for you.
 If you want it to, you have to pass the `accept` argument to the decorator,
@@ -123,12 +122,12 @@ like this::
     def foo(request):
         return 'Foo'
 
-In case the client send a request, asking for some particular content-types
-(using the HTTP "accept" header), cornice will check that it is able to handle
-it.
+In case the client sends a request, asking for some particular content types
+(using the HTTP **Accept** header), cornice will check that it is able to 
+handle it.
 
 If not, it will return a 406 HTTP code, with the list of accepted
-content-types.
+content types.
 
 The `accept` argument can either be a callable, a string or a list of accepted
 values. When a callable is specified, it is called *before* the request is
