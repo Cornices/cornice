@@ -164,7 +164,7 @@ class Service(object):
     # the actual decorator
     def api(self, **kw):
         method = kw.get('request_method', 'GET')
-        api_kw = {}
+        api_kw = self.kw.copy()
         api_kw.update(kw)
 
         if 'renderer' not in api_kw:
