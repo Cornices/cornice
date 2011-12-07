@@ -79,9 +79,11 @@ def _apply_accept(func, accept):
             return func(request)
 
         if callable(accept):
-            acceptable = to_list(accept(request))
+            acceptable = accept(request)
         else:
             acceptable = accept
+
+        acceptable = to_list(acceptable)
 
         # does it comply with the headers sent by the client?
         best_match = request.accept.best_match(acceptable)
