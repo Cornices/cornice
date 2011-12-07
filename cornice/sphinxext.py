@@ -167,7 +167,11 @@ class ServiceDirective(Directive):
             services_node = nodes.section(ids=[services_id])
             services_node += nodes.title(text='Services')
 
-            for (path, service), methods in services.items():
+            services_ = [(service.index, path, service, methods) \
+                         for (path, service), methods in services.items()]
+            services_.sort()
+
+            for _, path, service, methods in services_:
                 services_node += self._render_service(path, service, methods)
 
             return [services_node]
