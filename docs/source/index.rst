@@ -7,7 +7,7 @@ with Pyramid, with decent default behaviors.
 
 
 A **full** Cornice WGSI application looks like this (this example is taken from
-the `demoapp project <https://github.com/mozilla-services/demoapp>`_
+the `demoapp project <https://github.com/mozilla-services/demoapp>`_)
 
 .. literalinclude:: /../../examples/demoapp/demoapp/views.py
 
