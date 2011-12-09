@@ -45,6 +45,7 @@ from cornice.tests import CatchErrors
 
 
 service1 = Service(name="service1", path="/service1")
+service2 = Service(name="service2", path="/service2")
 
 
 @service1.get()
@@ -55,6 +56,11 @@ def get1(request):
 @service1.post()
 def post1(request):
     return {"body": request.body}
+
+@service2.get()
+@service2.post()
+def get2_or_post2(request):
+    return {"test": "succeeded"}
 
 
 def make_request(**kwds):
@@ -118,5 +124,22 @@ class TestServiceDefinition(unittest.TestCase):
         # Calling the old configurator works as expected.
         app = self.config.make_wsgi_app()
         req = make_request(PATH_INFO="/service1")
+        result = json.loads("".join(app(req.environ, start_response)))
+        self.assertEquals(result["test"], "succeeded")
+
+    def test_stacking_api_decorators(self):
+        app = self.config.make_wsgi_app()
+
+        # Stacking multiple @api calls on a single function should
+        # register it multiple times, just like @view_config does.
+        def start_response(status, headers, exc_info=None):
+            pass
+
+        req = make_request(REQUEST_METHOD="GET", PATH_INFO="/service2")
+        result = json.loads("".join(app(req.environ, start_response)))
+        self.assertEquals(result["test"], "succeeded")
+
+        req = make_request(REQUEST_METHOD="POST", PATH_INFO="/service2")
+        req.environ["wsgi.input"] = StringIO("BODY")
         result = json.loads("".join(app(req.environ, start_response)))
         self.assertEquals(result["test"], "succeeded")
