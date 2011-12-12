@@ -35,10 +35,9 @@
 # ***** END LICENSE BLOCK *****
 
 import unittest
-import json
-from StringIO import StringIO
 
 from pyramid import testing
+from webtest import TestApp
 
 from cornice import Service
 from cornice.tests import CatchErrors
@@ -57,23 +56,11 @@ def get1(request):
 def post1(request):
     return {"body": request.body}
 
-@service2.get()
-@service2.post()
+
+@service2.get(accept="text/html")
+@service2.post(accept="audio/ogg")
 def get2_or_post2(request):
     return {"test": "succeeded"}
-
-
-def make_request(**kwds):
-    environ = {}
-    environ["wsgi.version"] = (1, 0)
-    environ["wsgi.url_scheme"] = "http"
-    environ["SERVER_NAME"] = "localhost"
-    environ["SERVER_PORT"] = "80"
-    environ["REQUEST_METHOD"] = "GET"
-    environ["SCRIPT_NAME"] = ""
-    environ["PATH_INFO"] = "/"
-    environ.update(kwds)
-    return testing.DummyRequest(environ=environ)
 
 
 class TestServiceDefinition(unittest.TestCase):
@@ -82,29 +69,21 @@ class TestServiceDefinition(unittest.TestCase):
         self.config = testing.setUp()
         self.config.include("cornice")
         self.config.scan("cornice.tests.test_service_definition")
+        self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
 
     def tearDown(self):
         testing.tearDown()
 
     def test_basic_service_operation(self):
-        app = CatchErrors(self.config.make_wsgi_app())
 
-        # An unknown URL raises HTTPNotFound
-        def start_response(status, headers, exc_info=None):
-            pass
-        req = make_request(PATH_INFO="/unknown")
-        res = app(req.environ, start_response)
-        self.assertTrue(res[0].startswith('404'))
+        self.app.get("/unknown", status=404)
+        self.assertEquals(
+                self.app.get("/service1").json,
+                {'test': "succeeded"})
 
-        # A request to the service calls the apppriate view function.
-        req = make_request(PATH_INFO="/service1")
-        result = json.loads("".join(app(req.environ, start_response)))
-        self.assertEquals(result["test"], "succeeded")
-
-        req = make_request(PATH_INFO="/service1", REQUEST_METHOD="POST")
-        req.environ["wsgi.input"] = StringIO("BODY")
-        result = json.loads("".join(app(req.environ, start_response)))
-        self.assertEquals(result["body"], "BODY")
+        self.assertEquals(
+                self.app.post("/service1", params="BODY").json,
+                {'body': 'BODY'})
 
     def test_loading_into_multiple_configurators(self):
         # When initializing a second configurator, it shouldn't interfere
@@ -114,32 +93,19 @@ class TestServiceDefinition(unittest.TestCase):
         config2.scan("cornice.tests.test_service_definition")
 
         # Calling the new configurator works as expected.
-        def start_response(status, headers, exc_info=None):
-            pass
-        app = config2.make_wsgi_app()
-        req = make_request(PATH_INFO="/service1")
-        result = json.loads("".join(app(req.environ, start_response)))
-        self.assertEquals(result["test"], "succeeded")
+        app = TestApp(CatchErrors(config2.make_wsgi_app()))
+        self.assertEqual(app.get("/service1").json,
+                {'test': 'succeeded'})
 
         # Calling the old configurator works as expected.
-        app = self.config.make_wsgi_app()
-        req = make_request(PATH_INFO="/service1")
-        result = json.loads("".join(app(req.environ, start_response)))
-        self.assertEquals(result["test"], "succeeded")
+        self.assertEqual(self.app.get("/service1").json,
+                {'test': 'succeeded'})
 
     def test_stacking_api_decorators(self):
-        app = self.config.make_wsgi_app()
-
         # Stacking multiple @api calls on a single function should
         # register it multiple times, just like @view_config does.
-        def start_response(status, headers, exc_info=None):
-            pass
+        resp = self.app.get("/service2")
+        self.assertEquals(resp.json, {'test': 'succeeded'})
 
-        req = make_request(REQUEST_METHOD="GET", PATH_INFO="/service2")
-        result = json.loads("".join(app(req.environ, start_response)))
-        self.assertEquals(result["test"], "succeeded")
-
-        req = make_request(REQUEST_METHOD="POST", PATH_INFO="/service2")
-        req.environ["wsgi.input"] = StringIO("BODY")
-        result = json.loads("".join(app(req.environ, start_response)))
-        self.assertEquals(result["test"], "succeeded")
+        resp = self.app.post("/service2")
+        self.assertEquals(resp.json, {'test': 'succeeded'})
