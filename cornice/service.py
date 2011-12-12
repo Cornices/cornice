@@ -56,10 +56,15 @@ def _apply_validator(func, validator):
 
 
 def _apply_request_wrapper(func):
+    #  Only wrap the view function once, even if @api is applied several times.
+    #  Otherwise we overwrite metadata attached by venusian.
+    if getattr(func, "__cornice_wrapped__", False):
+        return func
     @functools.wraps(func)
     def __apply(request):
         wrap_request(request)
         return func(request)
+    __apply.__cornice_wrapped__ = True
     return __apply
 
 
