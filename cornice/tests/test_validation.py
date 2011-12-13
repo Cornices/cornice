@@ -2,7 +2,7 @@ import unittest
 import simplejson as json
 
 from webtest import TestApp
-from cornice.tests.validationapp import main
+from cornice.tests.validationapp import main, _json
 from cornice.schemas import Errors
 
 
@@ -32,11 +32,13 @@ class TestServiceDefinition(unittest.TestCase):
         errors = Errors.from_json(res.body)
         self.assertEqual(len(errors), 1)
 
-        # let's see the docstring !
+        # the "apidocs" registry entry contains all the needed information
+        # to build up documentation
+        # in this case, this means the function is registered and the argument
+        # of the service are defined (e.g "validator" is set)
         apidocs = app.app.registry.settings['apidocs']
-        post_doc = apidocs[('/service', 'POST')]['docstring']
-        self.assertEqual(post_doc.strip(),
-                         'The request body should be a JSON object.')
+
+        self.assertEqual(apidocs[('/service', 'POST')]['validator'], _json)
 
     def test_accept(self):
         # tests that the accept headers are handled the proper way

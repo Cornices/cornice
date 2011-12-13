@@ -42,7 +42,7 @@ from docutils.parsers.rst import directives
 
 from sphinx.util.compat import Directive
 
-from cornice.util import rst2node
+from cornice.util import rst2node, to_list
 
 
 def _dedent(text):
@@ -99,6 +99,7 @@ class ServiceDirective(Directive):
         service_node = nodes.section(ids=[service_id])
         service_node += nodes.title(text='Service at %s' %
                                     service.route_name)
+
         if service.description is not None:
             service_node += rst2node(_dedent(service.description))
 
@@ -107,7 +108,36 @@ class ServiceDirective(Directive):
             method_node = nodes.section(ids=[method_id])
             method_node += nodes.title(text=method)
 
-            node = rst2node(_dedent(info['docstring']))
+            docstring = info['func'].__doc__ or ""
+
+            if 'validator' in info:
+                validators = to_list(info['validator'])
+                for validator in validators:
+                    if validator.__doc__ is not None:
+                        if docstring is not None:
+                            docstring += '\n' + validator.__doc__.strip()
+
+            if 'accept' in info:
+                accept = info['accept']
+
+                if callable(accept):
+                    if accept.__doc__ is not None:
+                        docstring += accept.__doc__.strip()
+                else:
+                    accept = to_list(accept)
+
+                    accept_node = nodes.strong(text='Accepted content types:')
+                    node_accept_list = nodes.bullet_list()
+                    accept_node += node_accept_list
+
+                    for item in accept:
+                        temp = nodes.list_item()
+                        temp += nodes.inline(text=item)
+                        node_accept_list += temp
+
+                    method_node += accept_node
+
+            node = rst2node(docstring)
             if node is not None:
                 method_node += node
 
@@ -119,19 +149,6 @@ class ServiceDirective(Directive):
 
             response += nodes.strong(text='Response: %s' % renderer)
             method_node += response
-
-            accept = info['accept']
-            if accept is not None and not callable(accept):
-                accept_node = nodes.strong(text='Accepted content types:')
-                node_accept_list = nodes.bullet_list()
-                accept_node += node_accept_list
-
-                for item in accept:
-                    temp = nodes.list_item()
-                    temp += nodes.inline(text=item)
-                    node_accept_list += temp
-
-                method_node += accept_node
 
             service_node += method_node
 

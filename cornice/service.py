@@ -33,55 +33,28 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-import functools
 import venusian
 import simplejson as json
+import functools
 
 from cornice.schemas import wrap_request
 from cornice.util import to_list
 
-
-def _apply_validator(func, validator):
-    @functools.wraps(func)
-    def __apply(request):
-        validator(request)
-        if len(request.errors) > 0:
-            resp = request.response
-            resp.status = 400
-            resp.content_type = "application/json"
-            resp.body = json.dumps(request.errors, use_decimal=True)
-            return resp
-        return func(request)
-    return __apply
+_CORNICE_ARGS = ['validator', 'accept']
 
 
-def _apply_request_wrapper(func):
-    #  Only wrap the view function once, even if @api is applied several times.
-    #  Otherwise we overwrite metadata attached by venusian.
-    if getattr(func, "__cornice_wrapped__", False):
-        return func
-    @functools.wraps(func)
-    def __apply(request):
-        wrap_request(request)
-        return func(request)
-    __apply.__cornice_wrapped__ = True
-    return __apply
+def call_service(func, api_kwargs, context, request):
 
+    wrap_request(request)
 
-def _apply_accept(func, accept):
-    """
-    Decorator checking that the accept headers sent by the client
-    match what can be handled by the function, if specified.
+    # Checking that the accept headers sent by the client
+    # match what can be handled by the function, if specified.
+    #
+    # If not, returns a HTTP 406 NOT ACCEPTABLE with the list of available
+    # choices
 
-    If not, returns a HTTP 406 NOT ACCEPTABLE with the list of available
-    choices
-    """
-
-    @functools.wraps(func)
-    def __apply(request):
-        # only check if the client is sending an accept header
-        if not 'accept' in request.headers:
-            return func(request)
+    if 'accept' in request.headers and 'accept' in api_kwargs:
+        accept = api_kwargs.get('accept')
 
         if callable(accept):
             acceptable = accept(request)
@@ -101,7 +74,17 @@ def _apply_accept(func, accept):
             resp.content_type = "application/json"
             resp.body = json.dumps(acceptable)
             return resp
-    return __apply
+
+    for validator in to_list(api_kwargs.get('validator', [])):
+        validator(request)
+        if len(request.errors) > 0:
+            resp = request.response
+            resp.status = 400
+            resp.content_type = "application/json"
+            resp.body = json.dumps(request.errors, use_decimal=True)
+            return resp
+
+    return func(request)
 
 
 class Service(object):
@@ -118,6 +101,7 @@ class Service(object):
         self.acl_factory = kw.pop('acl', None)
         self.kw = kw
         self.index = -1
+        self._definitions = {}
 
     def __repr__(self):
         return "<%s Service at %s>" % (self.renderer.capitalize(),
@@ -175,41 +159,27 @@ class Service(object):
         if 'renderer' not in api_kw:
             api_kw['renderer'] = self.renderer
 
-        validators = api_kw.pop('validator', [])
-        if not isinstance(validators, (list, tuple)):
-            validators = [validators]
-
         def _api(func):
             _api_kw = api_kw.copy()
-            docstring = func.__doc__ or ""
-
-            for validator in validators:
-                func = _apply_validator(func, validator)
-
-                if validator.__doc__ is not None:
-                    if docstring is not None:
-                        docstring += '\n' + validator.__doc__.strip()
-                    else:
-                        docstring = validator.__doc__.strip()
-
-            accept = _api_kw.pop('accept', None)
-            if accept:
-                func = _apply_accept(func, accept)
-                if callable(accept):
-                    if accept.__doc__:
-                        docstring += accept.__doc__.strip()
-                else:
-                    accept = to_list(accept)
-
-            func = _apply_request_wrapper(func)
+            self._definitions[method] = _api_kw.copy()
 
             def callback(context, name, ob):
                 config = context.config.with_package(info.module)
                 self._define(config, method)
-                config.add_apidoc((self.route_pattern, method),
-                                   docstring, self.renderer, accept, self)
-                config.add_view(view=ob, route_name=self.route_name,
-                                **_api_kw)
+                config.add_apidoc((self.route_pattern, method), func, self,
+                                  **_api_kw)
+
+                ob = functools.partial(call_service, ob,
+                                       self._definitions[method])
+
+                view_kw = _api_kw.copy()
+
+                for arg in _CORNICE_ARGS:
+                    view_kw.pop(arg, None)
+
+                setattr(ob, '__module__', 'test')
+
+                config.add_view(view=ob, route_name=self.route_name, **view_kw)
 
             info = venusian.attach(func, callback, category='pyramid')
 
