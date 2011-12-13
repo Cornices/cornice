@@ -104,8 +104,8 @@ class TestServiceDefinition(unittest.TestCase):
     def test_stacking_api_decorators(self):
         # Stacking multiple @api calls on a single function should
         # register it multiple times, just like @view_config does.
-        resp = self.app.get("/service2")
+        resp = self.app.get("/service2", headers={'Accept': 'text/html'})
         self.assertEquals(resp.json, {'test': 'succeeded'})
 
-        resp = self.app.post("/service2")
+        resp = self.app.post("/service2", headers={'Accept': 'audio/ogg'})
         self.assertEquals(resp.json, {'test': 'succeeded'})
