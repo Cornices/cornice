@@ -81,7 +81,9 @@ def call_service(func, api_kwargs, context, request):
             resp = request.response
             resp.status = 400
             resp.content_type = "application/json"
-            resp.body = json.dumps(request.errors, use_decimal=True)
+            resp.body = json.dumps({'status': 'error',
+                'errors': request.errors}, use_decimal=True)
+
             return resp
 
     return func(request)
