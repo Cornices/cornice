@@ -40,7 +40,7 @@ import functools
 from cornice.schemas import wrap_request
 from cornice.util import to_list
 
-CORNICE_ARGS = ['validator', 'accept']
+_CORNICE_ARGS = ['validator', 'accept']
 
 
 def call_service(func, api_kwargs, context, request):
@@ -174,7 +174,7 @@ class Service(object):
 
                 view_kw = _api_kw.copy()
 
-                for arg in CORNICE_ARGS:
+                for arg in _CORNICE_ARGS:
                     view_kw.pop(arg, None)
 
                 setattr(ob, '__module__', 'test')
