@@ -40,7 +40,7 @@ import functools
 from cornice.schemas import wrap_request
 from cornice.util import to_list
 
-_CORNICE_ARGS = ['validator', 'accept']
+_CORNICE_ARGS = ('validator', 'accept')
 
 
 def call_service(func, api_kwargs, context, request):
