@@ -1,17 +1,16 @@
 Full tutorial
 =============
 
-Let's create a full working application with **Cornice**.
-
-We want to create a messaging service.
+Let's create a full working application with **Cornice**. We want to 
+create a light messaging service.
 
 Features:
 
 - users can register to the service
 - users can list all registered users
-- users send messages to other users
-- users retrieve the latest messages
-- messages can be in two colors: black or red
+- users can send messages
+- users can retrieve the latest messages
+- messages have three fields: sender, content, color (red or black)
 
 Limitations:
 
@@ -39,6 +38,11 @@ XXX
 
 Defining the services
 ---------------------
+
+XXX
+
+Generating the documentation
+----------------------------
 
 XXX
 
