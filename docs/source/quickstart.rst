@@ -1,8 +1,12 @@
-QuickStart
-==========
+QuickStart for people in a hurry
+================================
+
+You are in a hurry, so we'll assume you are familiar with Pyramid ;)
+
 
 To use Cornice, start by including it in your project with the **include**
-method in Pyramid::
+method provided by Pyramid's config object::
+
 
     def main(global_config, **settings):
         ...
@@ -11,9 +15,15 @@ method in Pyramid::
         return config.make_wsgi_app()
 
 
-Learn more about include at http://docs.pylonsproject.org/projects/pyramid/1.0/narr/advconfig.html#including-configuration-from-external-sources
+This will simply point Cornice's directives to Pyramid so they're loaded.
 
-Then you can start to define web services in your views.
+.. note::
+
+    You can learn more about the include mechanism at 
+    http://docs.pylonsproject.org/projects/pyramid/1.0/narr/advconfig.html#including-configuration-from-external-sources
+
+
+Once this is done, you can start to define web services in your views.
 
 **Cornice** provides a *Service* class you can use to define web services in
 Pyramid.
