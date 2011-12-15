@@ -48,12 +48,13 @@ class TestServiceDefinition(unittest.TestCase):
         res = app.get('/service2', headers={'Accept': 'audio/*'}, status=406)
 
         # ... with the list of accepted content-types
-        self.assertTrue('text/json' in res.json)
+        self.assertTrue('application/json' in res.json)
 
-        app.get('/service2', headers={'Accept': 'text/*'}, status=200)
+        app.get('/service2', headers={'Accept': 'application/*'}, status=200)
 
         # it should also work with multiple Accept headers
-        app.get('/service2', headers={'Accept': 'audio/*, text/*'}, status=200)
+        app.get('/service2', headers={'Accept': 'audio/*, application/*'},
+                status=200)
 
         # test that using a callable to define what's accepted works as well
         app.get('/service3', headers={'Accept': 'audio/*'}, status=406)

@@ -49,7 +49,7 @@ def post1(request):
 service2 = Service(name="service2", path="/service2")
 
 
-@service2.get(accept="text/json")
+@service2.get(accept="application/json")
 def get2(request):
     return {"body": "yay!"}
 
