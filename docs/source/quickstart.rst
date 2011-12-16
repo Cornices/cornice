@@ -1,44 +1,30 @@
 QuickStart for people in a hurry
 ================================
 
-You are in a hurry, so we'll assume you are familiar with Pyramid ;)
+You are in a hurry, so we'll assume you are familiar with Pyramid, Paster, and
+Pip ;)
+
+To use Cornice, install it::
+
+    $ pip install cornice
 
 
-To use Cornice, start by including it in your project with the **include**
-method provided by Pyramid's config object::
+That'll give you a Paster template to use::
 
+    $ paster create -t cornice project
+    ...
 
-    def main(global_config, **settings):
-        ...
-        config.include("cornice")
-        ...
-        return config.make_wsgi_app()
+The template creates a working Cornice application.
 
-
-This will simply point Cornice's directives to Pyramid so they're loaded.
-
-.. note::
-
-    You can learn more about the include mechanism at 
-    http://docs.pylonsproject.org/projects/pyramid/1.0/narr/advconfig.html#including-configuration-from-external-sources
-
-
-Once this is done, you can start to define web services in your views.
-
-**Cornice** provides a *Service* class you can use to define web services in
-Pyramid.
-
-Each instance of a Service class corresponds to a server path and you may
-implement various methods HTTP on the path with simple decorators.
-
-Cornice will automatically return a 405 error with the right Allow header
-if a method that was not implemented is requested.
+You can then start to poke at the :file:`views.py` file it 
+created in the package.
 
 For example, let's
 define a service where you can **GET** and **POST** a value at
 **/values/{value}**, where *value* is an ascii value representing the
-name of the value::
+name of the value.
 
+The :file:`views` module can look like this::
 
     import json
     from cornice import Service
