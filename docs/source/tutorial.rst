@@ -130,11 +130,13 @@ to add our first service - the users managment ::
 
 
 What we have here is 3 methods on **/users**:
+
 - **GET**: simply return the list of users names -- the keys of _USERS
 - **PUT**: adds a new user and returns a unique token
 - **DELETE**: removes the user.
 
 Remarks:
+
 - **PUT** uses the **unique** validator to make sure that the user
   name is not already taken. That validator is also in charge of
   generating a unique token associated with the user.
@@ -150,6 +152,8 @@ Here's their code::
 
     import os
     import binascii
+    from webob import HTTPUnauthorized
+
 
     def _create_token():
         return binascii.b2a_hex(os.urandom(20))
@@ -159,21 +163,19 @@ Here's their code::
 
         token = request.headers.get(header)
         if token is None:
-            request.errors.add('header', header, 'No token')
-            return
+            raise exc.HTTPUnauthorized()
 
         token = token.split('-')
         if len(token) != 2:
-            request.errors.add('header', header, 'Invalid')
-            return
+            raise exc.HTTPUnauthorized()
 
         user, token = token
 
         valid = user in _USERS and _USERS[user] == token
         if not valid:
-            request.errors.add('header', header, 'Invalid')
-        else:
-            request.validated['user'] = user
+            raise exc.HTTPUnauthorized()
+
+        request.validated['user'] = user
 
 
     def unique(request):
