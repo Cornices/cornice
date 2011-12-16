@@ -12,7 +12,18 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
 
 requires = ['pyramid', 'coverage', 'simplejson',
             'docutils', 'unittest2', 'Sphinx',
-            'webtest']
+            'webtest', 'Paste', 'PasteScript']
+
+entry_points = """\
+[paste.paster_create_template]
+cornice=cornice.template:AppTemplate
+"""
+
+package_data = {
+  "cornice.template":
+    ["cornice/*.*",
+     "cornice/+package+/*.*",
+     "cornice/+package+/tests/*.*"]}
 
 
 setup(name='cornice',
@@ -25,11 +36,13 @@ setup(name='cornice',
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
         ],
+      entry_points=entry_points,
       author='Mozilla Services',
       author_email='services-dev@mozilla.org',
       url='https://github.com/mozilla-services/cornice',
       keywords='web pyramid pylons',
       packages=find_packages(),
+      package_data=package_data,
       include_package_data=True,
       zip_safe=False,
       install_requires=requires,

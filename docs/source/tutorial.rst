@@ -34,7 +34,59 @@ We'll provide a single CLI client in Python
 Setting up the development environment
 --------------------------------------
 
-XXX
+To create this application, we'll use Python 2.7. Make sure you 
+have it on your system, then install **virtualenv** (see 
+http://pypi.python.org/pypi/virtualenv.)
+
+Create a new directory and a virtualenv in it::
+
+    $ mkdir messaging
+    $ cd messaging
+    $ virtualenv --no-site packages --distribute .
+
+Once you have it, install Cornice in it with Pip::
+
+    $ bin/pip install Cornice
+
+Cornice provides a Paster Template you can use to create a new
+application::
+
+    $ bin/paster create -t cornice messaging
+    Selected and implied templates:
+    cornice#cornice  A Cornice application
+
+    Variables:
+    egg:      messaging
+    package:  messaging
+    project:  messaging
+    Enter appname (Application name) ['']: Messaging
+    Enter description (One-line description of the project) ['']: A simple messaging service.
+    Enter author (Author name) ['']: Tarek
+    Creating template cornice
+    ...
+    Generating Application...
+    Running python2.7 setup.py egg_info
+
+
+Once your application is generated, go there and call *develop* against it::
+
+    $ cd messaging
+    $ ../bin/python setup.py develop
+    ...
+
+The application can now be launched via Paster, it provides a default "Hello"
+service check::
+
+    $ cd messaging
+    $ ../bin/paster serve messaging.ini
+    Starting server in PID 7618.
+    serving on 0.0.0.0:5000 view at http://127.0.0.1:5000
+
+Once the application is running, visit http://127.0.0.1:5000 in your browser or
+Curl and make sure you get::
+
+    {'Hello': 'World'}
+
 
 Defining the services
 ---------------------
