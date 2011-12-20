@@ -4,6 +4,8 @@ Full tutorial
 Let's create a full working application with **Cornice**. We want to
 create a light messaging service.
 
+You can find its whole source code at https://github.com/mozilla-services/cornice/blob/master/examples/messaging
+
 Features:
 
 - users can register to the service
@@ -287,15 +289,70 @@ with the token control.
 Generating the documentation
 ----------------------------
 
-XXX
+Now that we have a nifty web application, let's add some doc.
+
+Go back to the root of your project and install Sphinx::
+
+    $ bin/pip install Sphinx
+
+Then create a Sphinx structure with **sphinx-quickstart**::
+
+
+    $ mkdir docs
+    $ sphinx-quickstart
+    Welcome to the Sphinx 1.0.7 quickstart utility.
+
+    ..
+
+    Enter the root path for documentation.
+    > Root path for the documentation [.]: docs
+    ...
+    > Separate source and build directories (y/N) [n]: y
+    ...
+    > Project name: Messaging
+    > Author name(s): Tarek
+    ...
+    > Project version: 1.0
+    ...
+    > Create Makefile? (Y/n) [y]:
+    > Create Windows command file? (Y/n) [y]:
+
+
+Once the initial structure is created, we need to declare the Cornice
+extension, by editing the :file:`source/conf.py` file. We want to change
+**extensions = []** into::
+
+    import cornice
+    sys.path.insert(0, os.path.abspath(cornice.__file__))
+    extensions = ['cornice.sphinxext']
+
+
+The last step is to document your services by editing the
+:file:`source/index.rst` file like this::
+
+    Welcome to Messaging's documentation!
+    =====================================
+
+    .. services::
+       :package: messaging
+
+
+The **services** directive is told to look at the services in the **messaging**
+package. When the documentation is built, you will get a nice
+output of all the services we've described earlier.
+
 
 The Client
 ----------
 
-XXX
+A simple client to use against our service can do three things:
 
-Wrapping up everything
-----------------------
+1. let the user register a name
+2. poll for the latest messages
+3. let the user send a message !
 
-XXX
+Without going into great details, there's a Python CLI against messaging 
+that uses Curses.  
+
+See https://github.com/mozilla-services/cornice/blob/master/examples/messaging/messaging/client.py
 
