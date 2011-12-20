@@ -1,15 +1,20 @@
 """ Cornice services.
 """
-from cornice import Service
 import os
 import binascii
-from webob import Response, exc
-
 import json
 
+from webob import Response, exc
+from cornice import Service
+
+
 users = Service(name='users', path='/users', description="Users")
+messages = Service(name='messages', path='/', description="Messages")
+
 
 _USERS = {}
+_MESSAGES = []
+
 
 #
 # Helpers
@@ -23,7 +28,7 @@ class _401(exc.HTTPError):
         body = {'status': 401, 'message': msg}
         Response.__init__(self, json.dumps(body))
         self.status = 401
-        self.content_type='application/json'
+        self.content_type = 'application/json'
 
 
 def valid_token(request):
@@ -56,13 +61,19 @@ def unique(request):
 #
 # Services
 #
+
+#
+# User Managment
+#
+
+
 @users.get(validator=valid_token)
 def get_users(request):
     """Returns a list of all users."""
     return {'users': _USERS.keys()}
 
 
-@users.put(validator=unique)
+@users.post(validator=unique)
 def create_user(request):
     """Adds a new user."""
     user = request.validated['user']
@@ -76,3 +87,41 @@ def del_user(request):
     name = request.validated['user']['name']
     del _USERS[name]
     return {'Goodbye': name}
+
+#
+# Messages managment
+#
+
+
+def valid_message(request):
+    try:
+        message = json.loads(request.body)
+    except ValueError:
+        request.errors.add('body', 'message', 'Not valid JSON')
+        return
+
+    # make sure we have the fields we want
+    if 'text' not in message:
+        request.errors.add('body', 'text', 'Missing text')
+        return
+
+    if 'color' in message and message['color'] not in ('red', 'black'):
+        request.errors.add('body', 'color', 'only red and black supported')
+    elif 'color' not in message:
+        message['color'] = 'black'
+
+    message['user'] = request.validated['user']
+    request.validated['message'] = message
+
+
+@messages.get()
+def get_messages(request):
+    """Returns the 5 latest messages"""
+    return _MESSAGES[:5]
+
+
+@messages.post(validator=(valid_token, valid_message))
+def post_message(request):
+    """Adds a message"""
+    _MESSAGES.insert(0, request.validated['message'])
+    return {'status': 'added'}
