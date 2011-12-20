@@ -11,25 +11,27 @@ Features:
 - users can send messages
 - users can retrieve the latest messages
 - messages have three fields: sender, content, color (red or black)
-- all operations are done with authentication
+- adding a message is done through authentication
 
 Limitations:
 
 - there's a single channel for all messages.
 - if a user with the same name is already registered,
   he cannot register.
+- all messages and users are kept in memory.
+
 
 Design
 ------
 
 The application provides two services:
 
-- **users**: where you can list all users or register a new one
-- **messages**: where you can read the messages or add new ones
+- **users**, at **/users**: where you can list all users or register a new one
+- **messages**, at **/**: where you can read the messages or add new ones
 
-On the server, the data is kept in a SQLite Database.
+On the server, the data is kept in memory.
 
-We'll provide a single CLI client in Python
+We'll provide a single CLI client in Python, using Curses.
 
 
 Setting up the development environment
@@ -102,6 +104,10 @@ Let's open the file in messaging/views.py, it contains all the Services::
     def get_info(request):
         """Returns Hello in JSON."""
         return {'Hello': 'World'}
+
+
+Users managment
+:::::::::::::::
 
 
 We're going to get rid of the Hello service, and change this file in order
@@ -194,7 +200,9 @@ Let's try our application so far with CURL::
 
 
     $ curl http://localhost:5000/users
-    {"status": "error", "errors": [{"location": "header", "name": "X-Messaging-Token", "description": "No token"}]}
+    {"status": "error", "errors": [{"location": "header",
+                                    "name": "X-Messaging-Token",
+                                    "description": "No token"}]}
 
     $ curl -X PUT http://localhost:5000/users -d 'tarek'
     {"token": "tarek-a15fa2ea620aac8aad3e1b97a64200ed77dc7524"}
@@ -207,7 +215,74 @@ Let's try our application so far with CURL::
     {'Goodbye': 'tarek}
 
 
-XXX
+
+Messages managment
+::::::::::::::::::
+
+Now that we have users, let's post and get messages. This is done via two very
+simple functions we're adding in the :file:`views.py` file::
+
+
+    messages = Service(name='messages', path='/', description="Messages")
+
+    _MESSAGES = []
+
+
+    @messages.get()
+    def get_messages(request):
+        """Returns the 5 latest messages"""
+        return _MESSAGES[:5]
+
+
+    @messages.post(validator=(valid_token, valid_message))
+    def post_message(request):
+        """Adds a message"""
+        _MESSAGES.insert(0, request.validated['message'])
+        return {'status': 'added'}
+
+
+
+The first one simply returns the five first messages in a list, and the second
+one inserts a new message in the beginning of the list.
+
+The **POST** uses two validators:
+
+- :func:`valid_token`: the function we used previously that makes sure the
+  user is registered
+- :func:`valid_message`: a function that looks at the message provided in the
+  POST body, and puts it in the validated dict.
+
+
+Here's the :func:`valid_message` function::
+
+    def valid_message(request):
+        try:
+            message = json.loads(request.body)
+        except ValueError:
+            request.errors.add('body', 'message', 'Not valid JSON')
+            return
+
+        # make sure we have the fields we want
+        if 'text' not in message:
+            request.errors.add('body', 'text', 'Missing text')
+            return
+
+        if 'color' in message and message['color'] not in ('red', 'black'):
+            request.errors.add('body', 'color', 'only red and black supported')
+        elif 'color' not in message:
+            message['color'] = 'black'
+
+        message['user'] = request.validated['user']
+        request.validated['message'] = message
+
+
+This function extracts the json body, then checks that it contains a text key
+at least. It adds a color or use the one that was provided,
+and reuse the user name provided by the previous validator
+with the token control.
+
+
+
 
 Generating the documentation
 ----------------------------
