@@ -1,5 +1,10 @@
-0.5 - ?????????
+0.5 - 2011-12-21
 ================
+
+- added a tutorial
+- stacked @api decorator are now allowed
+- added a Paster template for a quick start
+
 
 0.4 - 2011-12-07
 ================
