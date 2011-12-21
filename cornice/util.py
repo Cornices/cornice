@@ -41,7 +41,7 @@ import docutils
 from webob import exc, Response
 
 
-__all__ = ['rst2html']
+__all__ = ['rst2html', 'rst2node', 'json_renderer']
 
 
 class _HTMLFragmentTranslator(HTMLTranslator):
