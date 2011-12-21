@@ -22,8 +22,7 @@ cornice=cornice.template:AppTemplate
 package_data = {
   "cornice.template":
     ["cornice/*.*",
-     "cornice/+package+/*.*",
-     "cornice/+package+/tests/*.*"]}
+     "cornice/+package+/*.*"]}
 
 
 setup(name='cornice',

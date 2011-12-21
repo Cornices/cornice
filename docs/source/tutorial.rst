@@ -82,7 +82,6 @@ Once your application is generated, go there and call *develop* against it::
 The application can now be launched via Paster, it provides a default "Hello"
 service check::
 
-    $ cd messaging
     $ ../bin/paster serve messaging.ini
     Starting server in PID 7618.
     serving on 0.0.0.0:5000 view at http://127.0.0.1:5000
