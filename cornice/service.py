@@ -38,7 +38,8 @@ import simplejson as json
 import functools
 
 from cornice.schemas import wrap_request
-from cornice.util import to_list
+from cornice.util import to_list, json_error
+
 
 _CORNICE_ARGS = ('validator', 'accept')
 
@@ -78,13 +79,7 @@ def call_service(func, api_kwargs, context, request):
     for validator in to_list(api_kwargs.get('validator', [])):
         validator(request)
         if len(request.errors) > 0:
-            resp = request.response
-            resp.status = 400
-            resp.content_type = "application/json"
-            resp.body = json.dumps({'status': 'error',
-                'errors': request.errors}, use_decimal=True)
-
-            return resp
+            return json_error(request.errors)
 
     return func(request)
 
