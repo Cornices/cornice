@@ -321,8 +321,7 @@ Once the initial structure is created, we need to declare the Cornice
 extension, by editing the :file:`source/conf.py` file. We want to change
 **extensions = []** into::
 
-    import cornice
-    sys.path.insert(0, os.path.abspath(cornice.__file__))
+    import cornice   # makes sure cornice is available
     extensions = ['cornice.sphinxext']
 
 
