@@ -38,8 +38,10 @@ from docutils import core
 from docutils.writers.html4css1 import Writer, HTMLTranslator
 import docutils
 
+from webob import exc, Response
 
-__all__ = ['rst2html']
+
+__all__ = ['rst2html', 'rst2node', 'json_renderer']
 
 
 class _HTMLFragmentTranslator(HTMLTranslator):
@@ -107,3 +109,19 @@ def to_list(obj):
     if not isinstance(obj, (list, tuple)):
         obj = (obj,)
     return obj
+
+
+class _JSONError(exc.HTTPError):
+    def __init__(self, errors, status=400):
+        body = {'status': 'error', 'errors': errors}
+        Response.__init__(self, json.dumps(body, use_decimal=True))
+        self.status = status
+        self.content_type = 'application/json'
+
+
+def json_error(errors, status=400):
+    """Returns an HTTPError with the given status and message.
+
+    The HTTP error content type is "application/json"
+    """
+    return _JSONError(errors, status)
