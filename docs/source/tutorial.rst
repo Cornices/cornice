@@ -47,7 +47,7 @@ Create a new directory and a virtualenv in it::
 
     $ mkdir messaging
     $ cd messaging
-    $ virtualenv --no-site packages --distribute .
+    $ virtualenv --no-site packages .
 
 Once you have it, install Cornice in it with Pip::
 
