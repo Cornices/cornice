@@ -34,9 +34,8 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-from webob.exc import HTTPNotFound, HTTPMethodNotAllowed
-
 from pyramid.events import BeforeRender
+from pyramid.httpexceptions import HTTPNotFound, HTTPMethodNotAllowed
 
 from cornice import util
 from cornice.service import Service   # NOQA

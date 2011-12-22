@@ -39,7 +39,8 @@ from docutils import core
 from docutils.writers.html4css1 import Writer, HTMLTranslator
 import docutils
 
-from webob import exc, Response
+from pyramid import httpexceptions as exc
+from pyramid.response import Response
 
 
 __all__ = ['rst2html', 'rst2node', 'json_renderer']
