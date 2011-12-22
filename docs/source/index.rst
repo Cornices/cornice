@@ -14,6 +14,7 @@ Documentation content
 
    quickstart
    tutorial
+   resources
    validation
    sphinx
    testing

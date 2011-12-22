@@ -39,6 +39,17 @@ from cornice import Service
 
 
 def resource(**kw):
+    """Class decorator to declare resources.
+
+    All the methods of this class named by the name of HTTP resources
+    will be used as such. You can also prefix them by "collection_" and they
+    will be treated as HTTP methods for the given collection path
+    (collection_path), if any.
+
+    Here is an example::
+
+        @resource(collection_path='/users', path='/users/{id}')
+    """
     def wrapper(klass):
         services = {}
 
@@ -85,6 +96,9 @@ def resource(**kw):
 
 
 def view(**kw):
+    """Method decorator to store view arguments when defining a resource with
+    the @resource class decorator
+    """
     def wrapper(func):
         # store view argument to use them later in @resource
         views = getattr(func, '__views__', None)
