@@ -166,17 +166,27 @@ class Service(object):
                 config.add_apidoc((self.route_pattern, method), func, self,
                                   **_api_kw)
 
-                ob = functools.partial(call_service, ob,
-                                       self._definitions[method])
-
                 view_kw = _api_kw.copy()
 
                 for arg in _CORNICE_ARGS:
                     view_kw.pop(arg, None)
 
-                setattr(ob, '__module__', 'test')
+                if 'attr' in view_kw:
+                    @functools.wraps(getattr(ob, kw['attr']))
+                    def view(request):
+                        meth = getattr(ob(request), kw['attr'])
+                        return meth()
+                    del view_kw['attr']
+                    view = functools.partial(call_service, view,
+                                       self._definitions[method])
+                else:
+                    view = functools.partial(call_service, ob,
+                                       self._definitions[method])
 
-                config.add_view(view=ob, route_name=self.route_name, **view_kw)
+                setattr(view, '__module__', getattr(ob, '__module__'))
+
+                config.add_view(view=view, route_name=self.route_name,
+                                           **view_kw)
 
             info = venusian.attach(func, callback, category='pyramid')
 
