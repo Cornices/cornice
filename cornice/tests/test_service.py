@@ -14,11 +14,10 @@
 # The Original Code is Cornice (Sagrada)
 #
 # The Initial Developer of the Original Code is the Mozilla Foundation.
-# Portions created by the Initial Developer are Copyright (C) 2010
+# Portions created by the Initial Developer are Copyright (C) 2011
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Tarek Ziade (tarek@mozilla.com)
 #   Alexis Metaireau (alexis@mozilla.com)
 #
 # Alternatively, the contents of this file may be used under the terms of
@@ -34,45 +33,41 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-from pyramid.events import BeforeRender
-from pyramid.httpexceptions import HTTPNotFound, HTTPMethodNotAllowed
 
-from cornice import util
-from cornice.service import Service   # NOQA
+import unittest
 
+from pyramid import testing
+from pyramid.httpexceptions import HTTPNotFound
+from webtest import TestApp
 
-def add_renderer_globals(event):
-    event['util'] = util
-
-
-def add_apidoc(config, pattern, func, service, **kwargs):
-    apidocs = config.registry.settings.setdefault('apidocs', {})
-    info = apidocs.setdefault(pattern, kwargs)
-    info['service'] = service
-    info['func'] = func
+from cornice import Service
+from cornice.tests import CatchErrors
 
 
-def _notfound(request):
-    match = request.matchdict
-    # the route exists, raising a 405
-    if match is not None:
-        pattern = request.matched_route.pattern
-        service = request.registry['cornice_services'].get(pattern)
-        if service is not None and\
-                request.method not in service.defined_methods:
-            res = HTTPMethodNotAllowed()
-            res.allow = service.defined_methods
-            return res
-
-    # 404
-    return request.exception
+service = Service(name="service", path="/service")
 
 
-def includeme(config):
-    """Include the Cornice definitions
-    """
-    config.add_static_view('static', 'cornice:static', cache_max_age=3600)
-    config.add_directive('add_apidoc', add_apidoc)
-    config.add_view(_notfound, context=HTTPNotFound)
-    config.add_subscriber(add_renderer_globals, BeforeRender)
-    config.add_renderer('simplejson', util.json_renderer)
+@service.get()
+def return_404(request):
+    raise HTTPNotFound()
+
+
+class TestService(unittest.TestCase):
+
+    def setUp(self):
+        self.config = testing.setUp()
+        self.config.include("cornice")
+        self.config.scan("cornice.tests.test_service")
+        self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
+
+    def tearDown(self):
+        testing.tearDown()
+
+    def test_404(self):
+        # a get on a resource that explicitely return a 404 should return
+        # 404
+        self.app.get("/service", status=404)
+
+    def test_405(self):
+        # calling a unknown verb on an existing resource should return a 405
+        self.app.post("/service", status=405)
