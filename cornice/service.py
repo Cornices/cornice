@@ -97,7 +97,10 @@ class Service(object):
             self.description = kw.pop('description')
         else:
             self.description = None
+        self.factory = kw.pop('factory', None)
         self.acl_factory = kw.pop('acl', None)
+        if self.factory and self.acl_factory:
+            raise ValueError("Cannot specify both 'acl' and 'factory'")
         self.kw = kw
         self.index = -1
         self._definitions = {}
@@ -116,7 +119,9 @@ class Service(object):
         if self.route_pattern not in services:
             services[self.route_pattern] = self
             route_kw = {}
-            if self.acl_factory is not None:
+            if self.factory is not None:
+                route_kw["factory"] = self.factory
+            elif self.acl_factory is not None:
                 route_kw["factory"] = self._make_route_factory()
             config.add_route(self.route_name, self.route_pattern, **route_kw)
 
