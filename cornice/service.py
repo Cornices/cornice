@@ -43,40 +43,12 @@ from cornice.schemas import wrap_request
 from cornice.util import to_list, json_error
 
 
-_CORNICE_ARGS = ('validator', 'accept')
+_CORNICE_ARGS = ('validator',)
 
 
 def call_service(func, api_kwargs, context, request):
 
     wrap_request(request)
-
-    # Checking that the accept headers sent by the client
-    # match what can be handled by the function, if specified.
-    #
-    # If not, returns a HTTP 406 NOT ACCEPTABLE with the list of available
-    # choices
-
-    if 'accept' in request.headers and 'accept' in api_kwargs:
-        accept = api_kwargs.get('accept')
-
-        if callable(accept):
-            acceptable = accept(request)
-        else:
-            acceptable = accept
-
-        acceptable = to_list(acceptable)
-
-        # does it comply with the headers sent by the client?
-        best_match = request.accept.best_match(acceptable)
-        if best_match:
-            return func(request)
-        else:
-            # if not, return the list of accepted headers
-            resp = request.response
-            resp.status = 406
-            resp.content_type = "application/json"
-            resp.body = json.dumps(acceptable)
-            return resp
 
     for validator in to_list(api_kwargs.get('validator', [])):
         validator(request)
@@ -100,7 +72,7 @@ class Service(object):
         self.acl_factory = kw.pop('acl', None)
         self.kw = kw
         self.index = -1
-        self._definitions = {}
+        self.definitions = {}
 
     def __repr__(self):
         return "<%s Service at %s>" % (self.renderer.capitalize(),
@@ -160,7 +132,7 @@ class Service(object):
 
         def _api(func):
             _api_kw = api_kw.copy()
-            self._definitions[method] = _api_kw.copy()
+            self.definitions[method] = _api_kw.copy()
 
             def callback(context, name, ob):
                 config = context.config.with_package(info.module)
@@ -180,15 +152,20 @@ class Service(object):
                         return meth()
                     del view_kw['attr']
                     view = functools.partial(call_service, view,
-                                       self._definitions[method])
+                                       self.definitions[method])
                 else:
                     view = functools.partial(call_service, ob,
-                                       self._definitions[method])
+                                       self.definitions[method])
 
                 setattr(view, '__module__', getattr(ob, '__module__'))
 
-                config.add_view(view=view, route_name=self.route_name,
-                                           **view_kw)
+                if 'accept' in view_kw:
+                    for accept in to_list(view_kw.pop('accept', ())):
+                        config.add_view(view=view, route_name=self.route_name,
+                                        accept=accept, **view_kw)
+                else:
+                    config.add_view(view=view, route_name=self.route_name,
+                                    **view_kw)
 
             info = venusian.attach(func, callback, category='pyramid')
 

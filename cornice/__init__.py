@@ -34,8 +34,11 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
+import json
+
 from pyramid.events import BeforeRender
 from pyramid.httpexceptions import HTTPNotFound, HTTPMethodNotAllowed
+from pyramid.exceptions import PredicateMismatch
 
 from cornice import util
 from cornice.service import Service   # NOQA
@@ -58,12 +61,28 @@ def _notfound(request):
     if match is not None:
         pattern = request.matched_route.pattern
         service = request.registry['cornice_services'].get(pattern)
-        if service is not None and\
-                request.method not in service.defined_methods:
-            res = HTTPMethodNotAllowed()
-            res.allow = service.defined_methods
-            return res
+        if service is not None:
+            if request.method not in service.defined_methods:
+                res = HTTPMethodNotAllowed()
+                res.allow = service.defined_methods
+                return res
 
+            elif isinstance(request.exception, PredicateMismatch):
+                # maybe was it the accept predicate that was not matched
+                # in this case, returns a HTTP 406 NOT ACCEPTABLE with the
+                # list of available choices
+                api_kwargs = service.definitions[request.method]
+                if 'accept' in api_kwargs:
+                    accept = api_kwargs.get('accept')
+                    acceptable = util.to_list(accept)
+
+                    if not request.accept.best_match(acceptable):
+                        # if not, return the list of accepted headers
+                        resp = request.response
+                        resp.status = 406
+                        resp.content_type = "application/json"
+                        resp.body = json.dumps(acceptable)
+                        return resp
     # 404
     return request.exception
 

@@ -36,6 +36,7 @@
 # ***** END LICENSE BLOCK *****
 
 import unittest
+import json
 
 from pyramid import testing
 from webtest import TestApp
@@ -61,6 +62,12 @@ class User(object):
     @view(renderer='json')
     def get(self):
         return USERS.get(int(self.request.matchdict['id']))
+
+    @view(renderer='json', accept='text/json')
+    #@view(renderer='jsonp', accept='application/json')
+    def collection_post(self):
+        return {'test':'yeah'}
+
 
 
 class TestResource(unittest.TestCase):
@@ -88,3 +95,12 @@ class TestResource(unittest.TestCase):
         resp = self.app.get("/users/1?callback=test")
         self.assertEquals(resp.body,
                 'test({"name": "gawel"})', resp.body)
+
+    def test_accept_headers(self):
+        # the accept headers should work even in case they're specified in a 
+        # resource method
+        self.assertEquals(
+                self.app.post("/users",
+                    headers={'Accept': 'text/json'},
+                    params=json.dumps({'test': 'yeah'})).json,
+                {'test':'yeah'})

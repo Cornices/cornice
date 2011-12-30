@@ -85,7 +85,7 @@ def post1(request):
 service2 = Service(name="service2", path="/service2")
 
 
-@service2.get(accept="application/json")
+@service2.get(accept=("application/json", "text/json"))
 def get2(request):
     return {"body": "yay!"}
 
@@ -93,12 +93,7 @@ def get2(request):
 service3 = Service(name="service3", path="/service3")
 
 
-def _accept(request):
-    """Accepts text/html"""
-    return ('text/html',)
-
-
-@service3.get(accept=_accept)
+@service3.get(accept=('text/json', 'application/json'))
 def get3(request):
     return {"body": "yay!"}
 

@@ -85,6 +85,7 @@ class TestServiceDefinition(unittest.TestCase):
 
         # ... with the list of accepted content-types
         self.assertTrue('application/json' in res.json)
+        self.assertTrue('text/json' in res.json)
 
         app.get('/service2', headers={'Accept': 'application/*'}, status=200)
 
