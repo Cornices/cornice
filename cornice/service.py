@@ -56,20 +56,18 @@ def call_service(func, api_kwargs, context, request):
 
 class Service(object):
     def __init__(self, **kw):
+        self.defined_methods = []
         self.name = kw.pop('name')
         self.route_pattern = kw.pop('path')
-        self.defined_methods = []
         self.route_name = self.route_pattern
         self.renderer = kw.pop('renderer', 'simplejson')
-        if 'description' in kw:
-            self.description = kw.pop('description')
-        else:
-            self.description = None
+        self.description = kw.pop('description', None)
         self.factory = kw.pop('factory', None)
         self.acl_factory = kw.pop('acl', None)
         if self.factory and self.acl_factory:
             raise ValueError("Cannot specify both 'acl' and 'factory'")
         self.kw = kw
+        # to keep the order in which the services have been defined
         self.index = -1
         self.definitions = {}
 
@@ -91,9 +89,10 @@ class Service(object):
                 route_kw["factory"] = self.factory
             elif self.acl_factory is not None:
                 route_kw["factory"] = self._make_route_factory()
+
             config.add_route(self.route_name, self.route_pattern, **route_kw)
 
-        # registering the method
+        # registers the method
         if method not in self.defined_methods:
             self.defined_methods.append(method)
 
@@ -107,9 +106,7 @@ class Service(object):
 
         return ACLResource
 
-    #
     # Aliases for the three most common verbs
-    #
     def post(self, **kw):
         return self.api(request_method='POST', **kw)
 
@@ -124,7 +121,7 @@ class Service(object):
 
     # the actual decorator
     def api(self, **kw):
-        method = kw.get('request_method', 'GET')
+        method = kw.get('request_method', 'GET')  # default is GET
         api_kw = self.kw.copy()
         api_kw.update(kw)
 
@@ -146,6 +143,7 @@ class Service(object):
                 for arg in _CORNICE_ARGS:
                     view_kw.pop(arg, None)
 
+                # method decorators
                 if 'attr' in view_kw:
                     @functools.wraps(getattr(ob, kw['attr']))
                     def view(request):
@@ -158,8 +156,10 @@ class Service(object):
                     view = functools.partial(call_service, ob,
                                        self.definitions[method])
 
+                # set the module of the partial function
                 setattr(view, '__module__', getattr(ob, '__module__'))
 
+                # handle accept headers as custom predicates if needed
                 if 'accept' in view_kw:
                     for accept in to_list(view_kw.pop('accept', ())):
                         _view_kw = view_kw.copy()
@@ -173,10 +173,7 @@ class Service(object):
                         else:
                             _view_kw['accept'] = accept
 
-                        config.add_view(view=view, route_name=self.route_name,
-                                        **_view_kw)
-                else:
-                    config.add_view(view=view, route_name=self.route_name,
+                config.add_view(view=view, route_name=self.route_name,
                                     **view_kw)
 
             info = venusian.attach(func, callback, category='pyramid')
