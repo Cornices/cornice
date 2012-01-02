@@ -36,19 +36,15 @@
 #
 # ***** END LICENSE BLOCK *****
 import venusian
-import simplejson as json
 import functools
 
-from cornice.schemas import wrap_request
-from cornice.util import to_list, json_error
+from cornice.util import to_list, json_error, match_accept_header
 
 
 _CORNICE_ARGS = ('validator',)
 
 
 def call_service(func, api_kwargs, context, request):
-
-    wrap_request(request)
 
     for validator in to_list(api_kwargs.get('validator', [])):
         validator(request)
@@ -166,8 +162,19 @@ class Service(object):
 
                 if 'accept' in view_kw:
                     for accept in to_list(view_kw.pop('accept', ())):
+                        _view_kw = view_kw.copy()
+
+                        predicates = view_kw.get('custom_predicates', [])
+                        if callable(accept):
+                            predicates.append(
+                                    functools.partial(match_accept_header,
+                                                      accept))
+                            _view_kw['custom_predicates'] = predicates
+                        else:
+                            _view_kw['accept'] = accept
+
                         config.add_view(view=view, route_name=self.route_name,
-                                        accept=accept, **view_kw)
+                                        **_view_kw)
                 else:
                     config.add_view(view=view, route_name=self.route_name,
                                     **view_kw)

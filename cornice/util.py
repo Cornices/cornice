@@ -127,3 +127,10 @@ def json_error(errors, status=400):
     The HTTP error content type is "application/json"
     """
     return _JSONError(errors, status)
+
+
+def match_accept_header(func, context, request):
+    acceptable = func(request)
+    # attach the accepted content types to the request
+    request.info['acceptable'] = acceptable
+    return request.accept.best_match(acceptable) is not None

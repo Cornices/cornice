@@ -36,16 +36,32 @@
 # ***** END LICENSE BLOCK *****
 import json
 
-from pyramid.events import BeforeRender
+from pyramid.events import BeforeRender, NewRequest
 from pyramid.httpexceptions import HTTPNotFound, HTTPMethodNotAllowed
 from pyramid.exceptions import PredicateMismatch
 
 from cornice import util
+from cornice.schemas import Errors
 from cornice.service import Service   # NOQA
 
 
 def add_renderer_globals(event):
     event['util'] = util
+
+
+def wrap_request(event):
+    """Adds a "validated" dict, a custom "errors" object and an "info" dict to
+    the request object if they don't already exists
+    """
+    request = event.request
+    if not hasattr(request, 'validated'):
+        setattr(request, 'validated', {})
+
+    if not hasattr(request, 'errors'):
+        setattr(request, 'errors', Errors(request))
+
+    if not hasattr(request, 'info'):
+        setattr(request, 'info', {})
 
 
 def add_apidoc(config, pattern, func, service, **kwargs):
@@ -74,7 +90,13 @@ def _notfound(request):
                 api_kwargs = service.definitions[request.method]
                 if 'accept' in api_kwargs:
                     accept = api_kwargs.get('accept')
-                    acceptable = util.to_list(accept)
+                    acceptable = [a for a in util.to_list(accept) if
+                                  not callable(a)]
+
+                    if 'acceptable' in request.info:
+                        for content_type in request.info['acceptable']:
+                            if content_type not in acceptable:
+                                acceptable.append(content_type)
 
                     if not request.accept.best_match(acceptable):
                         # if not, return the list of accepted headers
@@ -94,4 +116,5 @@ def includeme(config):
     config.add_directive('add_apidoc', add_apidoc)
     config.add_view(_notfound, context=HTTPNotFound)
     config.add_subscriber(add_renderer_globals, BeforeRender)
+    config.add_subscriber(wrap_request, NewRequest)
     config.add_renderer('simplejson', util.json_renderer)

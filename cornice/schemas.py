@@ -39,17 +39,6 @@
 import simplejson as json
 
 
-def wrap_request(request):
-    """Adds a "validated" dict and a custom "errors" object to
-    the request object if they don't already exists
-    """
-    if not hasattr(request, 'validated'):
-        setattr(request, 'validated', {})
-
-    if not hasattr(request, 'errors'):
-        setattr(request, 'errors', Errors(request))
-
-
 class Errors(list):
     """Holds Request errors
     """

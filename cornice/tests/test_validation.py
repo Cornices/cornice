@@ -94,7 +94,9 @@ class TestServiceDefinition(unittest.TestCase):
                 status=200)
 
         # test that using a callable to define what's accepted works as well
-        app.get('/service3', headers={'Accept': 'audio/*'}, status=406)
+        res = app.get('/service3', headers={'Accept': 'audio/*'}, status=406)
+        self.assertTrue('text/json' in res.json)
+
         app.get('/service3', headers={'Accept': 'text/*'}, status=200)
 
         # if we are not asking for a particular content-type, everything

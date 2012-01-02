@@ -93,7 +93,11 @@ def get2(request):
 service3 = Service(name="service3", path="/service3")
 
 
-@service3.get(accept=('text/json', 'application/json'))
+def _accept(request):
+    return ('text/json', 'application/json')
+
+
+@service3.get(accept=_accept)
 def get3(request):
     return {"body": "yay!"}
 
