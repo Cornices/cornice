@@ -36,17 +36,17 @@
 # ***** END LICENSE BLOCK *****
 import unittest
 import simplejson as json
+import warnings
 
 from webtest import TestApp
 from pyramid.response import Response
 
 from cornice.tests.validationapp import main, _json
-from cornice.tests.support import LoggingCatcher
 from cornice.schemas import Errors
 from cornice.validators import filter_json_xsrf
 
 
-class TestServiceDefinition(LoggingCatcher, unittest.TestCase):
+class TestServiceDefinition(unittest.TestCase):
 
     def test_validation(self):
         app = TestApp(main({}))
@@ -119,5 +119,8 @@ class TestServiceDefinition(LoggingCatcher, unittest.TestCase):
         resp = Response(json.dumps(('value1', 'value2')))
         resp.status = 200
         resp.content_type = 'application/json'
-        filter_json_xsrf(resp)
-        self.assertEquals(len(self.get_logs()), 1)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            filter_json_xsrf(resp)
+            self.assertEquals(len(w), 1)
