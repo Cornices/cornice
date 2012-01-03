@@ -128,7 +128,6 @@ def _notfound(request):
 def includeme(config):
     """Include the Cornice definitions
     """
-    config.add_static_view('static', 'cornice:static', cache_max_age=3600)
     config.add_directive('add_apidoc', add_apidoc)
     config.add_view(_notfound, context=HTTPNotFound)
     config.add_subscriber(add_renderer_globals, BeforeRender)
