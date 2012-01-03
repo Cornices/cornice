@@ -111,9 +111,8 @@ class ServiceDirective(Directive):
 
             docstring = info['func'].__doc__ or ""
 
-            if 'validator' in info:
-                validators = to_list(info['validator'])
-                for validator in validators:
+            if 'validators' in info:
+                for validator in info['validators']:
                     if validator.__doc__ is not None:
                         if docstring is not None:
                             docstring += '\n' + validator.__doc__.strip()

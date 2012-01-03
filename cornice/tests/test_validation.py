@@ -74,7 +74,7 @@ class TestServiceDefinition(unittest.TestCase):
         # of the service are defined (e.g "validator" is set)
         apidocs = app.app.registry.settings['apidocs']
 
-        self.assertEqual(apidocs[('/service', 'POST')]['validator'], _json)
+        self.assertTrue(_json in apidocs[('/service', 'POST')]['validators'])
 
     def test_accept(self):
         # tests that the accept headers are handled the proper way
@@ -102,3 +102,10 @@ class TestServiceDefinition(unittest.TestCase):
         # if we are not asking for a particular content-type, everything
         # should work just fine
         app.get('/service2', status=200)
+
+    def test_filters(self):
+        app = TestApp(main({}))
+
+        # filters can be applied to all the methods of a service
+        self.assertTrue("filtered response" in app.get('/filtered').body)
+        self.assertTrue("unfiltered" in app.post('/filtered').body)

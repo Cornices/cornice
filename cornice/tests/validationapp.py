@@ -58,7 +58,7 @@ def foo_int(request):
         request.errors.add('url', 'foo', 'Not an int')
 
 
-@service.get(validator=(has_payed, foo_int))
+@service.get(validators=(has_payed, foo_int))
 def get1(request):
     res = {"test": "succeeded"}
     try:
@@ -77,7 +77,7 @@ def _json(request):
         request.errors.add('body', 'json', 'Not a json body')
 
 
-@service.post(validator=_json)
+@service.post(validators=_json)
 def post1(request):
     return {"body": request.body}
 
@@ -100,6 +100,20 @@ def _accept(request):
 @service3.get(accept=_accept)
 def get3(request):
     return {"body": "yay!"}
+
+
+def _filter(response):
+    response.body = "filtered response"
+    return response
+
+# test filtered services
+filtered_service = Service(name="filtered", path="/filtered", filters=_filter)
+
+
+@filtered_service.get()
+@filtered_service.post(exclude=_filter)
+def get4(request):
+    return "unfiltered"  # should be overwritten on GET
 
 
 def includeme(config):

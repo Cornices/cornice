@@ -35,18 +35,22 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
+
 import venusian
 import functools
 
 from cornice.util import to_list, json_error, match_accept_header
+from cornice.validators import DEFAULT_VALIDATORS, DEFAULT_FILTERS
 
 
-_CORNICE_ARGS = ('validator',)
+_CORNICE_ARGS = ('validators', 'filters')
 
 
 def call_service(func, api_kwargs, context, request):
+    """Wraps the request and the response, once a route does match."""
 
-    for validator in to_list(api_kwargs.get('validator', [])):
+    # apply validators
+    for validator in api_kwargs.get('validators', []):
         validator(request)
         if len(request.errors) > 0:
             return json_error(request.errors)
@@ -106,7 +110,7 @@ class Service(object):
 
         return ACLResource
 
-    # Aliases for the three most common verbs
+    # Aliases for the most common verbs
     def post(self, **kw):
         return self.api(request_method='POST', **kw)
 
@@ -125,8 +129,29 @@ class Service(object):
         api_kw = self.kw.copy()
         api_kw.update(kw)
 
+        # sanitize the keyword arguments
         if 'renderer' not in api_kw:
             api_kw['renderer'] = self.renderer
+
+        if 'validator' in api_kw:
+            api_kw['validators'] = api_kw.pop('validator')
+
+        validators = []
+        validators.extend(to_list(api_kw.get('validators', [])))
+        validators.extend(DEFAULT_VALIDATORS)
+
+        filters = []
+        filters.extend(to_list(api_kw.get('filters', [])))
+        filters.extend(DEFAULT_FILTERS)
+
+        # excluded validators/filters
+        for item in to_list(api_kw.pop('exclude', [])):
+            for items in validators, filters:
+                if item in items:
+                    items.remove(item)
+
+        api_kw['filters'] = filters
+        api_kw['validators'] = validators
 
         def _api(func):
             _api_kw = api_kw.copy()
@@ -172,9 +197,11 @@ class Service(object):
                             _view_kw['custom_predicates'] = predicates
                         else:
                             _view_kw['accept'] = accept
-
-                config.add_view(view=view, route_name=self.route_name,
-                                    **view_kw)
+                        config.add_view(view=view, route_name=self.route_name,
+                                        **_view_kw)
+                else:
+                    config.add_view(view=view, route_name=self.route_name,
+                                        **view_kw)
 
             info = venusian.attach(func, callback, category='pyramid')
 

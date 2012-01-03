@@ -1,7 +1,7 @@
 Validation
 ==========
 
-Cornice provides a *validator* option that you can use to control the request
+Cornice provides a *validators* option that you can use to control the request
 before it's passed to the code. A validator is a simple callable that gets
 the request object and fills **request.errors** in case the request has some
 errors.
@@ -23,7 +23,7 @@ Let's take an example: we want to make sure the incoming request has an
             request.errors.add('header', 'X-Verified', 'You need to provied a token')
 
 
-    @foo.get(validator=has_paid)
+    @foo.get(validators=has_paid)
     def get_value(request):
         """Returns the value.
         """
@@ -31,7 +31,7 @@ Let's take an example: we want to make sure the incoming request has an
 
 
 Notice that you can chain the validators by passing a sequence
-to the **validator** option.
+to the **validators** option.
 
 
 Using Colander
@@ -70,7 +70,7 @@ Here's how you can do::
            request.validated['person'] = deserialized
 
 
-    @service.post(validator=check_person)
+    @service.post(validators=check_person)
     def data_posted(request):
         person = request['validated'] = 'person'
         ... do the work on person ...
@@ -104,7 +104,7 @@ like this::
         except formencode.Invalid, e:
             request.errors.add('url', 'max', e.message)
 
-    @foo.get(validator=validate)
+    @foo.get(validators=validate)
     def get_value(request):
         """Returns the value.
         """
@@ -151,3 +151,34 @@ a request and returns an ACL, and that ACL will be applied to all views
 in the service::
 
     foo = Service(name='foo', path='/foo', acl=_check_acls)
+
+
+Filtering the responses
+=======================
+
+Cornice can also filter the response returned by your views. This can be
+useful if you want to add some behaviour once a response has been issued.
+
+You can register a filter for all the services::
+
+    from cornice.validators import DEFAULT_FILTERS
+
+    def includeme(config):
+        DEFAULT_FILTERS.append(your_callable)
+
+For a service only::
+
+    foo = Service(name='foo', path='/foo', filters=your_callable)
+
+Or just for a method of a service::
+
+    @foo.get(filters=your_callable)
+    def foo_get(request):
+        pass
+
+In case you would like to register a filter for all the services but one, you
+can use the `exclude` parameter. It works either on services or on methods::
+
+    @foo.get(exclude=your_callable)
+
+Note that you can use the same parameter to exclude validators as well.
