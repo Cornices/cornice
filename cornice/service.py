@@ -173,10 +173,12 @@ class Service(object):
 
                 # method decorators
                 if 'attr' in view_kw:
+
                     @functools.wraps(getattr(ob, kw['attr']))
                     def view(request):
                         meth = getattr(ob(request), kw['attr'])
                         return meth()
+
                     del view_kw['attr']
                     view = functools.partial(call_service, view,
                                        self.definitions[method])

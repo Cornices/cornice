@@ -35,6 +35,7 @@
 #
 # ***** END LICENSE BLOCK *****
 import json
+import logging
 
 from pyramid.events import BeforeRender, NewRequest
 from pyramid.httpexceptions import HTTPNotFound, HTTPMethodNotAllowed
@@ -43,6 +44,9 @@ from pyramid.exceptions import PredicateMismatch
 from cornice import util
 from cornice.schemas import Errors
 from cornice.service import Service   # NOQA
+
+
+logger = logging.getLogger('cornice')
 
 
 def add_renderer_globals(event):
