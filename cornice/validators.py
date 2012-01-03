@@ -34,8 +34,6 @@
 #
 # ***** END LICENSE BLOCK *****
 import re
-import warnings
-import exceptions
 
 
 def filter_json_xsrf(response):
@@ -46,10 +44,11 @@ def filter_json_xsrf(response):
     """
     if response.content_type in ('application/json', 'text/json'):
         if re.match(r'[\(\[).*[\)\]]', response.body):
-            warnings.warn("returning a json array is a potential security "
+            from cornice import logger
+            logger.warn("returning a json array is a potential security "
                      "hole, please ensure you really want to do this. See "
                      "http://wiki.pylonshq.com/display/pylonsfaq/Warnings "
-                     "for more info", exceptions.RuntimeWarning)
+                     "for more info")
     return response
 
 
