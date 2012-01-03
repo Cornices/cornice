@@ -1,7 +1,7 @@
-import json
 import logging
+import re
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('cornice')
 
 
 def filter_json_xsrf(response):
@@ -11,15 +11,11 @@ def filter_json_xsrf(response):
     on this
     """
     if response.content_type in ('application/json', 'text/json'):
-        try:
-            content = json.loads(response.body)
-            if isinstance(content, (list, tuple)):
-                log.warn("returning a json array is a potential security whole, "
-                         "please ensure you really want to do this. See "
-                         "http://wiki.pylonshq.com/display/pylonsfaq/Warnings "
-                         "for more info")
-        except:
-            pass
+        if re.match(r'[\(\[).*[\)\]]', response.body):
+            log.warn("returning a json array is a potential security whole, "
+                     "please ensure you really want to do this. See "
+                     "http://wiki.pylonshq.com/display/pylonsfaq/Warnings "
+                     "for more info")
     return response
 
 
