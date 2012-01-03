@@ -34,7 +34,6 @@
 #
 # ***** END LICENSE BLOCK *****
 import json
-from cornice import logger
 
 
 def filter_json_xsrf(response):
@@ -47,6 +46,7 @@ def filter_json_xsrf(response):
         try:
             content = json.loads(response.body)
             if isinstance(content, (list, tuple)):
+                from cornice import logger
                 logger.warn("returning a json array is a potential security "
                    "hole, please ensure you really want to do this."
                    "See http://wiki.pylonshq.com/display/pylonsfaq/Warnings "
