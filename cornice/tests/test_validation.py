@@ -121,3 +121,10 @@ class TestServiceDefinition(LoggingCatcher, unittest.TestCase):
         resp.content_type = 'application/json'
         filter_json_xsrf(resp)
         self.assertEquals(len(self.get_logs()), 1)
+
+        # json lists can also start end end with spaces
+        resp = Response(" ('value1', 'value2') ")
+        resp.status = 200
+        resp.content_type = 'application/json'
+        filter_json_xsrf(resp)
+        self.assertEquals(len(self.get_logs()), 1)

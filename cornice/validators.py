@@ -43,7 +43,7 @@ def filter_json_xsrf(response):
     on this
     """
     if response.content_type in ('application/json', 'text/json'):
-        if re.match(r'[\(\[).*[\)\]]', response.body):
+        if re.match(r'\s?[\(\[).*[\)\]]\s?', response.body):
             from cornice import logger
             logger.warn("returning a json array is a potential security "
                      "hole, please ensure you really want to do this. See "
