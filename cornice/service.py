@@ -35,9 +35,10 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
+import warnings
+import functools
 
 import venusian
-import functools
 
 from cornice.util import to_list, json_error, match_accept_header
 from cornice.validators import DEFAULT_VALIDATORS, DEFAULT_FILTERS
@@ -134,6 +135,8 @@ class Service(object):
             api_kw['renderer'] = self.renderer
 
         if 'validator' in api_kw:
+            msg = "'validator' is deprecated, please use 'validators'"
+            warnings.warn(msg, DeprecationWarning)
             api_kw['validators'] = api_kw.pop('validator')
 
         validators = []
@@ -170,10 +173,12 @@ class Service(object):
 
                 # method decorators
                 if 'attr' in view_kw:
+
                     @functools.wraps(getattr(ob, kw['attr']))
                     def view(request):
                         meth = getattr(ob(request), kw['attr'])
                         return meth()
+
                     del view_kw['attr']
                     view = functools.partial(call_service, view,
                                        self.definitions[method])

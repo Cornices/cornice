@@ -33,7 +33,7 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-
+import warnings
 import unittest
 
 from pyramid import testing
@@ -71,3 +71,18 @@ class TestService(unittest.TestCase):
     def test_405(self):
         # calling a unknown verb on an existing resource should return a 405
         self.app.post("/service", status=405)
+
+    def test_warning(self):
+
+        service = Service(name='blah', path='/blah')
+        msg = "'validator' is deprecated, please use 'validators'"
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            # this should raise a warning, but work
+            @service.post(validator=())
+            def bah(req):
+                pass
+
+            self.assertEqual(msg, str(w[-1].message))
