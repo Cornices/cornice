@@ -170,17 +170,17 @@ Here's their code::
 
         token = request.headers.get(header)
         if token is None:
-            raise exc.HTTPUnauthorized()
+            raise HTTPUnauthorized()
 
         token = token.split('-')
         if len(token) != 2:
-            raise exc.HTTPUnauthorized()
+            raise HTTPUnauthorized()
 
         user, token = token
 
         valid = user in _USERS and _USERS[user] == token
         if not valid:
-            raise exc.HTTPUnauthorized()
+            raise HTTPUnauthorized()
 
         request.validated['user'] = user
 
@@ -353,4 +353,3 @@ Without going into great details, there's a Python CLI against messaging
 that uses Curses.  
 
 See https://github.com/mozilla-services/cornice/blob/master/examples/messaging/messaging/client.py
-
