@@ -35,28 +35,31 @@
 # ***** END LICENSE BLOCK *****
 
 import unittest
+import json
 
 from pyramid import testing
 from webtest import TestApp
 
 from cornice import Service
 from cornice.tests import CatchErrors
-from cornice.validators import validate_colander_schema
+from cornice.schemas import CorniceSchema
 
 from colander import MappingSchema, SchemaNode, String
+
 
 foobar = Service(name="foobar", path="/foobar")
 
 
-def FooBarSchema(MappingSchema):
+class FooBarSchema(MappingSchema):
     # foo and bar are required, baz is optional
-    foo = SchemaNode(String())
-    bar = SchemaNode(String())
-    baz = SchemaNode(String(), default=None)
+    foo = SchemaNode(String(), location="body", type='str')
+    bar = SchemaNode(String(), location="body", type='str')
+    baz = SchemaNode(String(), location="body", type='str', required=False)
+    yeah = SchemaNode(String(), location="querystring", type='str')
 
 
-@foobar.get(validators=validate_colander_schema(FooBarSchema))
-def foobar_get(request):
+@foobar.post(schema=FooBarSchema)
+def foobar_post(request):
     return {"test": "succeeded"}
 
 
@@ -71,8 +74,44 @@ class TestServiceDescription(unittest.TestCase):
     def tearDown(self):
         testing.tearDown()
 
-    def test_read_colander_schema(self):
-        # if a colander schema is given to the validators, it should be
-        # introspected and the resulting validation structure attached to the
-        # service
+    def test_get_from_colander(self):
+        schema = CorniceSchema.from_colander(FooBarSchema)
+        attrs = schema.as_dict()
+        self.assertEquals(len(attrs), 4)
 
+    def test_description_attached(self):
+        # foobar should contain a schema argument containing the cornice
+        # schema object, so it can be introspected if needed
+        self.assertTrue('POST' in foobar.schemas)
+
+    def test_schema_validation(self):
+        # using a colander shema for the service should automatically validate
+        # the request calls. Let's make some of them here
+
+        resp = self.app.post('/foobar', status=400)
+        self.assertEquals(resp.json['status'], 'error')
+
+        errors = resp.json['errors']
+        # we should at have 1 missing value in the QS...
+        self.assertEquals(1, len([e for e in errors
+                                  if e['location'] == "querystring"]))
+
+        # ... and 4 in the body (a json error as well)
+        self.assertEquals(4, len([e for e in errors
+                                  if e['location'] == "body"]))
+
+
+        # let's do the same request, but with information in the querystring
+        resp = self.app.post('/foobar?yeah=test', status=400)
+
+        # we should at have no missing value in the QS
+        self.assertEquals(0, len([e for e in resp.json['errors']
+                                  if e['location'] == "querystring"]))
+
+        # and if we add the required values in the body of the post, then we
+        # should be good
+        data = {'foo': 'yeah', 'bar': 'open', 'baz': 'baz?'}
+        resp = self.app.post('/foobar?yeah=test', params=json.dumps(data),
+                             status=200)
+
+        self.assertEquals(resp.json, {"test": "succeeded"})
