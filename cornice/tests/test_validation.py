@@ -38,11 +38,15 @@ import unittest
 import simplejson as json
 
 from webtest import TestApp
+from pyramid.response import Response
+
 from cornice.tests.validationapp import main, _json
+from cornice.tests.support import LoggingCatcher
 from cornice.schemas import Errors
+from cornice.validators import filter_json_xsrf
 
 
-class TestServiceDefinition(unittest.TestCase):
+class TestServiceDefinition(LoggingCatcher, unittest.TestCase):
 
     def test_validation(self):
         app = TestApp(main({}))
@@ -109,3 +113,18 @@ class TestServiceDefinition(unittest.TestCase):
         # filters can be applied to all the methods of a service
         self.assertTrue("filtered response" in app.get('/filtered').body)
         self.assertTrue("unfiltered" in app.post('/filtered').body)
+
+    def test_json_xsrf(self):
+        # a view returning a json list should issue a warning
+        resp = Response(json.dumps(('value1', 'value2')))
+        resp.status = 200
+        resp.content_type = 'application/json'
+        filter_json_xsrf(resp)
+        self.assertEquals(len(self.get_logs()), 1)
+
+        # json lists can also start end end with spaces
+        resp = Response(" ('value1', 'value2') ")
+        resp.status = 200
+        resp.content_type = 'application/json'
+        filter_json_xsrf(resp)
+        self.assertEquals(len(self.get_logs()), 1)
