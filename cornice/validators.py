@@ -34,7 +34,7 @@ def extract_data(request):
         request.errors.add('body', None, e.message)
         body = {}
 
-    return request.GET, request.headers, body
+    return request.GET, request.headers, body, request.matchdict
 
 
 def validate_colander_schema(schema):
@@ -57,7 +57,9 @@ def validate_colander_schema(schema):
                     else:
                         request.validated[attr.name] = deserialized
 
-        qs, headers, body = extract_data(request)
+        qs, headers, body, path = extract_data(request)
+
+        _validate_fields('path', path)
         _validate_fields('header', headers)
         _validate_fields('body', body)
         _validate_fields('querystring', qs)
