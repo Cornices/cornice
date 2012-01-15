@@ -1,6 +1,8 @@
 import json
 import logging
 
+from cornice.util import extract_request_data
+
 log = logging.getLogger(__name__)
 
 
@@ -23,20 +25,6 @@ def filter_json_xsrf(response):
     return response
 
 
-def extract_data(request):
-    """extract the different parts of the data from the request, and return
-    them as a list of (querystring, headers, body)
-    """
-    # XXX In the body, we're only handling JSON for now.
-    try:
-        body = json.loads(request.body)
-    except ValueError, e:
-        request.errors.add('body', None, e.message)
-        body = {}
-
-    return request.GET, request.headers, body, request.matchdict
-
-
 def validate_colander_schema(schema):
     """Returns a validator for colander schemas"""
     def validator(request):
@@ -57,7 +45,7 @@ def validate_colander_schema(schema):
                     else:
                         request.validated[attr.name] = deserialized
 
-        qs, headers, body, path = extract_data(request)
+        qs, headers, body, path = extract_request_data(request)
 
         _validate_fields('path', path)
         _validate_fields('header', headers)

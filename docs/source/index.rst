@@ -29,7 +29,6 @@ the `demoapp project <https://github.com/mozilla-services/demoapp>`_)
 
 .. literalinclude:: /../../examples/demoapp/demoapp/views.py
 
-
 What Cornice will do for you here is:
 
 - automatically raise a 405 if a DELETE or a PUT is called on 
@@ -42,14 +41,18 @@ What Cornice will do for you here is:
   to it, resulting in a *406 Not Acceptable* with the list of acceptable ones
   if it can't answer.
 
+You can also have a complete overview of the builtin validations provided by
+cornice in :doc:`builtin-features`
+
 
 Contribution & Feedback
 -----------------------
 
 Cornice is a project initiated at Mozilla Services, where we build Web 
-Services for features like Firefox Sync.
+Services for features like Firefox Sync. All of what we do is built with open
+source, and this is one brick of our stack.
 
-We welcome Contributors and Feedback !
+We welcome Contributors and Feedback!
 
 - Developers Mailing List: https://mail.mozilla.org/listinfo/services-dev
 - Repository: https://github.com/mozilla-services/cornice

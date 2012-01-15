@@ -134,3 +134,17 @@ def match_accept_header(func, context, request):
     # attach the accepted content types to the request
     request.info['acceptable'] = acceptable
     return request.accept.best_match(acceptable) is not None
+
+
+def extract_request_data(request):
+    """extract the different parts of the data from the request, and return
+    them as a list of (querystring, headers, body)
+    """
+    # XXX In the body, we're only handling JSON for now.
+    try:
+        body = json.loads(request.body)
+    except ValueError, e:
+        request.errors.add('body', None, e.message)
+        body = {}
+
+    return request.GET, request.headers, body, request.matchdict
