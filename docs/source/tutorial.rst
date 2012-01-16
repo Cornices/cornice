@@ -114,7 +114,7 @@ Users managment
 We're going to get rid of the Hello service, and change this file in order
 to add our first service - the users managment ::
 
-    _USERS = []
+    _USERS = {}
 
     @users.get(validator=valid_token)
     def get_users(request):
@@ -281,8 +281,6 @@ This function extracts the json body, then checks that it contains a text key
 at least. It adds a color or use the one that was provided,
 and reuse the user name provided by the previous validator
 with the token control.
-
-
 
 
 Generating the documentation
