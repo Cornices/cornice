@@ -20,6 +20,7 @@ Documentation content
    testing
    exhaustive_list
    exampledoc
+   api
 
 
 Show me some code !
