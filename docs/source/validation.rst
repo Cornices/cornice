@@ -33,6 +33,23 @@ Let's take an example: we want to make sure the incoming request has an
 Notice that you can chain the validators by passing a sequence
 to the **validators** option.
 
+Dealing with errors
+-------------------
+
+When validating inputs using the different validation mechanisms (described in
+this document),  Cornice can return errors. In case it returns errors, it will
+do so in JSON by default.
+
+The default returned JSON object is a dictionary of the following form::
+
+    {
+        'status': 'error',
+        'errors': errors.
+    }
+
+With errors being a JSON dictionary with the keys "location", "name" and
+"description".
+
 
 Using Colander
 --------------
