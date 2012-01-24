@@ -50,6 +50,11 @@ The default returned JSON object is a dictionary of the following form::
 With errors being a JSON dictionary with the keys "location", "name" and
 "description".
 
+* **location** is the location of the error. It can be "querystring", "header"
+  or "body"
+* **name** is the eventual name of the value that caused problems
+* **description** is a description of the problem encountered.
+
 
 Using Colander
 --------------
