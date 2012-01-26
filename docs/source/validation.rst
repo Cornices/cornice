@@ -13,7 +13,7 @@ called filters. This document describe both concepts, and how to deal with
 them.
 
 Disabling or adding filters/validators
---------------------------------------
+======================================
 
 Some validators and filters are activated by default, for all the services. In
 case you want to disable them, or if you 
@@ -26,6 +26,28 @@ You can register a filter for all the services::
         DEFAULT_FILTERS.append(your_callable)
 
 The example above works as well for validators.
+
+Dealing with errors
+===================
+
+When validating inputs using the different validation mechanisms (described in
+this document),  Cornice can return errors. In case it returns errors, it will
+do so in JSON by default.
+
+The default returned JSON object is a dictionary of the following form::
+
+    {
+        'status': 'error',
+        'errors': errors.
+    }
+
+With errors being a JSON dictionary with the keys "location", "name" and
+"description".
+
+* **location** is the location of the error. It can be "querystring", "header"
+  or "body"
+* **name** is the eventual name of the value that caused problems
+* **description** is a description of the problem encountered.
 
 
 Validators

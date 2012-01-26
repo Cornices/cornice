@@ -18,7 +18,9 @@ Documentation content
    validation
    sphinx
    testing
+   exhaustive_list
    exampledoc
+   api
 
 
 Show me some code !

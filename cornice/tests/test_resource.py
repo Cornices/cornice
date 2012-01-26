@@ -66,8 +66,7 @@ class User(object):
     @view(renderer='json', accept='text/json')
     #@view(renderer='jsonp', accept='application/json')
     def collection_post(self):
-        return {'test':'yeah'}
-
+        return {'test': 'yeah'}
 
 
 class TestResource(unittest.TestCase):
@@ -97,10 +96,10 @@ class TestResource(unittest.TestCase):
                 'test({"name": "gawel"})', resp.body)
 
     def test_accept_headers(self):
-        # the accept headers should work even in case they're specified in a 
+        # the accept headers should work even in case they're specified in a
         # resource method
         self.assertEquals(
                 self.app.post("/users",
                     headers={'Accept': 'text/json'},
                     params=json.dumps({'test': 'yeah'})).json,
-                {'test':'yeah'})
+                {'test': 'yeah'})

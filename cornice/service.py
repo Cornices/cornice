@@ -35,9 +35,10 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
+import warnings
+import functools
 
 import venusian
-import functools
 
 from cornice.util import to_list, json_error, match_accept_header
 from cornice.validators import (
@@ -64,6 +65,44 @@ def call_service(func, api_kwargs, context, request):
 
 
 class Service(object):
+    """Represents a service.
+
+    A service is composed of one path and several possible methods, associated
+    to python callables.
+
+    Options can be passed to a service.
+
+    :param name: the name of the service. Should be unique.
+
+    :param path: the path the service is available at. Should also be unique.
+
+    :param renderer: the renderer that should be used by this service. Default
+                     value is 'simplejson'.
+
+    :param description: the description of what the webservice does. This is
+                        primarily intended for documentation purposes.
+
+    :param validators: a list of validators (callables) to pass the request
+                       into before passing it to the callable.
+
+    :param filters: a list of filters (callables) to pass the response into
+                    before returning it to the client.
+
+    :param accept: a list of headers accepted for this service (or method if
+                   overwritten when defining a method)
+
+    :param factory: A factory returning callables that return true or false,
+                    function of the given request. Exclusive with the 'acl'
+                    option.
+
+    :param acl: a callable that define the ACL (returns true or false, function
+                of the given request. Exclusive with the 'factory' option.
+
+    See
+    http://readthedocs.org/docs/pyramid/en/1.0-branch/glossary.html#term-acl
+    for more information about ACLs.
+    """
+
     def __init__(self, **kw):
         self.defined_methods = []
         self.name = kw.pop('name')
@@ -131,6 +170,19 @@ class Service(object):
 
     # the actual decorator
     def api(self, **kw):
+        """Decorates a function to make it a service.
+
+        Options can be passed to the decorator. The methods get, post, put and
+        delete are aliases to this one, specifying the "request_method"
+        argument for convenience.
+
+        ;param request_method: the request method. Should be one of GET, POST,
+                               PUT, DELETE, OPTIONS, HEAD, TRACE or CONNECT
+
+        All the constructor options, minus name and path, can be overwritten in
+        here.
+        """
+
         method = kw.get('request_method', 'GET')  # default is GET
         api_kw = self.kw.copy()
         api_kw.update(kw)
@@ -140,6 +192,8 @@ class Service(object):
             api_kw['renderer'] = self.renderer
 
         if 'validator' in api_kw:
+            msg = "'validator' is deprecated, please use 'validators'"
+            warnings.warn(msg, DeprecationWarning)
             api_kw['validators'] = api_kw.pop('validator')
 
         validators = []
@@ -181,10 +235,12 @@ class Service(object):
 
                 # method decorators
                 if 'attr' in view_kw:
+
                     @functools.wraps(getattr(ob, kw['attr']))
                     def view(request):
                         meth = getattr(ob(request), kw['attr'])
                         return meth()
+
                     del view_kw['attr']
                     view = functools.partial(call_service, view,
                                        self.definitions[method])

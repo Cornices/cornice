@@ -114,7 +114,7 @@ Users managment
 We're going to get rid of the Hello service, and change this file in order
 to add our first service - the users managment ::
 
-    _USERS = []
+    _USERS = {}
 
     @users.get(validator=valid_token)
     def get_users(request):
@@ -170,17 +170,17 @@ Here's their code::
 
         token = request.headers.get(header)
         if token is None:
-            raise exc.HTTPUnauthorized()
+            raise HTTPUnauthorized()
 
         token = token.split('-')
         if len(token) != 2:
-            raise exc.HTTPUnauthorized()
+            raise HTTPUnauthorized()
 
         user, token = token
 
         valid = user in _USERS and _USERS[user] == token
         if not valid:
-            raise exc.HTTPUnauthorized()
+            raise HTTPUnauthorized()
 
         request.validated['user'] = user
 
@@ -283,8 +283,6 @@ and reuse the user name provided by the previous validator
 with the token control.
 
 
-
-
 Generating the documentation
 ----------------------------
 
@@ -353,4 +351,3 @@ Without going into great details, there's a Python CLI against messaging
 that uses Curses.  
 
 See https://github.com/mozilla-services/cornice/blob/master/examples/messaging/messaging/client.py
-
