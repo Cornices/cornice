@@ -45,6 +45,9 @@ The directive has two options:
   you provide when you create a **Service** class. If not given, Cornice
   will include **all** Services in the order it found them. **optional**
 
+You can use info fields (see 
+`Info field lists <http://sphinx.pocoo.org/domains.html#info-field-lists>`_)
+in your functions, methods and validators.
 
 Full example
 ------------

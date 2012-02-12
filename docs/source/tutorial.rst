@@ -116,21 +116,24 @@ to add our first service - the users managment ::
 
     _USERS = {}
 
-    @users.get(validator=valid_token)
+    @users.get(validators=valid_token)
     def get_users(request):
-        """Returns a list of all users."""
+        """Return a list of all users.
+
+        :return: list of users
+        """
         return {'users': _USERS.keys()}
 
-    @users.put(validator=unique)
+    @users.put(validators=unique)
     def create_user(request):
-        """Adds a new user."""
+        """Add a new user."""
         user = request.validated['user']
         _USERS[user['name']] = user['token']
         return {'token': '%s-%s' % (user['name'], user['token'])}
 
-    @users.delete(validator=valid_token)
+    @users.delete(validators=valid_token)
     def del_user(request):
-        """Removes the user."""
+        """Remove the user."""
         user = request.validated['user']
         del _USERS[user['name']]
         return {'goodbye': user['name']}
@@ -166,6 +169,8 @@ Here's their code::
         return binascii.b2a_hex(os.urandom(20))
 
     def valid_token(request):
+        """:raise HTTPUnauthorized: token is not valid
+        """
         header = 'X-Messaging-Token'
 
         token = request.headers.get(header)
@@ -186,6 +191,8 @@ Here's their code::
 
 
     def unique(request):
+        """:raise user_exists: This user exists!
+        """
         name = request.body
         if name in _USERS:
             request.errors.add('url', 'name', 'This user exists!')
@@ -231,13 +238,13 @@ simple functions we're adding in the :file:`views.py` file::
 
     @messages.get()
     def get_messages(request):
-        """Returns the 5 latest messages"""
+        """Return the 5 latest messages."""
         return _MESSAGES[:5]
 
 
     @messages.post(validator=(valid_token, valid_message))
     def post_message(request):
-        """Adds a message"""
+        """Add a message."""
         _MESSAGES.insert(0, request.validated['message'])
         return {'status': 'added'}
 
