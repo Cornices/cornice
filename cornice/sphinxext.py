@@ -4,53 +4,47 @@
 """
 Sphinx extension that displays the API documentation.
 """
+import sys
+
 from collections import defaultdict
 from docutils import nodes
-from docutils.parsers.rst import directives
+from docutils.parsers.rst import Directive, directives
 
-from sphinx.util.compat import Directive
+from sphinx.util.docfields import DocFieldTransformer
 
 from cornice.util import rst2node, to_list
 
 
-def _dedent(text):
-    if text is None:
-        return
+def trim(docstring):
+    """Implementation taken from
+    http://www.python.org/dev/peps/pep-0257/
+    """
+    if not docstring:
+        return ''
+    # Convert tabs to spaces (following the normal Python rules)
+    # and split into a list of lines:
+    lines = docstring.expandtabs().splitlines()
+    # Determine minimum indentation (first line doesn't count):
+    indent = sys.maxint
+    for line in lines[1:]:
+        stripped = line.lstrip()
+        if stripped:
+            indent = min(indent, len(line) - len(stripped))
+    # Remove indentation (first line is special):
+    trimmed = [lines[0].strip()]
+    if indent < sys.maxint:
+        for line in lines[1:]:
+            trimmed.append(line[indent:].rstrip())
+    # Strip off trailing and leading blank lines:
+    while trimmed and not trimmed[-1]:
+        trimmed.pop()
+    while trimmed and not trimmed[0]:
+        trimmed.pop(0)
+    # Return a single string:
+    return '\n'.join(trimmed)
 
-    text = text.strip()
-
-    # if, starting at line 2, every line starts with
-    # the same amount of space, we strip it.
-    lines = text.split('\n')
-    if len(lines) < 2 or (lines[1] != '' and len(lines[1]) == 0):
-        return text
-
-    def _space_count(line):
-        indent = 0
-        while indent < len(line) and line[indent] == ' ':
-            indent += 1
-        return indent
-
-    # first indent ?
-    first_line = 1
-    while lines[first_line] == '':
-        first_line += 1
-
-    first_indent = _space_count(lines[first_line])
-    if first_indent == 0:
-        return text
-
-    new_text = [line for line in lines[:first_line]]
-
-    # now loooking at other lines
-    for line in lines[first_line:]:
-        if line != '' and _space_count(line) < first_indent:
-            return text
-        new_text.append(line[first_indent:])
-
-    # we're good
-    return '\n'.join(new_text)
-
+from sphinx.locale import l_
+from sphinx.util.docfields import Field, GroupedField, TypedField
 
 class ServiceDirective(Directive):
     """ Service directive.
@@ -60,6 +54,26 @@ class ServiceDirective(Directive):
     has_content = True
     option_spec = {'package': directives.unchanged,
                    'service': directives.unchanged}
+    domain = 'py'
+    # copied from sphinx.domains.python.PyObject
+    doc_field_types = [
+        TypedField('parameter', label=l_('Parameters'),
+                   names=('param', 'parameter', 'arg', 'argument',
+                          'keyword', 'kwarg', 'kwparam'),
+                   typerolename='obj', typenames=('paramtype', 'type'),
+                   can_collapse=True),
+        TypedField('variable', label=l_('Variables'), rolename='obj',
+                   names=('var', 'ivar', 'cvar'),
+                   typerolename='obj', typenames=('vartype',),
+                   can_collapse=True),
+        GroupedField('exceptions', label=l_('Raises'), rolename='exc',
+                     names=('raises', 'raise', 'exception', 'except'),
+                     can_collapse=True),
+        Field('returnvalue', label=l_('Returns'), has_arg=False,
+              names=('returns', 'return')),
+        Field('returntype', label=l_('Return type'), has_arg=False,
+              names=('rtype',)),
+    ]
 
     def _render_service(self, path, service, methods):
         env = self.state.document.settings.env
@@ -69,20 +83,26 @@ class ServiceDirective(Directive):
                                     service.route_name)
 
         if service.description is not None:
-            service_node += rst2node(_dedent(service.description))
+            service_node += rst2node(trim(service.description))
 
         for method, info in methods.items():
             method_id = '%s-%s' % (service_id, method)
             method_node = nodes.section(ids=[method_id])
             method_node += nodes.title(text=method)
 
-            docstring = info['func'].__doc__ or ""
+            if 'attr' in info:
+                docstring = getattr(info['func'], info['attr']).__doc__ or ""
+            else:
+                docstring = info['func'].__doc__ or ""
+
+            docstring = trim(docstring) + '\n'
 
             if 'validators' in info:
                 for validator in info['validators']:
                     if validator.__doc__ is not None:
                         if docstring is not None:
-                            docstring += '\n' + validator.__doc__.strip()
+                            doc = trim(validator.__doc__)
+                            docstring += '\n' + doc
 
             if 'accept' in info:
                 accept = info['accept']
@@ -105,6 +125,7 @@ class ServiceDirective(Directive):
                     method_node += accept_node
 
             node = rst2node(docstring)
+            DocFieldTransformer(self).transform_all(node)
             if node is not None:
                 method_node += node
 
