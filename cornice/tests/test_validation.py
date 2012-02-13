@@ -9,7 +9,7 @@ from pyramid.response import Response
 
 from cornice.tests.validationapp import main, _json
 from cornice.tests.support import LoggingCatcher
-from cornice.schemas import Errors
+from cornice.errors import Errors
 from cornice.validators import filter_json_xsrf
 
 

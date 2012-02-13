@@ -4,8 +4,8 @@
 from pyramid.config import Configurator
 
 from cornice import Service
-from cornice.schemas import *  # NOQA
 from cornice.tests import CatchErrors
+import json
 
 
 service = Service(name="service", path="/service")
