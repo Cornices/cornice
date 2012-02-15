@@ -116,19 +116,19 @@ to add our first service - the users managment ::
 
     _USERS = {}
 
-    @users.get(validator=valid_token)
+    @users.get(validators=valid_token)
     def get_users(request):
         """Returns a list of all users."""
         return {'users': _USERS.keys()}
 
-    @users.put(validator=unique)
+    @users.put(validators=unique)
     def create_user(request):
         """Adds a new user."""
         user = request.validated['user']
         _USERS[user['name']] = user['token']
         return {'token': '%s-%s' % (user['name'], user['token'])}
 
-    @users.delete(validator=valid_token)
+    @users.delete(validators=valid_token)
     def del_user(request):
         """Removes the user."""
         user = request.validated['user']
