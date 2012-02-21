@@ -85,7 +85,7 @@ class TestServiceDescription(unittest.TestCase):
         self.assertTrue('POST' in foobar.schemas)
 
     def test_schema_validation(self):
-        # using a colander shema for the service should automatically validate
+        # using a colander schema for the service should automatically validate
         # the request calls. Let's make some of them here
 
         resp = self.app.post('/foobar', status=400)
