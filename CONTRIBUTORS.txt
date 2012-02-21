@@ -1,0 +1,6 @@
+Here is a list of the people who contributed to this project:
+
+* Alexis Métaireau <alexis@mozilla.com>
+* Gaël Pasgrimaud <gawel@gawel.org>
+* Tarek Ziadé <tarek@mozilla.com>
+* Vincent Fretin <vincent.fretin@gmail.com>
