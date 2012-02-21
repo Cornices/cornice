@@ -7,10 +7,15 @@ import functools
 import venusian
 
 from cornice.util import to_list, json_error, match_accept_header
-from cornice.validators import DEFAULT_VALIDATORS, DEFAULT_FILTERS
+from cornice.validators import (
+        DEFAULT_VALIDATORS,
+        DEFAULT_FILTERS,
+        validate_colander_schema
+)
+from cornice.schemas import CorniceSchema
 
 
-_CORNICE_ARGS = ('validators', 'filters')
+_CORNICE_ARGS = ('validators', 'filters', 'schema')
 
 
 def call_service(func, api_kwargs, context, request):
@@ -73,6 +78,7 @@ class Service(object):
         self.description = kw.pop('description', None)
         self.factory = kw.pop('factory', None)
         self.acl_factory = kw.pop('acl', None)
+        self.schemas = {}
         if self.factory and self.acl_factory:
             raise ValueError("Cannot specify both 'acl' and 'factory'")
         self.kw = kw
@@ -169,6 +175,11 @@ class Service(object):
             for items in validators, filters:
                 if item in items:
                     items.remove(item)
+
+        if 'schema' in api_kw:
+            schema = CorniceSchema.from_colander(api_kw.pop('schema'))
+            validators.append(validate_colander_schema(schema))
+            self.schemas[method] = schema
 
         api_kw['filters'] = filters
         api_kw['validators'] = validators
