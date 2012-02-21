@@ -13,6 +13,7 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
 requires = ['pyramid', 'coverage', 'simplejson',
             'docutils', 'unittest2', 'Sphinx',
             'webtest', 'Paste', 'PasteScript']
+test_requires = requires + ['colander']
 
 entry_points = """\
 [paste.paster_create_template]
@@ -45,6 +46,6 @@ setup(name='cornice',
       include_package_data=True,
       zip_safe=False,
       install_requires=requires,
-      tests_require=requires,
+      tests_require=test_requires,
       test_suite="cornice",
       paster_plugins=['pyramid'])
