@@ -88,12 +88,12 @@ class _JSONError(exc.HTTPError):
         self.content_type = 'application/json'
 
 
-def json_error(errors, status=400):
+def json_error(errors):
     """Returns an HTTPError with the given status and message.
 
     The HTTP error content type is "application/json"
     """
-    return _JSONError(errors, status)
+    return _JSONError(errors, errors.status)
 
 
 def match_accept_header(func, context, request):
