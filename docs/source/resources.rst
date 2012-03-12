@@ -21,10 +21,6 @@ Here is how you can register a resource::
 
         @view(renderer='json')
         def get(self):
-            """Retrieve a user.
-            
-            :return: User
-            """
             return USERS.get(int(self.request.matchdict['id']))
 
 As you can see, you can define methods for the collection (it will use the
