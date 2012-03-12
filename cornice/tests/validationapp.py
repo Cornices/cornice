@@ -5,7 +5,7 @@ from pyramid.config import Configurator
 
 from cornice import Service
 from cornice.tests import CatchErrors
-from colander import MappingSchema, SchemaNode, String
+from colander import Invalid, MappingSchema, SchemaNode, String
 import json
 
 
@@ -84,11 +84,16 @@ def get4(request):
     return "unfiltered"  # should be overwritten on GET
 
 
+def validate_bar(node, value):
+    if 'bar' not in value:
+        raise Invalid(node, "The bar value doesn't contain bar.")
+
+
 class FooBarSchema(MappingSchema):
     # foo and bar are required, baz is optional
     foo = SchemaNode(String(), location="body", type='str')
-    bar = SchemaNode(String(), location="body", type='str')
-    baz = SchemaNode(String(), location="body", type='str', required=False)
+    bar = SchemaNode(String(), location="body", type='str', validator=validate_bar)
+    baz = SchemaNode(String(), location="body", type='str', missing=None)
     yeah = SchemaNode(String(), location="querystring", type='str')
 
 
