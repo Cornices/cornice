@@ -85,8 +85,8 @@ def get4(request):
 
 
 def validate_bar(node, value):
-    if 'bar' not in value:
-        raise Invalid(node, "The bar value doesn't contain bar.")
+    if value != 'open':
+        raise Invalid(node, "The bar is not open.")
 
 
 class FooBarSchema(MappingSchema):
