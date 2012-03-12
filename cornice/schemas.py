@@ -1,35 +1,55 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-""" Validators.
-"""
-import simplejson as json
+from cornice.util import to_list
 
 
-class Errors(list):
-    """Holds Request errors
-    """
-    def __init__(self, request=None):
-        self.request = request
-        super(Errors, self).__init__()
+class CorniceSchema(object):
+    """Defines a cornice schema"""
 
-    def add(self, location, name=None, description=None):
-        """Registers a new error."""
-        self.append(dict(
-            location=location,
-            name=name,
-            description=description))
+    def __init__(self, nodes):
+        self._attributes = nodes
+
+    def get_attributes(self, location=("body", "headers", "querystring"),
+                       required=True):
+        """Return a list of attributes that match the given criteria.
+
+        By default, if nothing is specified, it will return all the attributes,
+        without filtering anything.
+        """
+        def _filter(attr):
+            return (attr.location in to_list(location) and
+                    attr.required in to_list(required))
+
+        return filter(_filter, self._attributes)
+
+    def as_dict(self):
+        """returns a dict containing keys for the different attributes, and
+        for each of them, a dict containing information about them::
+
+            >>> schema.as_dict()
+            {'foo': {'type': 'string',
+                     'location': 'body',
+                     'description': 'yeah',
+                     'required': True},
+             'bar': {'type': 'string',
+                     'location': 'body',
+                     'description': 'yeah',
+                     'required': True}
+             # ...
+             }
+        """
+        schema = {}
+        for attr in self._attributes:
+            schema[attr.name] = {
+                'type': getattr(attr, 'type', attr.typ),
+                'name': attr.name,
+                'description': getattr(attr, 'description', ''),
+                'required': getattr(attr, 'required', False),
+            }
+
+        return schema
 
     @classmethod
-    def from_json(cls, string):
-        """Transforms a json string into an `Errors` instance"""
-        obj = json.loads(string)
-        return Errors.from_list(obj.get('errors', []))
-
-    @classmethod
-    def from_list(cls, obj):
-        """Transforms a python list into an `Errors` instance"""
-        errors = Errors()
-        for error in obj:
-            errors.add(**error)
-        return errors
+    def from_colander(klass, colander_schema):
+        return CorniceSchema(colander_schema.nodes)

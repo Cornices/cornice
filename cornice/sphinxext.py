@@ -98,6 +98,35 @@ class ServiceDirective(Directive):
 
             docstring = trim(docstring) + '\n'
 
+            if method in service.schemas:
+                schema = service.schemas[method]
+
+                attrs_node = nodes.inline()
+                for location in ('headers', 'querystring', 'body'):
+                    attributes = schema.get_attributes(location=location)
+                    if attributes:
+                        attrs_node += nodes.inline(
+                                text='values in the %s' % location)
+                        location_attrs = nodes.bullet_list()
+
+                        for attr in attributes:
+                            temp = nodes.list_item()
+                            desc = "%s : " % attr.name
+
+                            if hasattr(attr, 'type'):
+                                desc += " %s, " % attr.type
+
+                            if attr.required:
+                                desc += "required "
+                            else:
+                                desc += "optional "
+
+                            temp += nodes.inline(text=desc)
+                            location_attrs += temp
+
+                        attrs_node += location_attrs
+                method_node += attrs_node
+
             if 'validators' in info:
                 for validator in info['validators']:
                     if validator.__doc__ is not None:

@@ -1,4 +1,5 @@
 import logging
+import logging.handlers
 import weakref
 
 logger = logging.getLogger('cornice')
@@ -10,7 +11,7 @@ class _TestHandler(logging.handlers.BufferingHandler):
     # stolen and adapted from test.support
 
     def __init__(self):
-        super(_TestHandler, self).__init__(0)
+        logging.handlers.BufferingHandler.__init__(self, 0)
         self.setLevel(logging.DEBUG)
 
     def shouldFlush(self):

@@ -9,7 +9,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPMethodNotAllowed
 from pyramid.exceptions import PredicateMismatch
 
 from cornice import util
-from cornice.schemas import Errors
+from cornice.errors import Errors
 from cornice.service import Service   # NOQA
 
 
