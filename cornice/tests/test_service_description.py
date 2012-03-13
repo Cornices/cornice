@@ -58,8 +58,16 @@ class FooBarSchema(MappingSchema):
     yeah = SchemaNode(String(), location="querystring", type='str')
 
 
+class SchemaFromQuerystring(MappingSchema):
+    yeah = SchemaNode(String(), location="querystring", type='str') 
+
+
 @foobar.post(schema=FooBarSchema)
 def foobar_post(request):
+    return {"test": "succeeded"}
+
+@foobar.get(schema=SchemaFromQuerystring)
+def foobar_get(request):
     return {"test": "succeeded"}
 
 
@@ -97,7 +105,7 @@ class TestServiceDescription(unittest.TestCase):
                                   if e['location'] == "querystring"]))
 
         # ... and 4 in the body (a json error as well)
-        self.assertEquals(4, len([e for e in errors
+        self.assertEquals(3, len([e for e in errors
                                   if e['location'] == "body"]))
 
 
@@ -115,3 +123,8 @@ class TestServiceDescription(unittest.TestCase):
                              status=200)
 
         self.assertEquals(resp.json, {"test": "succeeded"})
+
+
+    def test_schema_validation2(self):
+        resp = self.app.get('/foobar?yeah=test', status=200)
+        self.assertEquals(resp.json, {"test": "succeeded"})        
