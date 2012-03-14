@@ -142,14 +142,18 @@ class Service(object):
         delete are aliases to this one, specifying the "request_method"
         argument for convenience.
 
-        ;param request_method: the request method. Should be one of GET, POST,
+        :param request_method: the request method. Should be one of GET, POST,
                                PUT, DELETE, OPTIONS, HEAD, TRACE or CONNECT
+        :param decorators: A sequence of decorators which should be applied
+                           to the view callable before it's returned. Will be
+                           applied in order received, i.e. the last decorator
+                           in the sequence will be the outermost wrapper.
 
         All the constructor options, minus name and path, can be overwritten in
         here.
         """
-
         method = kw.get('request_method', 'GET')  # default is GET
+        decorators = kw.pop('decorators', [])
         api_kw = self.kw.copy()
         api_kw.update(kw)
 
@@ -235,6 +239,9 @@ class Service(object):
                 else:
                     config.add_view(view=view, route_name=self.route_name,
                                         **view_kw)
+
+            for decorator in decorators:
+                func = decorator(func)
 
             info = venusian.attach(func, callback, category='pyramid')
 
