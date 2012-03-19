@@ -134,6 +134,16 @@ class Service(object):
     def delete(self, **kw):
         return self.api(request_method='DELETE', **kw)
 
+    def preprocess_kw(self, **kw):
+        """
+        Overload this method if you would like to preprocess kwargs passed into
+        the api() call.
+
+        return a callable which post-processes the underlying wrapped function
+        just prior to registration to venusian
+        """
+        return lambda func: func
+
     # the actual decorator
     def api(self, **kw):
         """Decorates a function to make it a service.
@@ -152,8 +162,8 @@ class Service(object):
         All the constructor options, minus name and path, can be overwritten in
         here.
         """
+        fix_func = self.preprocess_kw(**kw)
         method = kw.get('request_method', 'GET')  # default is GET
-        decorators = kw.pop('decorators', [])
         api_kw = self.kw.copy()
         api_kw.update(kw)
 
@@ -240,8 +250,7 @@ class Service(object):
                     config.add_view(view=view, route_name=self.route_name,
                                         **view_kw)
 
-            for decorator in decorators:
-                func = decorator(func)
+            func = fix_func(func)
 
             info = venusian.attach(func, callback, category='pyramid')
 
