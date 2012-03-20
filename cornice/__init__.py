@@ -49,16 +49,18 @@ def tween_factory(handler, registry):
         if request.matched_route is not None:
             # do some sanity checking on the response using filters
             pattern = request.matched_route.pattern
-            service = request.registry['cornice_services'].get(pattern)
-            if service is not None:
-                if request.method not in service.defined_methods:
-                    response = HTTPMethodNotAllowed()
-                    response.allow = service.defined_methods
-                else:
-                    # get the filters for this call
-                    kwargs = service.definitions[request.method]
-                    for _filter in kwargs.get('filters', []):
-                        response = _filter(response)
+            services = request.registry.get('cornice_services', None)
+            if services:
+                service = services.get(pattern)
+                if service is not None:
+                    if request.method not in service.defined_methods:
+                        response = HTTPMethodNotAllowed()
+                        response.allow = service.defined_methods
+                    else:
+                        # get the filters for this call
+                        kwargs = service.definitions[request.method]
+                        for _filter in kwargs.get('filters', []):
+                            response = _filter(response)
         return response
     return cornice_tween
 
@@ -67,31 +69,33 @@ def _notfound(request):
     match = request.matchdict
     if match is not None:
         pattern = request.matched_route.pattern
-        service = request.registry['cornice_services'].get(pattern)
-        if (service is not None
-                and isinstance(request.exception, PredicateMismatch)
-                and request.method in service.defined_methods):
-            # maybe was it the accept predicate that was not matched
-            # in this case, returns a HTTP 406 NOT ACCEPTABLE with the
-            # list of available choices
-            api_kwargs = service.definitions[request.method]
-            if 'accept' in api_kwargs:
-                accept = api_kwargs.get('accept')
-                acceptable = [a for a in util.to_list(accept) if
-                              not callable(a)]
+        services = request.registry.get('cornice_services', None)
+        if services:
+            service = services.get(pattern)
+            if (service is not None
+                    and isinstance(request.exception, PredicateMismatch)
+                    and request.method in service.defined_methods):
+                # maybe was it the accept predicate that was not matched
+                # in this case, returns a HTTP 406 NOT ACCEPTABLE with the
+                # list of available choices
+                api_kwargs = service.definitions[request.method]
+                if 'accept' in api_kwargs:
+                    accept = api_kwargs.get('accept')
+                    acceptable = [a for a in util.to_list(accept) if
+                                  not callable(a)]
 
-                if 'acceptable' in request.info:
-                    for content_type in request.info['acceptable']:
-                        if content_type not in acceptable:
-                            acceptable.append(content_type)
+                    if 'acceptable' in request.info:
+                        for content_type in request.info['acceptable']:
+                            if content_type not in acceptable:
+                                acceptable.append(content_type)
 
-                if not request.accept.best_match(acceptable):
-                    # if not, return the list of accepted headers
-                    resp = request.response
-                    resp.status = 406
-                    resp.content_type = "application/json"
-                    resp.body = json.dumps(acceptable)
-                    return resp
+                    if not request.accept.best_match(acceptable):
+                        # if not, return the list of accepted headers
+                        resp = request.response
+                        resp.status = 406
+                        resp.content_type = "application/json"
+                        resp.body = json.dumps(acceptable)
+                        return resp
     # 404
     return request.exception
 

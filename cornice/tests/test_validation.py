@@ -7,13 +7,18 @@ import simplejson as json
 from webtest import TestApp
 from pyramid.response import Response
 
-from cornice.tests.validationapp import main, _json
+from cornice.tests.validationapp import main, _json, main2
 from cornice.tests.support import LoggingCatcher
 from cornice.errors import Errors
 from cornice.validators import filter_json_xsrf
 
 
 class TestServiceDefinition(LoggingCatcher, unittest.TestCase):
+
+    def test_app_with_no_service(self):
+        app = TestApp(main2({}))
+        app.get('/view', status=200)
+
 
     def test_validation(self):
         app = TestApp(main({}))
