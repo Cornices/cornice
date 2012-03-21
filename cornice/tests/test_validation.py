@@ -29,13 +29,13 @@ class TestServiceDefinition(LoggingCatcher, unittest.TestCase):
 
         res = app.post('/service', params=json.dumps('buh'))
 
-        self.assertEqual(res.body, json.dumps({'body': '"buh"'}))
+        self.assertEqual(res.body, json.dumps({'status': 'ok', 'result': {'body': '"buh"'}}))
 
         app.get('/service?paid=yup')
 
         # valid = foo is one
         res = app.get('/service?foo=1&paid=yup')
-        self.assertEqual(res.json['foo'], 1)
+        self.assertEqual(res.json['result']['foo'], 1)
 
         # invalid value for foo
         res = app.get('/service?foo=buh&paid=yup', status=400)

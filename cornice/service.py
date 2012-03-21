@@ -5,12 +5,14 @@ import warnings
 import functools
 
 import venusian
+from zope.interface import implements
 
+from cornice.interfaces import IService
 from cornice.util import to_list, json_error, match_accept_header
 from cornice.validators import (
-        DEFAULT_VALIDATORS,
-        DEFAULT_FILTERS,
-        validate_colander_schema
+    DEFAULT_VALIDATORS,
+    DEFAULT_FILTERS,
+    validate_colander_schema
 )
 from cornice.schemas import CorniceSchema
 
@@ -24,10 +26,11 @@ def call_service(func, api_kwargs, context, request):
     # apply validators
     for validator in api_kwargs.get('validators', []):
         validator(request)
-        if len(request.errors) > 0:
-            return json_error(request.errors)
+        
+    if len(request.errors) > 0:
+        return json_error(request.errors)
 
-    return func(request)
+    return dict(result=func(request), status='ok')
 
 
 class Service(object):
@@ -68,6 +71,7 @@ class Service(object):
     http://readthedocs.org/docs/pyramid/en/1.0-branch/glossary.html#term-acl
     for more information about ACLs.
     """
+    implements(IService)
 
     def __init__(self, **kw):
         self.defined_methods = []
@@ -91,14 +95,13 @@ class Service(object):
                                        self.route_name)
 
     def _define(self, config, method):
-        # setup the services hash if it isn't already
-        services = config.registry.setdefault('cornice_services', {})
         if self.index == -1:
+            services = list(config.registry.getUtilitiesFor(IService))
             self.index = len(services)
 
         # define the route if it isn't already
-        if self.route_pattern not in services:
-            services[self.route_pattern] = self
+        if not config.registry.queryUtility(IService, name=self.route_pattern):
+            config.registry.registerUtility(self, IService, name=self.route_pattern)
             route_kw = {}
             if self.factory is not None:
                 route_kw["factory"] = self.factory

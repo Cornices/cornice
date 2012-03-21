@@ -53,14 +53,14 @@ class TestResource(unittest.TestCase):
 
         self.assertEquals(
                 self.app.get("/users").json,
-                {'users': [1, 2]})
+                {'status': 'ok', 'result': {'users': [1, 2]}})
 
         self.assertEquals(
                 self.app.get("/users/1").json,
-                {'name': 'gawel'})
+                {'status': 'ok', 'result': {'name': 'gawel'}})
         resp = self.app.get("/users/1?callback=test")
         self.assertEquals(resp.body,
-                'test({"name": "gawel"})', resp.body)
+                'test({"status": "ok", "result": {"name": "gawel"}})', resp.body)
 
     def test_accept_headers(self):
         # the accept headers should work even in case they're specified in a
@@ -69,4 +69,4 @@ class TestResource(unittest.TestCase):
                 self.app.post("/users",
                     headers={'Accept': 'text/json'},
                     params=json.dumps({'test': 'yeah'})).json,
-                {'test': 'yeah'})
+                {'status': 'ok', 'result': {'test': 'yeah'}})

@@ -4,20 +4,17 @@
 import json
 import logging
 
-from pyramid.events import BeforeRender, NewRequest
+from pyramid.events import NewRequest
 from pyramid.httpexceptions import HTTPNotFound, HTTPMethodNotAllowed
 from pyramid.exceptions import PredicateMismatch
 
 from cornice import util
 from cornice.errors import Errors
 from cornice.service import Service   # NOQA
+from cornice.interfaces import IService
 
 
 logger = logging.getLogger('cornice')
-
-
-def add_renderer_globals(event):
-    event['util'] = util
 
 
 def wrap_request(event):
@@ -42,60 +39,55 @@ def add_apidoc(config, pattern, func, service, **kwargs):
     info['func'] = func
 
 
+def get_service(request):
+    if getattr(request, 'matched_route'):
+        return request.registry.queryUtility(IService, name=request.matched_route.pattern)
+
+
 def tween_factory(handler, registry):
     """Wraps the default WSGI workflow to provide cornice utilities"""
     def cornice_tween(request):
         response = handler(request)
-        if request.matched_route is not None:
-            # do some sanity checking on the response using filters
-            pattern = request.matched_route.pattern
-            services = request.registry.get('cornice_services', None)
-            if services:
-                service = services.get(pattern)
-                if service is not None:
-                    if request.method not in service.defined_methods:
-                        response = HTTPMethodNotAllowed()
-                        response.allow = service.defined_methods
-                    else:
-                        # get the filters for this call
-                        kwargs = service.definitions[request.method]
-                        for _filter in kwargs.get('filters', []):
-                            response = _filter(response)
+        service = get_service(request)        
+        if service is not None:
+            if request.method not in service.defined_methods:
+                response = HTTPMethodNotAllowed()
+                response.allow = service.defined_methods
+            else:
+                # get the filters for this call
+                kwargs = service.definitions[request.method]
+                for _filter in kwargs.get('filters', []):
+                    response = _filter(response)
         return response
     return cornice_tween
 
 
 def _notfound(request):
-    match = request.matchdict
-    if match is not None:
-        pattern = request.matched_route.pattern
-        services = request.registry.get('cornice_services', None)
-        if services:
-            service = services.get(pattern)
-            if (service is not None
-                    and isinstance(request.exception, PredicateMismatch)
-                    and request.method in service.defined_methods):
-                # maybe was it the accept predicate that was not matched
-                # in this case, returns a HTTP 406 NOT ACCEPTABLE with the
-                # list of available choices
-                api_kwargs = service.definitions[request.method]
-                if 'accept' in api_kwargs:
-                    accept = api_kwargs.get('accept')
-                    acceptable = [a for a in util.to_list(accept) if
-                                  not callable(a)]
+    service = get_service(request)
+    if (service is not None
+            and isinstance(request.exception, PredicateMismatch)
+            and request.method in service.defined_methods):
+        # maybe was it the accept predicate that was not matched
+        # in this case, returns a HTTP 406 NOT ACCEPTABLE with the
+        # list of available choices
+        api_kwargs = service.definitions[request.method]
+        if 'accept' in api_kwargs:
+            accept = api_kwargs.get('accept')
+            acceptable = [a for a in util.to_list(accept) if
+                          not callable(a)]
 
-                    if 'acceptable' in request.info:
-                        for content_type in request.info['acceptable']:
-                            if content_type not in acceptable:
-                                acceptable.append(content_type)
+            if 'acceptable' in request.info:
+                for content_type in request.info['acceptable']:
+                    if content_type not in acceptable:
+                        acceptable.append(content_type)
 
-                    if not request.accept.best_match(acceptable):
-                        # if not, return the list of accepted headers
-                        resp = request.response
-                        resp.status = 406
-                        resp.content_type = "application/json"
-                        resp.body = json.dumps(acceptable)
-                        return resp
+            if not request.accept.best_match(acceptable):
+                # if not, return the list of accepted headers
+                resp = request.response
+                resp.status = 406
+                resp.content_type = "application/json"
+                resp.body = json.dumps(acceptable)
+                return resp
     # 404
     return request.exception
 
@@ -105,7 +97,6 @@ def includeme(config):
     """
     config.add_directive('add_apidoc', add_apidoc)
     config.add_view(_notfound, context=HTTPNotFound)
-    config.add_subscriber(add_renderer_globals, BeforeRender)
     config.add_subscriber(wrap_request, NewRequest)
     config.add_tween('cornice.tween_factory')
     config.add_renderer('simplejson', util.json_renderer)
