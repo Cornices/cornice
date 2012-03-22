@@ -134,13 +134,15 @@ class Service(object):
     def delete(self, **kw):
         return self.api(request_method='DELETE', **kw)
 
-    def preprocess_kw(self, **kw):
+    def get_view_wrapper(self, **kw):
         """
-        Overload this method if you would like to preprocess kwargs passed into
-        the api() call.
-
-        return a callable which post-processes the underlying wrapped function
-        just prior to registration to venusian
+        Overload this method if you would like to wrap the API function
+        function just before it is registered as a view callable. This will be
+        called with the api() call kwargs, it should return a callable which
+        accepts a single function and returns a single function. Right before
+        view registration, this will be called w/ the function to register, and
+        the return value will be registered in its stead. By default this
+        simply returns the same function it was passed.
         """
         return lambda func: func
 
@@ -162,7 +164,7 @@ class Service(object):
         All the constructor options, minus name and path, can be overwritten in
         here.
         """
-        fix_func = self.preprocess_kw(**kw)
+        view_wrapper = self.get_view_wrapper(**kw)
         method = kw.get('request_method', 'GET')  # default is GET
         api_kw = self.kw.copy()
         api_kw.update(kw)
@@ -250,8 +252,7 @@ class Service(object):
                     config.add_view(view=view, route_name=self.route_name,
                                         **view_kw)
 
-            func = fix_func(func)
-
+            func = view_wrapper(func)
             info = venusian.attach(func, callback, category='pyramid')
 
             if info.scope == 'class':
