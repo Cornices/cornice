@@ -200,7 +200,7 @@ class ServiceDirective(Directive):
             # we want to list all of them
             services_id = "services-%d" % env.new_serialno('services')
             services_node = nodes.section(ids=[services_id])
-            services_node += nodes.title(text='Services')
+            services_node += nodes.title(text=pkg)
 
             services_ = [(service.index, path, service, methods) \
                          for (path, service), methods in services.items()]
