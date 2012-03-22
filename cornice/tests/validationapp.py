@@ -5,7 +5,7 @@ from pyramid.config import Configurator
 
 from cornice import Service
 from cornice.tests import CatchErrors
-from colander import MappingSchema, SchemaNode, String
+
 import json
 
 
@@ -83,21 +83,25 @@ filtered_service = Service(name="filtered", path="/filtered", filters=_filter)
 def get4(request):
     return "unfiltered"  # should be overwritten on GET
 
+try:
+    from colander import MappingSchema, SchemaNode, String
+    COLANDER = True
+except ImportError:
+    COLANDER = False
 
-class FooBarSchema(MappingSchema):
-    # foo and bar are required, baz is optional
-    foo = SchemaNode(String(), location="body", type='str')
-    bar = SchemaNode(String(), location="body", type='str')
-    baz = SchemaNode(String(), location="body", type='str', required=False)
-    yeah = SchemaNode(String(), location="querystring", type='str')
+if COLANDER:
+    class FooBarSchema(MappingSchema):
+        # foo and bar are required, baz is optional
+        foo = SchemaNode(String(), location="body", type='str')
+        bar = SchemaNode(String(), location="body", type='str')
+        baz = SchemaNode(String(), location="body", type='str', required=False)
+        yeah = SchemaNode(String(), location="querystring", type='str')
 
+    foobar = Service(name="foobar", path="/foobar")
 
-foobar = Service(name="foobar", path="/foobar")
-
-
-@foobar.post(schema=FooBarSchema)
-def foobar_post(request):
-    return {"test": "succeeded"}
+    @foobar.post(schema=FooBarSchema)
+    def foobar_post(request):
+        return {"test": "succeeded"}
 
 
 def includeme(config):

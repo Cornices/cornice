@@ -41,7 +41,6 @@ def rst2html(data):
     return core.publish_string(data, writer=_FragmentWriter())
 
 
-
 def rst2node(data):
     """Converts a reStructuredText into its node
     """
