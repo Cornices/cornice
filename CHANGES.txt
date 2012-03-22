@@ -3,7 +3,8 @@
 
 - update license to MPL 2.0.
 - renamed cornice.schemas to cornice.errors
-
+- Added `get_view_wrapper` method to Service class to support subclasses
+  wrapping the view callables w/ decorators
 
 0.6 - 2011-12-21
 ================
