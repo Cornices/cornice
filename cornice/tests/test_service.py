@@ -57,7 +57,7 @@ class TestService(unittest.TestCase):
 
 
 class WrapperService(Service):
-    def get_view_wrapper(self, **kw):
+    def get_view_wrapper(self, kw):
         def upper_wrapper(func):
             def upperizer(*args, **kwargs):
                 result = func(*args, **kwargs)
