@@ -1,10 +1,18 @@
-0.7 - ?
-=======
+0.7 - 2012-03-12
+================
 
 - update license to MPL 2.0.
 - renamed cornice.schemas to cornice.errors
 - Added `get_view_wrapper` method to Service class to support subclasses
   wrapping the view callables w/ decorators
+- added buildout support
+- added class-based views and the resource decorator
+- make sure we use Pyramid's exceptions. Not Webob's.
+- added filters support
+- added schema support
+- added json xsrf support
+- now errors status can be different from 400.
+
 
 0.6 - 2011-12-21
 ================
