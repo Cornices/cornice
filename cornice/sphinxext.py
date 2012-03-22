@@ -42,7 +42,10 @@ def trim(docstring):
     while trimmed and not trimmed[0]:
         trimmed.pop(0)
     # Return a single string:
-    return '\n'.join(trimmed)
+    res = '\n'.join(trimmed)
+    if not isinstance(res, unicode):
+        res = res.decode('utf8')
+    return res
 
 from sphinx.locale import l_
 from sphinx.util.docfields import Field, GroupedField, TypedField
@@ -200,7 +203,7 @@ class ServiceDirective(Directive):
             # we want to list all of them
             services_id = "services-%d" % env.new_serialno('services')
             services_node = nodes.section(ids=[services_id])
-            services_node += nodes.title(text='Services')
+            services_node += nodes.title(text=pkg)
 
             services_ = [(service.index, path, service, methods) \
                          for (path, service), methods in services.items()]

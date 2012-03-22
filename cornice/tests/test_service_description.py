@@ -122,9 +122,9 @@ class TestServiceDescription(unittest.TestCase):
         resp = self.app.post('/foobar?yeah=test', params=json.dumps(data),
                              status=200)
 
-        self.assertEquals(resp.json, {"test": "succeeded"})
+        self.assertEquals(resp.json, {'status': 'ok', 'result': {"test": "succeeded"}})
 
 
     def test_schema_validation2(self):
         resp = self.app.get('/foobar?yeah=test', status=200)
-        self.assertEquals(resp.json, {"test": "succeeded"})        
+        self.assertEquals(resp.json, {'status': 'ok', 'result': {"test": "succeeded"}})        

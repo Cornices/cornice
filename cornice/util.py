@@ -41,6 +41,10 @@ def rst2html(data):
     return core.publish_string(data, writer=_FragmentWriter())
 
 
+class Env(object):
+    temp_data = {}
+    docname = ''
+
 
 def rst2node(data):
     """Converts a reStructuredText into its node
@@ -53,6 +57,7 @@ def rst2node(data):
     document.settings.tab_width = 4
     document.settings.pep_references = False
     document.settings.rfc_references = False
+    document.settings.env = Env()
     parser.parse(data, document)
     if len(document.children) == 1:
         return document.children[0]

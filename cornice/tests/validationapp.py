@@ -109,3 +109,15 @@ def main(global_config, **settings):
     config = Configurator(settings={})
     config.include(includeme)
     return CatchErrors(config.make_wsgi_app())
+
+
+def view(request):
+    return {}
+
+def main2(global_config, **settings):
+    config = Configurator(settings={})
+    config.include('cornice')
+    config.add_route('view', '/view')
+    config.add_view(view, route_name='view', renderer='json')
+    return CatchErrors(config.make_wsgi_app())
+

@@ -7,13 +7,18 @@ import simplejson as json
 from webtest import TestApp
 from pyramid.response import Response
 
-from cornice.tests.validationapp import main, _json
+from cornice.tests.validationapp import main, _json, main2
 from cornice.tests.support import LoggingCatcher
 from cornice.errors import Errors
 from cornice.validators import filter_json_xsrf
 
 
 class TestServiceDefinition(LoggingCatcher, unittest.TestCase):
+
+    def test_app_with_no_service(self):
+        app = TestApp(main2({}))
+        app.get('/view', status=200)
+
 
     def test_validation(self):
         app = TestApp(main({}))
@@ -24,13 +29,13 @@ class TestServiceDefinition(LoggingCatcher, unittest.TestCase):
 
         res = app.post('/service', params=json.dumps('buh'))
 
-        self.assertEqual(res.body, json.dumps({'body': '"buh"'}))
+        self.assertEqual(res.body, json.dumps({'status': 'ok', 'result': {'body': '"buh"'}}))
 
         app.get('/service?paid=yup')
 
         # valid = foo is one
         res = app.get('/service?foo=1&paid=yup')
-        self.assertEqual(res.json['foo'], 1)
+        self.assertEqual(res.json['result']['foo'], 1)
 
         # invalid value for foo
         res = app.get('/service?foo=buh&paid=yup', status=400)

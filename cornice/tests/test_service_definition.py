@@ -47,11 +47,11 @@ class TestServiceDefinition(unittest.TestCase):
         self.app.get("/unknown", status=404)
         self.assertEquals(
                 self.app.get("/service1").json,
-                {'test': "succeeded"})
+                {'status': 'ok', 'result': {'test': "succeeded"}})
 
         self.assertEquals(
                 self.app.post("/service1", params="BODY").json,
-                {'body': 'BODY'})
+                {'status': 'ok', 'result': {'body': 'BODY'}})
 
     def test_loading_into_multiple_configurators(self):
         # When initializing a second configurator, it shouldn't interfere
@@ -63,17 +63,17 @@ class TestServiceDefinition(unittest.TestCase):
         # Calling the new configurator works as expected.
         app = TestApp(CatchErrors(config2.make_wsgi_app()))
         self.assertEqual(app.get("/service1").json,
-                {'test': 'succeeded'})
+                {'status': 'ok', 'result': {'test': 'succeeded'}})
 
         # Calling the old configurator works as expected.
         self.assertEqual(self.app.get("/service1").json,
-                {'test': 'succeeded'})
+                {'status': 'ok', 'result': {'test': 'succeeded'}})
 
     def test_stacking_api_decorators(self):
         # Stacking multiple @api calls on a single function should
         # register it multiple times, just like @view_config does.
         resp = self.app.get("/service2", headers={'Accept': 'text/html'})
-        self.assertEquals(resp.json, {'test': 'succeeded'})
+        self.assertEquals(resp.json, {'status': 'ok', 'result': {'test': 'succeeded'}})
 
         resp = self.app.post("/service2", headers={'Accept': 'audio/ogg'})
-        self.assertEquals(resp.json, {'test': 'succeeded'})
+        self.assertEquals(resp.json, {'status': 'ok', 'result': {'test': 'succeeded'}})
