@@ -134,7 +134,7 @@ class Service(object):
     def delete(self, **kw):
         return self.api(request_method='DELETE', **kw)
 
-    def get_view_wrapper(self, **kw):
+    def get_view_wrapper(self, kw):
         """
         Overload this method if you would like to wrap the API function
         function just before it is registered as a view callable. This will be
@@ -164,7 +164,7 @@ class Service(object):
         All the constructor options, minus name and path, can be overwritten in
         here.
         """
-        view_wrapper = self.get_view_wrapper(**kw)
+        view_wrapper = self.get_view_wrapper(kw)
         method = kw.get('request_method', 'GET')  # default is GET
         api_kw = self.kw.copy()
         api_kw.update(kw)
