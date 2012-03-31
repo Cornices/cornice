@@ -134,6 +134,9 @@ class Service(object):
     def delete(self, **kw):
         return self.api(request_method='DELETE', **kw)
 
+    def options(self, **kw):
+        return self.api(request_method='OPTIONS', **kw)
+
     def get_view_wrapper(self, kw):
         """
         Overload this method if you would like to wrap the API function
