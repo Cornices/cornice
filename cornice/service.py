@@ -134,6 +134,21 @@ class Service(object):
     def delete(self, **kw):
         return self.api(request_method='DELETE', **kw)
 
+    def options(self, **kw):
+        return self.api(request_method='OPTIONS', **kw)
+
+    def get_view_wrapper(self, kw):
+        """
+        Overload this method if you would like to wrap the API function
+        function just before it is registered as a view callable. This will be
+        called with the api() call kwargs, it should return a callable which
+        accepts a single function and returns a single function. Right before
+        view registration, this will be called w/ the function to register, and
+        the return value will be registered in its stead. By default this
+        simply returns the same function it was passed.
+        """
+        return lambda func: func
+
     # the actual decorator
     def api(self, **kw):
         """Decorates a function to make it a service.
@@ -142,13 +157,17 @@ class Service(object):
         delete are aliases to this one, specifying the "request_method"
         argument for convenience.
 
-        ;param request_method: the request method. Should be one of GET, POST,
+        :param request_method: the request method. Should be one of GET, POST,
                                PUT, DELETE, OPTIONS, HEAD, TRACE or CONNECT
+        :param decorators: A sequence of decorators which should be applied
+                           to the view callable before it's returned. Will be
+                           applied in order received, i.e. the last decorator
+                           in the sequence will be the outermost wrapper.
 
         All the constructor options, minus name and path, can be overwritten in
         here.
         """
-
+        view_wrapper = self.get_view_wrapper(kw)
         method = kw.get('request_method', 'GET')  # default is GET
         api_kw = self.kw.copy()
         api_kw.update(kw)
@@ -236,6 +255,7 @@ class Service(object):
                     config.add_view(view=view, route_name=self.route_name,
                                         **view_kw)
 
+            func = view_wrapper(func)
             info = venusian.attach(func, callback, category='pyramid')
 
             if info.scope == 'class':

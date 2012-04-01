@@ -42,7 +42,7 @@ def resource(**kw):
                                                        **service_args)
 
             # initialize views
-            for verb in ('get', 'post', 'put', 'delete'):
+            for verb in ('get', 'post', 'put', 'delete', 'options'):
                 view_attr = prefix + verb
                 meth = getattr(klass, view_attr, None)
                 if meth is not None:

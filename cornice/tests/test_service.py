@@ -54,3 +54,36 @@ class TestService(unittest.TestCase):
                 pass
 
             self.assertEqual(msg, str(w[-1].message))
+
+
+class WrapperService(Service):
+    def get_view_wrapper(self, kw):
+        def upper_wrapper(func):
+            def upperizer(*args, **kwargs):
+                result = func(*args, **kwargs)
+                return result.upper()
+            return upperizer
+        return upper_wrapper
+
+
+wrapper_service = WrapperService(name='wrapperservice', path='/wrapperservice')
+
+
+@wrapper_service.get()
+def return_foo(request):
+    return 'foo'
+
+
+class TestServiceWithWrapper(unittest.TestCase):
+    def setUp(self):
+        self.config = testing.setUp()
+        self.config.include("cornice")
+        self.config.scan("cornice.tests.test_service")
+        self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
+
+    def tearDown(self):
+        testing.tearDown()
+
+    def test_wrapped(self):
+        result = self.app.get('/wrapperservice')
+        self.assertEqual(result.json, 'FOO')

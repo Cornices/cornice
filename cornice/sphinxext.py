@@ -47,6 +47,7 @@ def trim(docstring):
 from sphinx.locale import l_
 from sphinx.util.docfields import Field, GroupedField, TypedField
 
+
 class ServiceDirective(Directive):
     """ Service directive.
 

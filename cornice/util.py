@@ -108,10 +108,13 @@ def extract_request_data(request):
     them as a list of (querystring, headers, body, path)
     """
     # XXX In the body, we're only handling JSON for now.
-    try:
-        body = json.loads(request.body)
-    except ValueError, e:
-        request.errors.add('body', None, e.message)
+    if request.body:
+        try:
+            body = json.loads(request.body)
+        except ValueError, e:
+            request.errors.add('body', None, e.message)
+            body = {}
+    else:
         body = {}
 
     return request.GET, request.headers, body, request.matchdict
