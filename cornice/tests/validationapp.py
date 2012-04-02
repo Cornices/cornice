@@ -53,6 +53,7 @@ service2 = Service(name="service2", path="/service2")
 
 
 @service2.get(accept=("application/json", "text/json"))
+@service2.get(accept=("text/plain"), renderer="string")
 def get2(request):
     return {"body": "yay!"}
 
