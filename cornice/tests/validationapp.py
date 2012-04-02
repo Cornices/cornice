@@ -83,6 +83,30 @@ filtered_service = Service(name="filtered", path="/filtered", filters=_filter)
 def get4(request):
     return "unfiltered"  # should be overwritten on GET
 
+try:
+    from colander import Invalid, MappingSchema, SchemaNode, String
+    COLANDER = True
+except ImportError:
+    COLANDER = False
+
+if COLANDER:
+    def validate_bar(node, value):
+        if value != 'open':
+            raise Invalid(node, "The bar is not open.")
+
+    class FooBarSchema(MappingSchema):
+        # foo and bar are required, baz is optional
+        foo = SchemaNode(String(), location="body", type='str')
+        bar = SchemaNode(String(), location="body", type='str', validator=validate_bar)
+        baz = SchemaNode(String(), location="body", type='str', missing=None)
+        yeah = SchemaNode(String(), location="querystring", type='str')
+
+    foobar = Service(name="foobar", path="/foobar")
+
+    @foobar.post(schema=FooBarSchema)
+    def foobar_post(request):
+        return {"test": "succeeded"}
+
 
 def includeme(config):
     config.include("cornice")

@@ -1,16 +1,15 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-""" Validators.
-"""
 import simplejson as json
 
 
 class Errors(list):
     """Holds Request errors
     """
-    def __init__(self, request=None):
+    def __init__(self, request=None, status=400):
         self.request = request
+        self.status = status
         super(Errors, self).__init__()
 
     def add(self, location, name=None, description=None):
