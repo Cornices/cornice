@@ -11,7 +11,7 @@ class CorniceSchema(object):
         self._attributes = nodes
 
     def get_attributes(self, location=("body", "headers", "querystring"),
-                       required=True):
+                       required=(True, False)):
         """Return a list of attributes that match the given criteria.
 
         By default, if nothing is specified, it will return all the attributes,

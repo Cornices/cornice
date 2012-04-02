@@ -45,7 +45,7 @@ from cornice.tests import CatchErrors
 from cornice.schemas import CorniceSchema
 
 try:
-    from colander import MappingSchema, SchemaNode, String
+    from colander import Invalid, MappingSchema, SchemaNode, String
     COLANDER = True
 except ImportError:
     COLANDER = False
@@ -53,11 +53,15 @@ except ImportError:
 if COLANDER:
     foobar = Service(name="foobar", path="/foobar")
 
+    def validate_bar(node, value):
+        if value != 'open':
+            raise Invalid(node, "The bar is not open.")
+
     class FooBarSchema(MappingSchema):
         # foo and bar are required, baz is optional
         foo = SchemaNode(String(), location="body", type='str')
-        bar = SchemaNode(String(), location="body", type='str')
-        baz = SchemaNode(String(), location="body", type='str', required=False)
+        bar = SchemaNode(String(), location="body", type='str', validator=validate_bar)
+        baz = SchemaNode(String(), location="body", type='str', missing=None)
         yeah = SchemaNode(String(), location="querystring", type='str')
 
     class SchemaFromQuerystring(MappingSchema):
@@ -65,7 +69,7 @@ if COLANDER:
 
     @foobar.post(schema=FooBarSchema)
     def foobar_post(request):
-        return {"test": "succeeded"}
+        return {"test": "succeeded", 'baz': request.validated['baz']}
 
     @foobar.get(schema=SchemaFromQuerystring)
     def foobar_get(request):
@@ -85,7 +89,7 @@ if COLANDER:
         def test_get_from_colander(self):
             schema = CorniceSchema.from_colander(FooBarSchema)
             attrs = schema.as_dict()
-            self.assertEquals(len(attrs), 4)
+            self.assertEqual(len(attrs), 4)
 
         def test_description_attached(self):
             # foobar should contain a schema argument containing the cornice
@@ -94,18 +98,17 @@ if COLANDER:
 
         def test_schema_validation(self):
             # using a colander schema for the service should automatically
-            # validate
-            # the request calls. Let's make some of them here
+            # validate the request calls. Let's make some of them here.
             resp = self.app.post('/foobar', status=400)
-            self.assertEquals(resp.json['status'], 'error')
+            self.assertEqual(resp.json['status'], 'error')
 
             errors = resp.json['errors']
             # we should at have 1 missing value in the QS...
-            self.assertEquals(1, len([e for e in errors
+            self.assertEqual(1, len([e for e in errors
                                     if e['location'] == "querystring"]))
 
-            # ... and 4 in the body (a json error as well)
-            self.assertEquals(3, len([e for e in errors
+            # ... and 2 in the body (a json error as well)
+            self.assertEqual(2, len([e for e in errors
                                     if e['location'] == "body"]))
 
             # let's do the same request, but with information in the
@@ -113,18 +116,50 @@ if COLANDER:
             resp = self.app.post('/foobar?yeah=test', status=400)
 
             # we should at have no missing value in the QS
-            self.assertEquals(0, len([e for e in resp.json['errors']
+            self.assertEqual(0, len([e for e in resp.json['errors']
                                     if e['location'] == "querystring"]))
 
             # and if we add the required values in the body of the post,
-            # then we
-            # should be good
-            data = {'foo': 'yeah', 'bar': 'open', 'baz': 'baz?'}
+            # then we should be good
+            data = {'foo': 'yeah', 'bar': 'open'}
             resp = self.app.post('/foobar?yeah=test', params=json.dumps(data),
                                 status=200)
 
-            self.assertEquals(resp.json, {"test": "succeeded"})
+            self.assertEqual(resp.json, {u'baz': None, "test": "succeeded"})
 
         def test_schema_validation2(self):
             resp = self.app.get('/foobar?yeah=test', status=200)
-            self.assertEquals(resp.json, {"test": "succeeded"})
+            self.assertEqual(resp.json, {"test": "succeeded"})
+
+        def test_bar_validator(self):
+            # test validator on bar attribute
+            data = {'foo': 'yeah', 'bar': 'closed'}
+            resp = self.app.post('/foobar?yeah=test', params=json.dumps(data),
+                                 status=400)
+
+            self.assertEqual(resp.json, {
+                    u'errors': [{u'description': u'The bar is not open.',
+                    u'location': u'body',
+                    u'name': u'bar'}],
+                    u'status': u'error'})
+
+        def test_foo_required(self):
+            # test required attribute
+            data = {'bar': 'open'}
+            resp = self.app.post('/foobar?yeah=test', params=json.dumps(data),
+                                 status=400)
+
+            self.assertEqual(resp.json, {
+                    u'errors': [{u'description': u'foo is missing',
+                    u'location': u'body',
+                    u'name': u'foo'}],
+                    u'status': u'error'})
+
+        def test_default_baz_value(self):
+            # test required attribute
+            data = {'foo': 'yeah', 'bar': 'open'}
+            resp = self.app.post('/foobar?yeah=test', params=json.dumps(data),
+                                 status=200)
+
+            self.assertEqual(resp.json, {u'baz': None, "test": "succeeded"})
+
