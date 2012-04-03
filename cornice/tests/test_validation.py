@@ -57,12 +57,27 @@ class TestServiceDefinition(LoggingCatcher, unittest.TestCase):
         # ... with the list of accepted content-types
         self.assertTrue('application/json' in res.json)
         self.assertTrue('text/json' in res.json)
+        self.assertTrue('text/plain' in res.json)
 
-        app.get('/service2', headers={'Accept': 'application/*'}, status=200)
+        # requesting a supported type should give an appropriate response type
+        r = app.get('/service2', headers={'Accept': 'application/*'})
+        self.assertEquals(r.content_type, "application/json")
+
+        r = app.get('/service2', headers={'Accept': 'text/plain'})
+        self.assertEquals(r.content_type, "text/plain")
 
         # it should also work with multiple Accept headers
-        app.get('/service2', headers={'Accept': 'audio/*, application/*'},
-                status=200)
+        r = app.get('/service2', headers={'Accept': 'audio/*, application/*'})
+        self.assertEquals(r.content_type, "application/json")
+
+        # and requested preference order should be respected
+        r = app.get('/service2',
+                    headers={'Accept': 'application/json, text/plain'})
+        self.assertEquals(r.content_type, "application/json")
+
+        r = app.get('/service2',
+                    headers={'Accept': 'text/plain, application/json'})
+        self.assertEquals(r.content_type, "application/json")
 
         # test that using a callable to define what's accepted works as well
         res = app.get('/service3', headers={'Accept': 'audio/*'}, status=406)
@@ -70,9 +85,10 @@ class TestServiceDefinition(LoggingCatcher, unittest.TestCase):
 
         app.get('/service3', headers={'Accept': 'text/*'}, status=200)
 
-        # if we are not asking for a particular content-type, everything
-        # should work just fine
-        app.get('/service2', status=200)
+        # if we are not asking for a particular content-type,
+        # we should get the type defined by outermost declaration.
+        r = app.get('/service2', status=200)
+        self.assertEquals(r.content_type, "application/json")
 
     def test_filters(self):
         app = TestApp(main({}))
