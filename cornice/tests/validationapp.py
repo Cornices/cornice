@@ -84,7 +84,7 @@ def get4(request):
     return "unfiltered"  # should be overwritten on GET
 
 try:
-    from colander import Invalid, MappingSchema, SchemaNode, String
+    from colander import Invalid, MappingSchema, SchemaNode, String, Integer, Range
     COLANDER = True
 except ImportError:
     COLANDER = False
@@ -100,6 +100,7 @@ if COLANDER:
         bar = SchemaNode(String(), location="body", type='str', validator=validate_bar)
         baz = SchemaNode(String(), location="body", type='str', missing=None)
         yeah = SchemaNode(String(), location="querystring", type='str')
+        ipsum = SchemaNode(Integer(), location="body", type='int', missing=1, validator=Range(0, 3))
 
     foobar = Service(name="foobar", path="/foobar")
 
