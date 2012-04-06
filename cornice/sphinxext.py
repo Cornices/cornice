@@ -55,7 +55,8 @@ class ServiceDirective(Directive):
     """
     has_content = True
     option_spec = {'package': directives.unchanged,
-                   'service': directives.unchanged}
+                   'service': directives.unchanged,
+                   'ignore': directives.unchanged}
     domain = 'py'
     # copied from sphinx.domains.python.PyObject
     doc_field_types = [
@@ -173,11 +174,11 @@ class ServiceDirective(Directive):
 
         return service_node
 
-    def _get_services(self, package):
+    def _get_services(self, package, ignore):
         from pyramid.config import Configurator
         conf = Configurator()
         conf.include('cornice')
-        conf.scan(package)
+        conf.scan(package, ignore=ignore)
         by_service = defaultdict(dict)
         apidocs = conf.registry.settings.get('apidocs', [])
 
@@ -192,10 +193,12 @@ class ServiceDirective(Directive):
         # getting the options
         pkg = self.options['package']
         service_name = self.options.get('service')
+        ignore = self.options.get('ignore', '')
+        ignore = [str(ign.strip()) for ign in ignore.split(',')]
         all_services = service_name is None
 
         # listing the services for the package
-        services = self._get_services(pkg)
+        services = self._get_services(pkg, ignore)
 
         if all_services:
             # we want to list all of them
