@@ -27,7 +27,7 @@ package_data = {
 
 
 setup(name='cornice',
-      version='0.9',
+      version='0.8',
       description='Define Web Services in Pyramid.',
       long_description=README + '\n\n' + CHANGES,
       classifiers=[
