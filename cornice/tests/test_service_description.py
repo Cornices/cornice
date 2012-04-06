@@ -45,7 +45,7 @@ from cornice.tests import CatchErrors
 from cornice.schemas import CorniceSchema
 
 try:
-    from colander import Invalid, MappingSchema, SchemaNode, String
+    from colander import Invalid, MappingSchema, SchemaNode, String, Integer, Range
     COLANDER = True
 except ImportError:
     COLANDER = False
@@ -63,6 +63,7 @@ if COLANDER:
         bar = SchemaNode(String(), location="body", type='str', validator=validate_bar)
         baz = SchemaNode(String(), location="body", type='str', missing=None)
         yeah = SchemaNode(String(), location="querystring", type='str')
+        ipsum = SchemaNode(Integer(), location="body", type='int', missing=1, validator=Range(0, 3))
 
     class SchemaFromQuerystring(MappingSchema):
         yeah = SchemaNode(String(), location="querystring", type='str')
@@ -89,7 +90,7 @@ if COLANDER:
         def test_get_from_colander(self):
             schema = CorniceSchema.from_colander(FooBarSchema)
             attrs = schema.as_dict()
-            self.assertEqual(len(attrs), 4)
+            self.assertEqual(len(attrs), 5)
 
         def test_description_attached(self):
             # foobar should contain a schema argument containing the cornice
@@ -162,4 +163,16 @@ if COLANDER:
                                  status=200)
 
             self.assertEqual(resp.json, {u'baz': None, "test": "succeeded"})
+
+        def test_ipsum_error_message(self):
+            # test required attribute
+            data = {'foo': 'yeah', 'bar': 'open', 'ipsum': 5}
+            resp = self.app.post('/foobar?yeah=test', params=json.dumps(data),
+                                 status=400)
+
+            self.assertEqual(resp.json, {
+                    u'errors': [{u'description': u'5 is greater than maximum value 3',
+                    u'location': u'body',
+                    u'name': u'ipsum'}],
+                    u'status': u'error'})
 
