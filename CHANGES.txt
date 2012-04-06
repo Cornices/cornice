@@ -1,7 +1,11 @@
-0.8 - ?
-=======
+0.8 - 2012-04-06
+================
 
-?
+- added support for the 'OPTIONS' HTTP Verb
+- allow multiple accept definitions for a service.
+- get validator's docstring for the automatic doc generation
+- fixed non-ascii documentation problems
+- add a way to ignore some modules when scanning with venusian.scan.
 
 
 0.7 - 2012-03-12
