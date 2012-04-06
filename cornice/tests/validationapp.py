@@ -5,7 +5,6 @@ from pyramid.config import Configurator
 
 from cornice import Service
 from cornice.tests import CatchErrors
-
 import json
 
 
@@ -54,6 +53,7 @@ service2 = Service(name="service2", path="/service2")
 
 
 @service2.get(accept=("application/json", "text/json"))
+@service2.get(accept=("text/plain"), renderer="string")
 def get2(request):
     return {"body": "yay!"}
 
@@ -84,17 +84,21 @@ def get4(request):
     return "unfiltered"  # should be overwritten on GET
 
 try:
-    from colander import MappingSchema, SchemaNode, String
+    from colander import Invalid, MappingSchema, SchemaNode, String
     COLANDER = True
 except ImportError:
     COLANDER = False
 
 if COLANDER:
+    def validate_bar(node, value):
+        if value != 'open':
+            raise Invalid(node, "The bar is not open.")
+
     class FooBarSchema(MappingSchema):
         # foo and bar are required, baz is optional
         foo = SchemaNode(String(), location="body", type='str')
-        bar = SchemaNode(String(), location="body", type='str')
-        baz = SchemaNode(String(), location="body", type='str', required=False)
+        bar = SchemaNode(String(), location="body", type='str', validator=validate_bar)
+        baz = SchemaNode(String(), location="body", type='str', missing=None)
         yeah = SchemaNode(String(), location="querystring", type='str')
 
     foobar = Service(name="foobar", path="/foobar")

@@ -35,10 +35,13 @@ def validate_colander_schema(schema):
                                        "%s is missing" % attr.name)
                 else:
                     try:
-                        deserialized = attr.deserialize(data[attr.name])
+                        if not attr.name in data:
+                            deserialized = attr.deserialize(None)
+                        else:
+                            deserialized = attr.deserialize(data[attr.name])
                     except Invalid, e:
                         # the struct is invalid
-                        request.errors.append(location, attr.name, e.message)
+                        request.errors.add(location, attr.name, e.asdict()[attr.name])
                     else:
                         request.validated[attr.name] = deserialized
 

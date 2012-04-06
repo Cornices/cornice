@@ -1,10 +1,14 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+import json
 import warnings
 import functools
 
 import venusian
+
+from pyramid.exceptions import PredicateMismatch
+from pyramid.httpexceptions import HTTPMethodNotAllowed, HTTPNotAcceptable
 
 from cornice.util import to_list, json_error, match_accept_header
 from cornice.validators import (
@@ -27,7 +31,14 @@ def call_service(func, api_kwargs, context, request):
         if len(request.errors) > 0:
             return json_error(request.errors)
 
-    return func(request)
+    response = func(request)
+
+    # We can't apply filters at this level, since "response" may not have
+    # been rendered into a proper Response object yet.  Instead, give the
+    # request a reference to its api_kwargs so that a tween can apply them.
+    request.cornice_api_kwargs = api_kwargs
+
+    return response
 
 
 class Service(object):
@@ -84,7 +95,7 @@ class Service(object):
         self.kw = kw
         # to keep the order in which the services have been defined
         self.index = -1
-        self.definitions = {}
+        self.definitions = []
 
     def __repr__(self):
         return "<%s Service at %s>" % (self.renderer.capitalize(),
@@ -106,6 +117,8 @@ class Service(object):
                 route_kw["factory"] = self._make_route_factory()
 
             config.add_route(self.route_name, self.route_pattern, **route_kw)
+            config.add_view(view=self._fallback_view,
+                            route_name=self.route_name)
 
         # registers the method
         if method not in self.defined_methods:
@@ -133,6 +146,9 @@ class Service(object):
 
     def delete(self, **kw):
         return self.api(request_method='DELETE', **kw)
+
+    def options(self, **kw):
+        return self.api(request_method='OPTIONS', **kw)
 
     def get_view_wrapper(self, kw):
         """
@@ -202,7 +218,7 @@ class Service(object):
 
         def _api(func):
             _api_kw = api_kw.copy()
-            self.definitions[method] = _api_kw.copy()
+            self.definitions.append(_api_kw)
 
             def callback(context, name, ob):
                 config = context.config.with_package(info.module)
@@ -224,11 +240,9 @@ class Service(object):
                         return meth()
 
                     del view_kw['attr']
-                    view = functools.partial(call_service, view,
-                                       self.definitions[method])
+                    view = functools.partial(call_service, view, _api_kw)
                 else:
-                    view = functools.partial(call_service, ob,
-                                       self.definitions[method])
+                    view = functools.partial(call_service, ob, _api_kw)
 
                 # set the module of the partial function
                 setattr(view, '__module__', getattr(ob, '__module__'))
@@ -266,3 +280,40 @@ class Service(object):
 
             return func
         return _api
+
+    def _fallback_view(self, request):
+        """Fallback view for this service, called when nothing else matches.
+
+        This method provides the view logic to be executed when the request
+        does not match any explicitly-defined view.  Its main responsibility
+        is to produce an accurate error response, such as HTTPMethodNotAllowed
+        or HTTPNotAcceptable.
+        """
+        # Maybe we failed to match any definitions for the request method?
+        if request.method not in self.defined_methods:
+            response = HTTPMethodNotAllowed()
+            response.allow = self.defined_methods
+            return response
+        # Maybe we failed to match an acceptable content-type?
+        # First search all the definitions to find the acceptable types.
+        # XXX: precalculate this like the defined_methods list?
+        acceptable = []
+        for api_kwargs in self.definitions:
+            if api_kwargs['request_method'] != request.method:
+                continue
+            if 'accept' in api_kwargs:
+                accept = to_list(api_kwargs.get('accept'))
+                acceptable.extend(a for a in accept if not callable(a))
+                if 'acceptable' in request.info:
+                    for content_type in request.info['acceptable']:
+                        if content_type not in acceptable:
+                            acceptable.append(content_type)
+        # Now check if that was actually the source of the problem.
+        if not request.accept.best_match(acceptable):
+            response = HTTPNotAcceptable()
+            response.content_type = "application/json"
+            response.body = json.dumps(acceptable)
+            return response
+        # In the absence of further information about what went wrong,
+        # let upstream deal with the mismatch.
+        raise PredicateMismatch(self.name)
