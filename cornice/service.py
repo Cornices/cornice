@@ -44,10 +44,8 @@ def call_service(func, api_kwargs, context, request):
 class Service(object):
     """Represents a service.
 
-    A service is composed of one path and several possible methods, associated
+    A service is composed of a path and several possible methods, associated
     to python callables.
-
-    Options can be passed to a service.
 
     :param name: the name of the service. Should be unique.
 
@@ -164,11 +162,11 @@ class Service(object):
 
     # the actual decorator
     def api(self, **kw):
-        """Decorates a function to make it a service.
+        """Decorates a function/method to make it a service.
 
-        Options can be passed to the decorator. The methods get, post, put and
-        delete are aliases to this one, specifying the "request_method"
-        argument for convenience.
+        All the :class:`Service` keyword params except `name` and `path`
+        can be overwritten here. Additionally, :meth:`~cornice.service.Service.api`
+        has following keyword params:
 
         :param request_method: the request method. Should be one of GET, POST,
                                PUT, DELETE, OPTIONS, HEAD, TRACE or CONNECT
@@ -177,8 +175,10 @@ class Service(object):
                            applied in order received, i.e. the last decorator
                            in the sequence will be the outermost wrapper.
 
-        All the constructor options, minus name and path, can be overwritten in
-        here.
+        The methods :meth:`get`, :meth:`post`, :meth:`~put`, :meth:`options` and :meth:`delete`
+        are aliases to :meth:`api`, specifying the "request_method"
+        argument for convenience.
+
         """
         view_wrapper = self.get_view_wrapper(kw)
         method = kw.get('request_method', 'GET')  # default is GET
