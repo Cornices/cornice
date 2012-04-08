@@ -51,27 +51,21 @@ Create a new directory and a virtualenv in it::
 
 Once you have it, install Cornice in it with Pip::
 
-    $ bin/pip install Cornice
+    $ bin/pip install cornice
 
 Cornice provides a Paster Template you can use to create a new
 application::
 
-    $ bin/paster create -t cornice messaging
-    Selected and implied templates:
-    cornice#cornice  A Cornice application
-
-    Variables:
-    egg:      messaging
-    package:  messaging
-    project:  messaging
-    Enter appname (Application name) ['']: Messaging
-    Enter description (One-line description of the project) ['']: A simple messaging service.
-    Enter author (Author name) ['']: Tarek
-    Creating template cornice
-    ...
-    Generating Application...
-    Running python2.7 setup.py egg_info
-
+    $ bin/pcreate -t cornice messaging
+    Creating directory <...path ...>/messaging
+      Recursing into +package+
+        Creating <...path ...>/messaging/messaging/
+        Copying __init__.py_tmpl to <...path ...>/messaging/messaging/__init__.py
+        Copying views.py_tmpl to <...path ...>/messaging/messaging/views.py
+      Copying +package+.ini_tmpl to <...path ...>/messaging/messaging.ini
+      Copying README.rst_tmpl to <...path ...>/messaging/README.rst
+      Copying setup.py_tmpl to <...path ...>/messaging/setup.py
+    Welcome to Pyramid.  Sorry for the convenience.
 
 Once your application is generated, go there and call *develop* against it::
 
@@ -79,14 +73,14 @@ Once your application is generated, go there and call *develop* against it::
     $ ../bin/python setup.py develop
     ...
 
-The application can now be launched via Paster, it provides a default "Hello"
+The application can now be launched via embedded Pyramid pserve, it provides a default "Hello"
 service check::
 
-    $ ../bin/paster serve messaging.ini
+    $ ../bin/pserve messaging.ini
     Starting server in PID 7618.
-    serving on 0.0.0.0:5000 view at http://127.0.0.1:5000
+    serving on 0.0.0.0:6543 view at http://127.0.0.1:6543
 
-Once the application is running, visit http://127.0.0.1:5000 in your browser or
+Once the application is running, visit http://127.0.0.1:6543 in your browser or
 Curl and make sure you get::
 
     {'Hello': 'World'}
@@ -200,19 +194,19 @@ mapping, and that will return a 400 with the errors.
 Let's try our application so far with CURL::
 
 
-    $ curl http://localhost:5000/users
+    $ curl http://localhost:6543/users
     {"status": "error", "errors": [{"location": "header",
                                     "name": "X-Messaging-Token",
                                     "description": "No token"}]}
 
-    $ curl -X PUT http://localhost:5000/users -d 'tarek'
+    $ curl -X PUT http://localhost:6543/users -d 'tarek'
     {"token": "tarek-a15fa2ea620aac8aad3e1b97a64200ed77dc7524"}
 
 
-    $ curl http://localhost:5000/users -H "X-Messaging-Token:tarek-a15fa2ea620aac8aad3e1b97a64200ed77dc7524"
+    $ curl http://localhost:6543/users -H "X-Messaging-Token:tarek-a15fa2ea620aac8aad3e1b97a64200ed77dc7524"
     {'users': ['tarek']}
 
-    $ curl -X DELETE http://localhost:5000/users -H "X-Messaging-Token:tarek-a15fa2ea620aac8aad3e1b97a64200ed77dc7524"
+    $ curl -X DELETE http://localhost:6543/users -H "X-Messaging-Token:tarek-a15fa2ea620aac8aad3e1b97a64200ed77dc7524"
     {'Goodbye': 'tarek}
 
 

@@ -11,17 +11,18 @@ with open(os.path.join(here, 'README.rst')) as f:
 
 setup(name='messaging',
     version=0.1,
-    description="sqd",
+    description='messaging',
     long_description=README,
     classifiers=[
         "Programming Language :: Python",
         "Framework :: Pylons",
         "Topic :: Internet :: WWW/HTTP",
-        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application"],
+        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application"
+    ],
     keywords="web services",
-    author='qd',
-    author_email="qd -at- example.com",
-    url="http://example.com",
+    author='',
+    author_email='',
+    url='',
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,

@@ -9,9 +9,9 @@ with open(os.path.join(here, 'README.rst')) as f:
     README = f.read()
 
 
-setup(name=${repr(project)},
+setup(name='{{project}}',
     version=0.1,
-    description="${description|nothing}",
+    description='{{project}}',
     long_description=README,
     classifiers=[
         "Programming Language :: Python",
@@ -20,16 +20,16 @@ setup(name=${repr(project)},
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application"
     ],
     keywords="web services",
-    author=${repr(author)|empty},
-    author_email="${author} -at- example.com",
-    url="http://example.com",
+    author='',
+    author_email='',
+    url='',
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
     install_requires=['cornice', 'PasteScript'],
     entry_points = """\
     [paste.app_factory]
-    main = ${package}:main
+    main = {{package}}:main
     """,
     paster_plugins=['pyramid'],
 )

@@ -11,7 +11,7 @@ To use Cornice, install it::
 
 That'll give you a Paster template to use::
 
-    $ paster create -t cornice project
+    $ pcreate -t cornice project
     ...
 
 The template creates a working Cornice application.

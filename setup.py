@@ -9,22 +9,22 @@ with open(os.path.join(here, 'README.rst')) as f:
 with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
-
 requires = ['pyramid', 'coverage', 'simplejson',
             'docutils', 'unittest2', 'Sphinx',
-            'webtest', 'Paste', 'PasteScript']
+            'webtest']
 test_requires = requires + ['colander']
 
 entry_points = """\
 [paste.paster_create_template]
-cornice=cornice.template:AppTemplate
+cornice=cornice.scaffolds:CorniceTemplate
+[pyramid.scaffold]
+cornice=cornice.scaffolds:CorniceTemplate
 """
 
 package_data = {
-  "cornice.template":
+  "cornice.scaffolds":
     ["cornice/*.*",
      "cornice/+package+/*.*"]}
-
 
 setup(name='cornice',
       version='0.10',
