@@ -28,8 +28,7 @@ def validate_colander_schema(schema):
         from colander import Invalid
 
         def _validate_fields(location, data):
-            attributes = schema.get_attributes(location=location)
-            for attr in attributes:
+            for attr in schema.get_attributes(location=location):
                 if attr.required and not attr.name in data:
                     # missing
                     request.errors.add(location, attr.name,
