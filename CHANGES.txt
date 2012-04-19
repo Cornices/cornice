@@ -1,6 +1,8 @@
 0.9 - XXXX-XX-XX
 ================
 
+- default schema values are assumed to be in the body
+
 0.8 - 2012-04-06
 ================
 
