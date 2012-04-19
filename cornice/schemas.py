@@ -18,8 +18,11 @@ class CorniceSchema(object):
         without filtering anything.
         """
         def _filter(attr):
-            return (attr.location in to_list(location) and
-                    attr.required in to_list(required))
+            if not hasattr(attr, "location"):
+                valid_location = 'body' in location
+            else:
+                valid_location = attr.location in to_list(location)
+            return valid_location and attr.required in to_list(required)
 
         return filter(_filter, self._attributes)
 

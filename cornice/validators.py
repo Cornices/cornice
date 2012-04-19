@@ -28,7 +28,8 @@ def validate_colander_schema(schema):
         from colander import Invalid
 
         def _validate_fields(location, data):
-            for attr in schema.get_attributes(location=location):
+            attributes = schema.get_attributes(location=location)
+            for attr in attributes:
                 if attr.required and not attr.name in data:
                     # missing
                     request.errors.add(location, attr.name,
@@ -41,7 +42,8 @@ def validate_colander_schema(schema):
                             deserialized = attr.deserialize(data[attr.name])
                     except Invalid, e:
                         # the struct is invalid
-                        request.errors.add(location, attr.name, e.asdict()[attr.name])
+                        request.errors.add(location, attr.name,
+                                           e.asdict()[attr.name])
                     else:
                         request.validated[attr.name] = deserialized
 
