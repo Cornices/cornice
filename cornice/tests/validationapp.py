@@ -105,9 +105,9 @@ if COLANDER:
         # foo and bar are required, baz is optional
         foo = SchemaNode(String(), type='str')
         bar = SchemaNode(String(), type='str', validator=validate_bar)
-        baz = SchemaNode(String(), location="body", type='str', missing=None)
+        baz = SchemaNode(String(), type='str', missing=None)
         yeah = SchemaNode(String(), location="querystring", type='str')
-        ipsum = SchemaNode(Integer(), location="body", type='int', missing=1,
+        ipsum = SchemaNode(Integer(), type='int', missing=1,
                            validator=Range(0, 3))
 
     foobar = Service(name="foobar", path="/foobar")
