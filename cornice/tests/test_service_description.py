@@ -40,38 +40,13 @@ import json
 from pyramid import testing
 from webtest import TestApp
 
-from cornice import Service
 from cornice.tests import CatchErrors
 from cornice.schemas import CorniceSchema
-
-try:
-    from colander import (
-        Invalid, 
-        MappingSchema, 
-        SchemaNode, 
-        String, 
-        Integer, 
-        Range
-    )  
-    COLANDER = True
-except ImportError:
-    COLANDER = False
+from cornice.tests.validationapp import COLANDER
 
 if COLANDER:
-    foobar = Service(name="foobar", path="/foobar")
-
-    def validate_bar(node, value):
-        if value != 'open':
-            raise Invalid(node, "The bar is not open.")
-
-    class FooBarSchema(MappingSchema):
-        # foo and bar are required, baz is optional
-        foo = SchemaNode(String(), type='str')
-        bar = SchemaNode(String(), type='str', validator=validate_bar)
-        baz = SchemaNode(String(), type='str', missing=None)
-        yeah = SchemaNode(String(), location="querystring", type='str')
-        ipsum = SchemaNode(Integer(), type='int', missing=1, 
-                           validator=Range(0, 3))
+    from cornice.tests.validationapp import FooBarSchema, foobar
+    from colander import MappingSchema, SchemaNode, String
 
     class SchemaFromQuerystring(MappingSchema):
         yeah = SchemaNode(String(), location="querystring", type='str')
@@ -179,8 +154,8 @@ if COLANDER:
                                  status=400)
 
             self.assertEqual(resp.json, {
-                    u'errors': [{u'description': u'5 is greater than maximum value 3',
-                    u'location': u'body',
-                    u'name': u'ipsum'}],
-                    u'status': u'error'})
-
+                    u'errors': [
+                        {u'description': u'5 is greater than maximum value 3',
+                         u'location': u'body',
+                         u'name': u'ipsum'}],
+                     u'status': u'error'})
