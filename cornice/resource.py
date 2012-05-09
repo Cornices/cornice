@@ -46,16 +46,14 @@ def resource(**kw):
                 view_attr = prefix + verb
                 meth = getattr(klass, view_attr, None)
                 if meth is not None:
+                    # if the method has a __views__ arguments, then it had
+                    # been decorated by a @view decorator. get back the name of
+                    # the decorated method so we can register it properly
                     views = getattr(meth, '__views__', [])
-                    verb_dec = getattr(service, verb)
                     if views:
                         for view_args in views:
                             view_args = dict(service_args, **view_args)
-                            view_args['attr'] = view_attr
-                            del view_args['path']
-                            verb_dec(**view_args)(klass)
-                    else:
-                        verb_dec(attr=view_attr)(klass)
+                            service.hook_view(view_attr, view_args)
 
         setattr(klass, '_services', services)
         return klass

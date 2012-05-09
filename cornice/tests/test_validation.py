@@ -7,7 +7,7 @@ import simplejson as json
 from webtest import TestApp
 from pyramid.response import Response
 
-from cornice.tests.validationapp import main, _json
+from cornice.tests.validationapp import main
 from cornice.tests.support import LoggingCatcher
 from cornice.errors import Errors
 from cornice.validators import filter_json_xsrf
@@ -38,14 +38,6 @@ class TestServiceDefinition(LoggingCatcher, unittest.TestCase):
         # check that json is returned
         errors = Errors.from_json(res.body)
         self.assertEqual(len(errors), 1)
-
-        # the "apidocs" registry entry contains all the needed information
-        # to build up documentation
-        # in this case, this means the function is registered and the argument
-        # of the service are defined (e.g "validator" is set)
-        apidocs = app.app.registry.settings['apidocs']
-
-        self.assertTrue(_json in apidocs[('/service', 'POST')]['validators'])
 
     def test_accept(self):
         # tests that the accept headers are handled the proper way
