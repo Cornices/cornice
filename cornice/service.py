@@ -245,25 +245,45 @@ def decorate_view(view, args, method):
     :param method: the HTTP method
     """
     def wrapper(request):
-        validators = args.get('validators', ())
+        # if the args contain a klass argument then use it to resolve the view
+        # location (if the view argument isn't a callable)
+        ob = None
+        view_ = view
+        if 'klass' in args:
+            ob = args['klass'](request)
+            if isinstance(view, basestring):
+                view_ = getattr(ob, view.lower())
 
         # do schema validation
         if 'schema' in args:
             validate_colander_schema(args['schema'], request)
 
+        # the validators can either be a list of callables or contain some
+        # non-callable values. In which case we want to resolve them using the
+        # object if any
+        validators = args.get('validators', ())
         for validator in validators:
+            if isinstance(validator, basestring) and ob is not None:
+                validator = getattr(ob, validator)
             validator(request)
 
         if len(request.errors) > 0:
             return json_error(request.errors)
 
-        response = view(request)
+        # if we have an object, the request had already been passed to it
+        if ob:
+            response = view_()
+        else:
+            response = view_(request)
 
         # We can't apply filters at this level, since "response" may not have
         # been rendered into a proper Response object yet.  Instead, give the
         # request a reference to its api_kwargs so that a tween can apply them.
-        request.cornice_args = args
+        # We also pass the object we created (if any) so we can use it to find
+        # the filters that are in fact methods.
+        request.cornice_args = (args, ob)
         return response
 
-    # return the wrapper, not the function
+    # return the wrapper, not the function, keep the same signature
+    functools.wraps(wrapper)
     return wrapper

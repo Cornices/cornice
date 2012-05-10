@@ -6,7 +6,7 @@ from pyramid.exceptions import PredicateMismatch
 
 from cornice.service import decorate_view
 from cornice.errors import Errors
-from cornice.util import to_list, method_caller
+from cornice.util import to_list
 
 
 def match_accept_header(func, context, request):
@@ -77,8 +77,10 @@ def tween_factory(handler, registry):
             pattern = request.matched_route.pattern
             service = request.registry['cornice_services'].get(pattern)
             if service is not None:
-                kwargs = getattr(request, "cornice_args", {})
+                kwargs, ob = getattr(request, "cornice_args", ({}, None))
                 for _filter in kwargs.get('filters', []):
+                    if isinstance(_filter, basestring) and ob is not None:
+                        _filter = getattr(ob, _filter)
                     response = _filter(response)
         return response
     return cornice_tween
@@ -118,13 +120,8 @@ def register_service_views(config, service):
         args = dict(args)  # make a copy of the dict to not modify it
         args['request_method'] = method
 
-        # if klass, convert the non-callable views to callable ones
-        klass = args.pop('klass', None)
-        if klass and isinstance(view, basestring):
-            view = method_caller(klass, view)
-
         decorated_view = decorate_view(view, dict(args), method)
-        for item in ('filters', 'validators', 'schema'):
+        for item in ('filters', 'validators', 'schema', 'klass'):
             if item in args:
                 del args[item]
 

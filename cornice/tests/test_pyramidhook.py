@@ -5,6 +5,7 @@ import unittest
 
 from pyramid import testing
 from pyramid.httpexceptions import HTTPNotFound
+from pyramid.response import Response
 from webtest import TestApp
 
 from cornice import Service
@@ -24,11 +25,22 @@ class TemperatureCooler(object):
         self.request = request
 
     def get_fresh_air(self):
-        return "ice"
+        resp = Response()
+        resp.body = 'air'
+        return resp
+
+    def make_it_fresh(self, response):
+        response.body = 'fresh ' + response.body
+        return response
+
+    def check_temperature(self, request):
+        if not 'X-Temperature' in request.headers:
+            request.errors.add('header', 'X-Temperature')
 
 tc = Service(name="TemperatureCooler", path="/fresh-air",
              klass=TemperatureCooler)
-tc.hook_view("GET", "get_fresh_air")
+tc.hook_view("GET", "get_fresh_air", filters=('make_it_fresh',),
+             validators=('check_temperature',))
 
 
 class TestService(unittest.TestCase):
@@ -53,7 +65,9 @@ class TestService(unittest.TestCase):
         self.app.post("/service", status=405)
 
     def test_class_support(self):
-        self.app.get('/fresh-air')
+        self.app.get('/fresh-air', status=400)
+        resp = self.app.get('/fresh-air', headers={'X-Temperature': '50'})
+        self.assertEquals(resp.body, 'fresh air')
 
 
 class WrapperService(Service):
