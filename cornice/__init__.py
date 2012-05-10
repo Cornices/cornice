@@ -3,8 +3,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import logging
 
-from pyramid.events import BeforeRender, NewRequest
-
 from cornice import util
 from cornice.service import Service   # NOQA
 from cornice.pyramidhook import (
@@ -29,6 +27,7 @@ def add_apidoc(config, pattern, func, service, **kwargs):
 def includeme(config):
     """Include the Cornice definitions
     """
+    from pyramid.events import BeforeRender, NewRequest
 
     #config.add_directive('add_apidoc', add_apidoc)
     config.add_directive('add_cornice_service', register_service_views)
