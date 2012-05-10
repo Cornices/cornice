@@ -124,3 +124,10 @@ def extract_request_data(request):
         body = {}
 
     return request.GET, request.headers, body, request.matchdict
+
+
+def method_caller(klass, method):
+    def decorated_view(request):
+        ob = klass(request)
+        return getattr(ob, method)()
+    return decorated_view

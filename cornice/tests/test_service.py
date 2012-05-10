@@ -135,8 +135,8 @@ class TestService(unittest.TestCase):
         self.assertEquals(len(service.get_acceptable("POST")), 2)
         self.assertEquals(len(service.get_acceptable("POST", True)), 1)
 
-    def test_schemas_for(self):
-        if validationapp.COLANDER:
+    if validationapp.COLANDER:
+        def test_schemas_for(self):
             schema = validationapp.FooBarSchema
             service = Service("color", "/favorite-color")
             service.hook_view("GET", lambda x: "red", schema=schema)
@@ -144,3 +144,19 @@ class TestService(unittest.TestCase):
             service.hook_view("GET", lambda x: "red", validators=_validator,
                               schema=schema)
             self.assertEquals(len(service.schemas_for("GET")), 2)
+
+    def test_class_parameters(self):
+        # when passing a "klass" argument, it gets registered. It also tests
+        # that the view argument can be a string and not a callable.
+        class TemperatureCooler(object):
+            def get_fresh_air(self):
+                pass
+        service = Service("TemperatureCooler", "/freshair",
+                          klass=TemperatureCooler)
+        service.hook_view("get", "get_fresh_air")
+
+        self.assertEquals(len(service.definitions), 1)
+
+        method, view, args = service.definitions[0]
+        self.assertEquals(view, "get_fresh_air")
+        self.assertEquals(args["klass"], TemperatureCooler)

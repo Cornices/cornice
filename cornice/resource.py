@@ -3,6 +3,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 from cornice import Service
+try:
+    import venusian
+    VENUSIAN = True
+except ImportError:
+    VENUSIAN = False
 
 
 def resource(**kw):
@@ -39,12 +44,14 @@ def resource(**kw):
             # create service
             service_name = prefix + klass.__name__.lower()
             service = services[service_name] = Service(name=service_name,
-                                                       **service_args)
+                                                       depth=2, **service_args)
 
             # initialize views
             for verb in ('get', 'post', 'put', 'delete', 'options'):
+
                 view_attr = prefix + verb
                 meth = getattr(klass, view_attr, None)
+
                 if meth is not None:
                     # if the method has a __views__ arguments, then it had
                     # been decorated by a @view decorator. get back the name of
@@ -52,10 +59,23 @@ def resource(**kw):
                     views = getattr(meth, '__views__', [])
                     if views:
                         for view_args in views:
-                            view_args = dict(service_args, **view_args)
-                            service.hook_view(view_attr, view_args)
+                            service.hook_view(verb, view_attr, klass=klass,
+                                              **view_args)
+                    else:
+                        service.hook_view(verb, view_attr, klass=klass)
 
         setattr(klass, '_services', services)
+
+        if VENUSIAN:
+            def callback(context, name, ob):
+                # get the callbacks registred by the inner services
+                # and call them from here when the @resource classes are being
+                # scanned by venusian.
+                for service in services.values():
+                    config = context.config.with_package(info.module)
+                    config.add_cornice_service(service)
+
+            info = venusian.attach(klass, callback, category='pyramid')
         return klass
     return wrapper
 

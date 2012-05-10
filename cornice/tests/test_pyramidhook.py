@@ -19,6 +19,18 @@ def return_404(request):
     raise HTTPNotFound()
 
 
+class TemperatureCooler(object):
+    def __init__(self, request):
+        self.request = request
+
+    def get_fresh_air(self):
+        return "ice"
+
+tc = Service(name="TemperatureCooler", path="/fresh-air",
+             klass=TemperatureCooler)
+tc.hook_view("GET", "get_fresh_air")
+
+
 class TestService(unittest.TestCase):
 
     def setUp(self):
@@ -39,6 +51,9 @@ class TestService(unittest.TestCase):
     def test_405(self):
         # calling a unknown verb on an existing resource should return a 405
         self.app.post("/service", status=405)
+
+    def test_class_support(self):
+        self.app.get('/fresh-air')
 
 
 class WrapperService(Service):
