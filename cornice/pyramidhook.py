@@ -6,7 +6,7 @@ from pyramid.exceptions import PredicateMismatch
 
 from cornice.service import decorate_view
 from cornice.errors import Errors
-from cornice.util import to_list
+from cornice.util import to_list, method_caller
 
 
 def match_accept_header(func, context, request):
@@ -117,6 +117,12 @@ def register_service_views(config, service):
 
         args = dict(args)  # make a copy of the dict to not modify it
         args['request_method'] = method
+
+        # if klass, convert the non-callable views to callable ones
+        klass = args.pop('klass', None)
+        if klass and isinstance(view, basestring):
+            view = method_caller(klass, view)
+
         decorated_view = decorate_view(view, dict(args), method)
         for item in ('filters', 'validators', 'schema'):
             if item in args:

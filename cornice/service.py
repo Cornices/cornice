@@ -7,7 +7,12 @@ from cornice.validators import (
 )
 from cornice.schemas import CorniceSchema, validate_colander_schema
 from cornice.util import to_list, json_error
-import venusian
+
+try:
+    import venusian
+    VENUSIAN = True
+except ImportError:
+    VENUSIAN = False
 
 SERVICES = []
 
@@ -52,6 +57,8 @@ class Service(object):
     :param acl: a callable defininng the ACL (returns true or false, function
                 of the given request). Exclusive with the 'factory' option.
 
+    :param klass: the class to use when resolving views (if they are not
+                  callables)
     See
     http://readthedocs.org/docs/pyramid/en/1.0-branch/glossary.html#term-acl
     for more information about ACLs.
@@ -65,7 +72,7 @@ class Service(object):
     def __repr__(self):
         return u'<Service %s at %s>' % (self.name, self.path)
 
-    def __init__(self, name, path, description=None, **kw):
+    def __init__(self, name, path, description=None, depth=1, **kw):
         self.name = name
         self.path = path
         self.description = description
@@ -92,13 +99,15 @@ class Service(object):
             setattr(self, verb.lower(),
                     functools.partial(self.decorator, verb))
 
-        # this callback will be called when config.scan (from pyramid) will
-        # be triggered.
-        def callback(context, name, ob):
-            config = context.config.with_package(info.module)
-            config.add_service(self)
+        if VENUSIAN:
+            # this callback will be called when config.scan (from pyramid) will
+            # be triggered.
+            def callback(context, name, ob):
+                config = context.config.with_package(info.module)
+                config.add_cornice_service(self)
 
-        info = venusian.attach(self, callback, category='pyramid')
+            info = venusian.attach(self, callback, category='pyramid',
+                                   depth=depth)
 
     def get_arguments(self, conf=None):
         """Return a dictionnary of arguments. Takes arguments from the :param
