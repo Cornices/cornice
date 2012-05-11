@@ -23,8 +23,8 @@ Documentation content
    api
 
 
-Show me some code !
--------------------
+Show me some code!
+------------------
 
 A **full** Cornice WGSI application looks like this (this example is taken from
 the `demoapp project <https://github.com/mozilla-services/demoapp>`_)

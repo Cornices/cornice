@@ -1,8 +1,8 @@
 Testing
 =======
 
-Testing is nice and useful. Here is how you can test your cornices
-applications.
+Testing is nice and useful. Some folks even said it helped saving kittens. And
+childs.  Here is how you can test your cornices applications.
 
 Let's suppose you have this service definition::
 
