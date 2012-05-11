@@ -18,14 +18,19 @@ Disabling or adding filters/validators
 Some validators and filters are activated by default, for all the services. In
 case you want to disable them, or if you 
 
-You can register a filter for all the services::
+You can register a filter for all the services by tweaking the `DEFAULT_FILTER`
+parameter::
 
     from cornice.validators import DEFAULT_FILTERS
 
     def includeme(config):
         DEFAULT_FILTERS.append(your_callable)
 
-The example above works as well for validators.
+(this also works for validators)
+
+You also can add or remove filters and validators for a particular service. To
+do that, you need to define its `default_validators` and `default_filters`
+class parameters.
 
 Dealing with errors
 ===================
@@ -114,7 +119,7 @@ like this::
         except formencode.Invalid, e:
             request.errors.add('url', 'max', e.message)
 
-    @foo.get(validators=validate)
+    @foo.get(validators=(validate,))
     def get_value(request):
         """Returns the value.
         """
@@ -162,6 +167,22 @@ example of this::
         if not request.POST['userid'] in userids:
             request.errors.add('body', 'userid', 'The user id does not exist')
             request.errors.status = 404
+
+Doing validation and filtering at class level
+---------------------------------------------
+
+If you want to use class methods to do validation, you can do so by passing the
+`klass` parameter to the `hook_view` or `@method` decorators, plus a string
+representing the name of the method you want to invoke on validation. This
+means something like this::
+
+    class MyClass:
+        def validate_it(request):
+            # put the validation logic here
+
+    @service.get(klass=MyClass, validators=('validate_it',))
+    def view(request):
+        # do something with the request
 
 
 Content-Type validation

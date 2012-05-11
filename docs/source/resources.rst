@@ -26,3 +26,22 @@ Here is how you can register a resource::
 As you can see, you can define methods for the collection (it will use the
 **path** argument of the class decorator. When defining collection_* methods, the 
 path defined in the **collection_path** will be used.
+
+validators and filters
+======================
+
+You also can register validators and filters that are defined in your
+`@resource` decorated class, like this::
+
+    @resource(path='/users/{id}')
+    class User(object):
+
+        def __init__(self, request):
+            self.request = request
+
+        @view(validators=('validate_req',))
+        def get(self):
+            # return the list of users
+
+        def validate_req(self, request):
+            # validate the request
