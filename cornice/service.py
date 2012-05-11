@@ -94,7 +94,6 @@ class Service(object):
         self.definitions = []
 
         # add this service to the list of available services
-        global SERVICES
         SERVICES.append(self)
 
         # register aliases for the decorators
