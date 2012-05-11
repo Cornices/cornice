@@ -87,6 +87,7 @@ try:
     from colander import (
         Invalid,
         MappingSchema,
+        SequenceSchema,
         SchemaNode,
         String,
         Integer,
@@ -101,6 +102,11 @@ if COLANDER:
         if value != 'open':
             raise Invalid(node, "The bar is not open.")
 
+
+    class Integers(SequenceSchema):
+        integer = SchemaNode(Integer(), type='int')
+
+
     class FooBarSchema(MappingSchema):
         # foo and bar are required, baz is optional
         foo = SchemaNode(String(), type='str')
@@ -109,6 +115,7 @@ if COLANDER:
         yeah = SchemaNode(String(), location="querystring", type='str')
         ipsum = SchemaNode(Integer(), type='int', missing=1,
                            validator=Range(0, 3))
+        integers = Integers(location="body", type='list', missing=())
 
     foobar = Service(name="foobar", path="/foobar")
 
