@@ -23,7 +23,7 @@ SERVICES = []
 class Service(object):
     """Contains a service definition (in the definition attribute).
 
-    A service is composed of one path and many potential methods, associated
+    A service is composed of a path and many potential methods, associated
     with context.
 
     All the class attributes defined in this class or in childs are considered
@@ -65,6 +65,10 @@ class Service(object):
     See
     http://readthedocs.org/docs/pyramid/en/1.0-branch/glossary.html#term-acl
     for more information about ACLs.
+
+    Service cornice instances also have methods :meth:`~get`, :meth:`~post`,
+    :meth:`~put`, :meth:`~options` and :meth:`~delete` are decorators that can
+    be used to decorate views.
     """
     renderer = 'simplejson'
     mandatory_arguments = ('renderer',)
@@ -162,7 +166,12 @@ class Service(object):
     def hook_view(self, method, view, **kwargs):
         """Hooks a view to a method and arguments.
 
-        :param method: the HTTP method to hook the view to
+        All the :class:`Service` keyword params except `name` and `path`
+        can be overwritten here. Additionally,
+        :meth:`~cornice.service.Service.api` has following keyword params:
+
+        :param method: The request method. Should be one of GET, POST, PUT,
+                       DELETE, OPTIONS, TRACE or CONNECT.
         :param view: the view to hook to
         :param **kwargs: additional configuration for this view
         """
