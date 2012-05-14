@@ -71,10 +71,11 @@ class Service(object):
     be used to decorate views.
     """
     renderer = 'simplejson'
-    mandatory_arguments = ('renderer',)
-    list_arguments = ('validators', 'filters')
     default_validators = DEFAULT_VALIDATORS
     default_filters = DEFAULT_FILTERS
+
+    mandatory_arguments = ('renderer',)
+    list_arguments = ('validators', 'filters')
 
     def __repr__(self):
         return u'<Service %s at %s>' % (self.name, self.path)
@@ -163,8 +164,8 @@ class Service(object):
 
         return arguments
 
-    def hook_view(self, method, view, **kwargs):
-        """Hooks a view to a method and arguments.
+    def add_view(self, method, view, **kwargs):
+        """Add a view to a method and arguments.
 
         All the :class:`Service` keyword params except `name` and `path`
         can be overwritten here. Additionally,
@@ -175,6 +176,7 @@ class Service(object):
         :param view: the view to hook to
         :param **kwargs: additional configuration for this view
         """
+        method = method.upper()
         if 'schema' in kwargs:
             # this is deprecated and unusable because multiple schema
             # definitions for the same method will overwrite each other.
@@ -183,13 +185,13 @@ class Service(object):
         args = self.get_arguments(kwargs)
         if hasattr(self, 'get_view_wrapper'):
             view = self.get_view_wrapper(kwargs)(view)
-        self.definitions.append((method.upper(), view, args))
+        self.definitions.append((method, view, args))
 
         # keep track of the defined methods for the service
         if method not in self.defined_methods:
             self.defined_methods.append(method)
 
-    def decorator(self, method, **args):
+    def decorator(self, method, **kwargs):
         """Add the ability to define methods using python's decorators
         syntax.
 
@@ -201,7 +203,7 @@ class Service(object):
                 pass
         """
         def wrapper(view):
-            self.hook_view(method, view, **args)
+            self.add_view(method, view, **kwargs)
             return view
         return wrapper
 

@@ -39,8 +39,8 @@ class TemperatureCooler(object):
 
 tc = Service(name="TemperatureCooler", path="/fresh-air",
              klass=TemperatureCooler)
-tc.hook_view("GET", "get_fresh_air", filters=('make_it_fresh',),
-             validators=('check_temperature',))
+tc.add_view("GET", "get_fresh_air", filters=('make_it_fresh',),
+            validators=('check_temperature',))
 
 
 class TestService(unittest.TestCase):

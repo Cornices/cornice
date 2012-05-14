@@ -59,10 +59,10 @@ def resource(**kw):
                     views = getattr(meth, '__views__', [])
                     if views:
                         for view_args in views:
-                            service.hook_view(verb, view_attr, klass=klass,
+                            service.add_view(verb, view_attr, klass=klass,
                                               **view_args)
                     else:
-                        service.hook_view(verb, view_attr, klass=klass)
+                        service.add_view(verb, view_attr, klass=klass)
 
         setattr(klass, '_services', services)
 

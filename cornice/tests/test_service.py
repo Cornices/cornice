@@ -81,7 +81,7 @@ class TestService(unittest.TestCase):
 
         def view(request):
             pass
-        service.hook_view("post", view, validators=(_validator,))
+        service.add_view("post", view, validators=(_validator,))
         self.assertEquals(len(service.definitions), 1)
         method, _view, _ = service.definitions[0]
 
@@ -112,15 +112,15 @@ class TestService(unittest.TestCase):
         # defining a service with different "accept" headers, we should be able
         # to retrieve this information easily
         service = Service("color", "/favorite-color")
-        service.hook_view("GET", lambda x: "blue", accept="text/plain")
+        service.add_view("GET", lambda x: "blue", accept="text/plain")
         self.assertEquals(service.get_acceptable("GET"), ['text/plain'])
 
-        service.hook_view("GET", lambda x: "blue", accept="application/json")
+        service.add_view("GET", lambda x: "blue", accept="application/json")
         self.assertEquals(service.get_acceptable("GET"),
                           ['text/plain', 'application/json'])
 
         # adding a view for the POST method should not break everything :-)
-        service.hook_view("POST", lambda x: "ok", accept=('foo/bar'))
+        service.add_view("POST", lambda x: "ok", accept=('foo/bar'))
         self.assertEquals(service.get_acceptable("GET"),
                           ['text/plain', 'application/json'])
         # and of course the list of accepted content-types  should be available
@@ -131,7 +131,7 @@ class TestService(unittest.TestCase):
         # it is possible to give acceptable content-types dynamically at
         # run-time. You don't always want to have the callables when retrieving
         # all the acceptable content-types
-        service.hook_view("POST", lambda x: "ok", accept=lambda r: "text/json")
+        service.add_view("POST", lambda x: "ok", accept=lambda r: "text/json")
         self.assertEquals(len(service.get_acceptable("POST")), 2)
         self.assertEquals(len(service.get_acceptable("POST", True)), 1)
 
@@ -139,9 +139,9 @@ class TestService(unittest.TestCase):
         def test_schemas_for(self):
             schema = validationapp.FooBarSchema
             service = Service("color", "/favorite-color")
-            service.hook_view("GET", lambda x: "red", schema=schema)
+            service.add_view("GET", lambda x: "red", schema=schema)
             self.assertEquals(len(service.schemas_for("GET")), 1)
-            service.hook_view("GET", lambda x: "red", validators=_validator,
+            service.add_view("GET", lambda x: "red", validators=_validator,
                               schema=schema)
             self.assertEquals(len(service.schemas_for("GET")), 2)
 
@@ -153,7 +153,7 @@ class TestService(unittest.TestCase):
                 pass
         service = Service("TemperatureCooler", "/freshair",
                           klass=TemperatureCooler)
-        service.hook_view("get", "get_fresh_air")
+        service.add_view("get", "get_fresh_air")
 
         self.assertEquals(len(service.definitions), 1)
 

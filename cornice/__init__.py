@@ -31,7 +31,6 @@ def includeme(config):
 
     #config.add_directive('add_apidoc', add_apidoc)
     config.add_directive('add_cornice_service', register_service_views)
-    # XXX add doc handling as well
     config.add_subscriber(add_renderer_globals, BeforeRender)
     config.add_subscriber(wrap_request, NewRequest)
     config.add_tween('cornice.pyramidhook.tween_factory')
