@@ -6,6 +6,8 @@ import unittest
 from pyramid import testing
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.response import Response
+from pyramid.security import Allow
+
 from webtest import TestApp
 
 from cornice import Service
@@ -18,6 +20,15 @@ service = Service(name="service", path="/service")
 @service.get()
 def return_404(request):
     raise HTTPNotFound()
+
+
+def my_acl(request):
+    return [(Allow, 'bob', 'write')]
+
+
+@service.delete(acl=my_acl)
+def return_yay(request):
+    return "yay"
 
 
 class TemperatureCooler(object):
@@ -63,6 +74,9 @@ class TestService(unittest.TestCase):
     def test_405(self):
         # calling a unknown verb on an existing resource should return a 405
         self.app.post("/service", status=405)
+
+    def test_acl_support(self):
+        self.app.delete('/service')
 
     def test_class_support(self):
         self.app.get('/fresh-air', status=400)

@@ -90,8 +90,8 @@ class Service(object):
         for key, value in self.arguments.items():
             setattr(self, key, value)
 
-        if hasattr(self, 'factory') and hasattr(self, 'acl_factory'):
-            raise KeyError("Cannot specify both 'acl_factory' and 'factory'")
+        if hasattr(self, 'factory') and hasattr(self, 'acl'):
+            raise KeyError("Cannot specify both 'acl' and 'factory'")
 
         # instanciate some variables we use to keep track of what's defined for
         # this service.
