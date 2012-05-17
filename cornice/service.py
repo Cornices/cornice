@@ -1,55 +1,36 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import json
-import warnings
 import functools
+import warnings
 
-import venusian
-
-from pyramid.exceptions import PredicateMismatch
-from pyramid.httpexceptions import HTTPMethodNotAllowed, HTTPNotAcceptable
-
-from cornice.util import to_list, json_error, match_accept_header
 from cornice.validators import (
         DEFAULT_VALIDATORS,
         DEFAULT_FILTERS,
-        validate_colander_schema
 )
-from cornice.schemas import CorniceSchema
+from cornice.schemas import CorniceSchema, validate_colander_schema
+from cornice.util import to_list, json_error
 
+try:
+    import venusian
+    VENUSIAN = True
+except ImportError:
+    VENUSIAN = False
 
-_CORNICE_ARGS = ('validators', 'filters', 'schema')
-
-
-def call_service(func, api_kwargs, context, request):
-    """Wraps the request and the response, once a route does match."""
-
-    # apply validators
-    for validator in api_kwargs.get('validators', []):
-        validator(request)
-        if len(request.errors) > 0:
-            return json_error(request.errors)
-
-    response = func(request)
-
-    # We can't apply filters at this level, since "response" may not have
-    # been rendered into a proper Response object yet.  Instead, give the
-    # request a reference to its api_kwargs so that a tween can apply them.
-    request.cornice_api_kwargs = api_kwargs
-
-    return response
+SERVICES = []
 
 
 class Service(object):
-    """Represents a service.
+    """Contains a service definition (in the definition attribute).
 
-    A service is composed of one path and several possible methods, associated
-    to python callables.
+    A service is composed of a path and many potential methods, associated
+    with context.
 
-    Options can be passed to a service.
+    All the class attributes defined in this class or in childs are considered
+    default values.
 
-    :param name: the name of the service. Should be unique.
+    :param name: the name of the service. Should be unique among all the
+                 services.
 
     :param path: the path the service is available at. Should also be unique.
 
@@ -59,261 +40,263 @@ class Service(object):
     :param description: the description of what the webservice does. This is
                         primarily intended for documentation purposes.
 
-    :param validators: a list of validators (callables) to pass the request
-                       into before passing it to the callable.
+    :param validators: a list of callables to pass the request into before
+                       passing it to the associated view.
 
-    :param filters: a list of filters (callables) to pass the response into
-                    before returning it to the client.
+    :param filters: a list of callables to pass the response into before
+                    returning it to the client.
 
     :param accept: a list of headers accepted for this service (or method if
-                   overwritten when defining a method)
+                   overwritten when defining a method). It can also be a
+                   callable, in which case the content-type will be discovered
+                   at runtime. If a callable is passed, it should be able to
+                   take the request as a first argument.
 
-    :param factory: A factory returning callables that return true or false,
-                    function of the given request. Exclusive with the 'acl'
-                    option.
+    :param factory: A factory returning callables which return boolean values.
+                    The callables take the request as their first argument and
+                    return boolean values.
+                    This param is exclusive with the 'acl' one.
 
-    :param acl: a callable that define the ACL (returns true or false, function
-                of the given request. Exclusive with the 'factory' option.
+    :param acl: a callable defininng the ACL (returns true or false, function
+                of the given request). Exclusive with the 'factory' option.
 
+    :param klass: the class to use when resolving views (if they are not
+                  callables)
     See
     http://readthedocs.org/docs/pyramid/en/1.0-branch/glossary.html#term-acl
     for more information about ACLs.
-    """
 
-    def __init__(self, **kw):
-        self.defined_methods = []
-        self.name = kw.pop('name')
-        self.route_pattern = kw.pop('path')
-        self.route_name = self.route_pattern
-        self.renderer = kw.pop('renderer', 'simplejson')
-        self.description = kw.pop('description', None)
-        self.factory = kw.pop('factory', None)
-        self.acl_factory = kw.pop('acl', None)
-        self.schemas = {}
-        if self.factory and self.acl_factory:
-            raise ValueError("Cannot specify both 'acl' and 'factory'")
-        self.kw = kw
-        # to keep the order in which the services have been defined
-        self.index = -1
-        self.definitions = []
+    Service cornice instances also have methods :meth:`~get`, :meth:`~post`,
+    :meth:`~put`, :meth:`~options` and :meth:`~delete` are decorators that can
+    be used to decorate views.
+    """
+    renderer = 'simplejson'
+    default_validators = DEFAULT_VALIDATORS
+    default_filters = DEFAULT_FILTERS
+
+    mandatory_arguments = ('renderer',)
+    list_arguments = ('validators', 'filters')
 
     def __repr__(self):
-        return "<%s Service at %s>" % (self.renderer.capitalize(),
-                                       self.route_name)
+        return u'<Service %s at %s>' % (self.name, self.path)
 
-    def _define(self, config, method):
-        # setup the services hash if it isn't already
-        services = config.registry.setdefault('cornice_services', {})
-        if self.index == -1:
-            self.index = len(services)
+    def __init__(self, name, path, description=None, depth=1, **kw):
+        self.name = name
+        self.path = path
+        self.description = description
+        self._schemas = {}
 
-        # define the route if it isn't already
-        if self.route_pattern not in services:
-            services[self.route_pattern] = self
-            route_kw = {}
-            if self.factory is not None:
-                route_kw["factory"] = self.factory
-            elif self.acl_factory is not None:
-                route_kw["factory"] = self._make_route_factory()
+        self.arguments = self.get_arguments(kw)
+        for key, value in self.arguments.items():
+            setattr(self, key, value)
 
-            config.add_route(self.route_name, self.route_pattern, **route_kw)
-            config.add_view(view=self._fallback_view,
-                            route_name=self.route_name)
+        if hasattr(self, 'factory') and hasattr(self, 'acl'):
+            raise KeyError("Cannot specify both 'acl' and 'factory'")
 
-        # registers the method
+        # instanciate some variables we use to keep track of what's defined for
+        # this service.
+        self.defined_methods = []
+        self.definitions = []
+
+        # add this service to the list of available services
+        SERVICES.append(self)
+
+        # register aliases for the decorators
+        for verb in ('GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'):
+            setattr(self, verb.lower(),
+                    functools.partial(self.decorator, verb))
+
+        if VENUSIAN:
+            # this callback will be called when config.scan (from pyramid) will
+            # be triggered.
+            def callback(context, name, ob):
+                config = context.config.with_package(info.module)
+                config.add_cornice_service(self)
+
+            info = venusian.attach(self, callback, category='pyramid',
+                                   depth=depth)
+
+    def get_arguments(self, conf=None):
+        """Return a dictionnary of arguments. Takes arguments from the :param
+        conf: param and merges it with the arguments passed in the constructor.
+
+        :param conf: the dictionnary to use.
+        """
+        if conf is None:
+            conf = {}
+
+        arguments = {}
+        for arg in self.mandatory_arguments:
+            # get the value from the passed conf, then from the instance, then
+            # from the default class settings.
+            arguments[arg] = conf.pop(arg, getattr(self, arg, None))
+
+        for arg in self.list_arguments:
+            # rather than overwriting, extend the defined lists if any.
+            # take care of re-creating the lists before appening items to them,
+            # to avoid modifications to the already existing ones
+            value = list(getattr(self, arg, []))
+            if arg in conf:
+                value.extend(to_list(conf.pop(arg)))
+            arguments[arg] = value
+
+        # schema validation handling
+        if 'schema' in conf:
+            arguments['schema'] = CorniceSchema.from_colander(
+                                    conf.pop('schema'))
+
+        # exclude some validators or filters
+        if 'exclude' in conf:
+            for item in to_list(conf.pop('exclude')):
+                for container in arguments['validators'], arguments['filters']:
+                    if item in container:
+                        container.remove(item)
+
+        # also include the other key,value pair we don't know anything about
+        arguments.update(conf)
+
+        # if some keys have been defined service-wide, then we need to add
+        # them to the returned dict.
+        if hasattr(self, 'arguments'):
+            for key, value in self.arguments.items():
+                if key not in arguments:
+                    arguments[key] = value
+
+        return arguments
+
+    def add_view(self, method, view, **kwargs):
+        """Add a view to a method and arguments.
+
+        All the :class:`Service` keyword params except `name` and `path`
+        can be overwritten here. Additionally,
+        :meth:`~cornice.service.Service.api` has following keyword params:
+
+        :param method: The request method. Should be one of GET, POST, PUT,
+                       DELETE, OPTIONS, TRACE or CONNECT.
+        :param view: the view to hook to
+        :param **kwargs: additional configuration for this view
+        """
+        method = method.upper()
+        if 'schema' in kwargs:
+            # this is deprecated and unusable because multiple schema
+            # definitions for the same method will overwrite each other.
+            self._schemas[method] = kwargs['schema']
+
+        args = self.get_arguments(kwargs)
+        if hasattr(self, 'get_view_wrapper'):
+            view = self.get_view_wrapper(kwargs)(view)
+        self.definitions.append((method, view, args))
+
+        # keep track of the defined methods for the service
         if method not in self.defined_methods:
             self.defined_methods.append(method)
 
-    def _make_route_factory(self):
-        acl_factory = self.acl_factory
+    def decorator(self, method, **kwargs):
+        """Add the ability to define methods using python's decorators
+        syntax.
 
-        class ACLResource(object):
-            def __init__(self, request):
-                self.request = request
-                self.__acl__ = acl_factory(request)
+        For instance, it is possible to do this with this method::
 
-        return ACLResource
-
-    # Aliases for the most common verbs
-    def post(self, **kw):
-        return self.api(request_method='POST', **kw)
-
-    def get(self, **kw):
-        return self.api(request_method='GET', **kw)
-
-    def put(self, **kw):
-        return self.api(request_method='PUT', **kw)
-
-    def delete(self, **kw):
-        return self.api(request_method='DELETE', **kw)
-
-    def options(self, **kw):
-        return self.api(request_method='OPTIONS', **kw)
-
-    def get_view_wrapper(self, kw):
+            service = Service("blah", "/blah")
+            @service.decorator("get", accept="application/json")
+            def my_view(request):
+                pass
         """
-        Overload this method if you would like to wrap the API function
-        function just before it is registered as a view callable. This will be
-        called with the api() call kwargs, it should return a callable which
-        accepts a single function and returns a single function. Right before
-        view registration, this will be called w/ the function to register, and
-        the return value will be registered in its stead. By default this
-        simply returns the same function it was passed.
+        def wrapper(view):
+            self.add_view(method, view, **kwargs)
+            return view
+        return wrapper
+
+    def get_acceptable(self, method, filter_callables=False):
+        """return a list of acceptable content-type headers that were defined
+        for this service.
+
+        :param method: the method to get the acceptable content-types for
+        :param filter_callables: it is possiible to give acceptable
+                                 content-types dinamycally, with callables.
+                                 This filter or not the callables (default:
+                                 False)
         """
-        return lambda func: func
-
-    # the actual decorator
-    def api(self, **kw):
-        """Decorates a function to make it a service.
-
-        Options can be passed to the decorator. The methods get, post, put and
-        delete are aliases to this one, specifying the "request_method"
-        argument for convenience.
-
-        :param request_method: the request method. Should be one of GET, POST,
-                               PUT, DELETE, OPTIONS, HEAD, TRACE or CONNECT
-        :param decorators: A sequence of decorators which should be applied
-                           to the view callable before it's returned. Will be
-                           applied in order received, i.e. the last decorator
-                           in the sequence will be the outermost wrapper.
-
-        All the constructor options, minus name and path, can be overwritten in
-        here.
-        """
-        view_wrapper = self.get_view_wrapper(kw)
-        method = kw.get('request_method', 'GET')  # default is GET
-        api_kw = self.kw.copy()
-        api_kw.update(kw)
-
-        # sanitize the keyword arguments
-        if 'renderer' not in api_kw:
-            api_kw['renderer'] = self.renderer
-
-        if 'validator' in api_kw:
-            msg = "'validator' is deprecated, please use 'validators'"
-            warnings.warn(msg, DeprecationWarning)
-            api_kw['validators'] = api_kw.pop('validator')
-
-        validators = []
-        validators.extend(to_list(api_kw.get('validators', [])))
-        validators.extend(DEFAULT_VALIDATORS)
-
-        filters = []
-        filters.extend(to_list(api_kw.get('filters', [])))
-        filters.extend(DEFAULT_FILTERS)
-
-        # excluded validators/filters
-        for item in to_list(api_kw.pop('exclude', [])):
-            for items in validators, filters:
-                if item in items:
-                    items.remove(item)
-
-        if 'schema' in api_kw:
-            schema = CorniceSchema.from_colander(api_kw.pop('schema'))
-            validators.append(validate_colander_schema(schema))
-            self.schemas[method] = schema
-
-        api_kw['filters'] = filters
-        api_kw['validators'] = validators
-
-        def _api(func):
-            _api_kw = api_kw.copy()
-            self.definitions.append(_api_kw)
-
-            def callback(context, name, ob):
-                config = context.config.with_package(info.module)
-                self._define(config, method)
-                config.add_apidoc((self.route_pattern, method), func, self,
-                                  **_api_kw)
-
-                view_kw = _api_kw.copy()
-
-                for arg in _CORNICE_ARGS:
-                    view_kw.pop(arg, None)
-
-                # method decorators
-                if 'attr' in view_kw:
-
-                    @functools.wraps(getattr(ob, kw['attr']))
-                    def view(request):
-                        meth = getattr(ob(request), kw['attr'])
-                        return meth()
-
-                    del view_kw['attr']
-                    view = functools.partial(call_service, view, _api_kw)
-                else:
-                    view = functools.partial(call_service, ob, _api_kw)
-
-                # set the module of the partial function
-                setattr(view, '__module__', getattr(ob, '__module__'))
-
-                # handle accept headers as custom predicates if needed
-                if 'accept' in view_kw:
-                    for accept in to_list(view_kw.pop('accept', ())):
-                        _view_kw = view_kw.copy()
-
-                        predicates = view_kw.get('custom_predicates', [])
-                        if callable(accept):
-                            predicates.append(
-                                    functools.partial(match_accept_header,
-                                                      accept))
-                            _view_kw['custom_predicates'] = predicates
-                        else:
-                            _view_kw['accept'] = accept
-                        config.add_view(view=view, route_name=self.route_name,
-                                        **_view_kw)
-                else:
-                    config.add_view(view=view, route_name=self.route_name,
-                                        **view_kw)
-
-            func = view_wrapper(func)
-            info = venusian.attach(func, callback, category='pyramid')
-
-            if info.scope == 'class':
-                # if the decorator was attached to a method in a class, or
-                # otherwise executed at class scope, we need to set an
-                # 'attr' into the settings if one isn't already in there
-                if 'attr' not in kw:
-                    kw['attr'] = func.__name__
-
-            kw['_info'] = info.codeinfo   # fbo "action_method"
-
-            return func
-        return _api
-
-    def _fallback_view(self, request):
-        """Fallback view for this service, called when nothing else matches.
-
-        This method provides the view logic to be executed when the request
-        does not match any explicitly-defined view.  Its main responsibility
-        is to produce an accurate error response, such as HTTPMethodNotAllowed
-        or HTTPNotAcceptable.
-        """
-        # Maybe we failed to match any definitions for the request method?
-        if request.method not in self.defined_methods:
-            response = HTTPMethodNotAllowed()
-            response.allow = self.defined_methods
-            return response
-        # Maybe we failed to match an acceptable content-type?
-        # First search all the definitions to find the acceptable types.
-        # XXX: precalculate this like the defined_methods list?
         acceptable = []
-        for api_kwargs in self.definitions:
-            if api_kwargs['request_method'] != request.method:
-                continue
-            if 'accept' in api_kwargs:
-                accept = to_list(api_kwargs.get('accept'))
-                acceptable.extend(a for a in accept if not callable(a))
-                if 'acceptable' in request.info:
-                    for content_type in request.info['acceptable']:
-                        if content_type not in acceptable:
-                            acceptable.append(content_type)
-        # Now check if that was actually the source of the problem.
-        if not request.accept.best_match(acceptable):
-            response = HTTPNotAcceptable()
-            response.content_type = "application/json"
-            response.body = json.dumps(acceptable)
-            return response
-        # In the absence of further information about what went wrong,
-        # let upstream deal with the mismatch.
-        raise PredicateMismatch(self.name)
+        for meth, view, args in self.definitions:
+            if meth.upper() == method.upper():
+                acc = to_list(args.get('accept'))
+                if filter_callables:
+                    acc = [a for a in acc if not callable(a)]
+                acceptable.extend(acc)
+        return acceptable
+
+    def schemas_for(self, method):
+        """Returns a list of schemas defined for a given HTTP method.
+
+        A tuple is returned, containing the schema and the arguments relative
+        to it.
+        """
+        schemas = []
+        for meth, view, args in self.definitions:
+            if meth.upper() == method.upper() and 'schema' in args:
+                schemas.append((args['schema'], args))
+        return schemas
+
+    @property
+    def schemas(self):
+        """Here for backward compatibility with the old API."""
+        msg = "'Service.schemas' is deprecated. Use 'Service.definitions' "\
+              "instead."
+        warnings.warn(msg, DeprecationWarning)
+        return self._schemas
+
+
+def decorate_view(view, args, method):
+    """Decorate a given view with cornice niceties.
+
+    This function returns a function with the same signature than the one
+    you give as :param view:
+
+    :param view: the view to decorate
+    :param args: the args to use for the decoration
+    :param method: the HTTP method
+    """
+    def wrapper(request):
+        # if the args contain a klass argument then use it to resolve the view
+        # location (if the view argument isn't a callable)
+        ob = None
+        view_ = view
+        if 'klass' in args:
+            ob = args['klass'](request)
+            if isinstance(view, basestring):
+                view_ = getattr(ob, view.lower())
+
+        # do schema validation
+        if 'schema' in args:
+            validate_colander_schema(args['schema'], request)
+
+        # the validators can either be a list of callables or contain some
+        # non-callable values. In which case we want to resolve them using the
+        # object if any
+        validators = args.get('validators', ())
+        for validator in validators:
+            if isinstance(validator, basestring) and ob is not None:
+                validator = getattr(ob, validator)
+            validator(request)
+
+        if len(request.errors) > 0:
+            return json_error(request.errors)
+
+        # if we have an object, the request had already been passed to it
+        if ob:
+            response = view_()
+        else:
+            response = view_(request)
+
+        # We can't apply filters at this level, since "response" may not have
+        # been rendered into a proper Response object yet.  Instead, give the
+        # request a reference to its api_kwargs so that a tween can apply them.
+        # We also pass the object we created (if any) so we can use it to find
+        # the filters that are in fact methods.
+        request.cornice_args = (args, ob)
+        return response
+
+    # return the wrapper, not the function, keep the same signature
+    functools.wraps(wrapper)
+    return wrapper

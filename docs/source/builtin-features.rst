@@ -24,4 +24,30 @@ so cornice will drop a warning in case you're doing so.
 Built-in validators
 ===================
 
-XXX
+Schema validation
+-----------------
+
+Cornice is able to do schema validation for you. It is able to use colander
+schemas with some annotation in them. Here is an example of a validation
+schema, taken from the cornice test suite::
+
+    class FooBarSchema(MappingSchema):
+        # foo and bar are required, baz is optional
+        foo = SchemaNode(String(), type='str')
+        bar = SchemaNode(String(), type='str', validator=validate_bar)
+        baz = SchemaNode(String(), type='str', missing=None)
+        yeah = SchemaNode(String(), location="querystring", type='str')
+        ipsum = SchemaNode(Integer(), type='int', missing=1,
+                           validator=Range(0, 3))
+        integers = Integers(location="body", type='list', missing=())
+
+    foobar = Service(name="foobar", path="/foobar")
+
+    @foobar.post(schema=FooBarSchema)
+    def foobar_post(request):
+        return {"test": "succeeded"}
+
+We are passing the schema as another argument (than the `validators` one)
+so that cornice can do the heavy lifting for you. Another interesting thing to
+notice is that we are passing a `location` argument which specifies where
+cornice should look in the request for this argument.

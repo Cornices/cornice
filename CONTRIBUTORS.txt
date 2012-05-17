@@ -4,3 +4,4 @@ Here is a list of the people who contributed to this project:
 * Gaël Pasgrimaud <gawel@gawel.org>
 * Tarek Ziadé <tarek@mozilla.com>
 * Vincent Fretin <vincent.fretin@gmail.com>
+* Domen Kožar <domen@dev.si>

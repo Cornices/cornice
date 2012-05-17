@@ -2,6 +2,10 @@
 ================
 
 - default schema values are assumed to be in the body
+- refactored the internal APIs so we are not using decorators anymore. The
+  service definition is now separated from the service registration in the
+  rougin mechanism.
+- added class-level validators and filters
 
 0.8 - 2012-04-06
 ================
