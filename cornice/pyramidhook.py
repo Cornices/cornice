@@ -128,9 +128,9 @@ def register_service_views(config, service):
             if item in args:
                 del args[item]
 
-        # if acl_factory, then convert it to a "factory"
-        if 'acl_factory' in args:
-            args["factory"] = make_route_factory(args.pop('acl_factory'))
+        # if acl is present, then convert it to a "factory"
+        if 'acl' in args:
+            args["factory"] = make_route_factory(args.pop('acl'))
 
         route_args = {}
         if 'factory' in args:
