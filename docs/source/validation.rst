@@ -137,7 +137,6 @@ Let's take an example: we want to make sure the incoming request has an
         if not 'X-Verified' in request.headers:
             request.errors.add('header', 'X-Verified', 'You need to provied a token')
 
-
     @foo.get(validators=has_paid)
     def get_value(request):
         """Returns the value.
@@ -152,6 +151,17 @@ In any case, when doing validation, cornice will try to extract information
 coming from the validation functions you are providing to put them in the
 generated documentation. Refer to :doc:`sphinx` for more information about
 documentation automatic generation.
+
+Changing the status code from validators
+----------------------------------------
+
+You also can change the status code returned from your validators. Here is an
+example of this::
+
+    def user_exists(request):
+        if not request.POST['userid'] in userids:
+            request.errors.add('body', 'userid', 'The user id does not exist')
+            request.errors.status = 404
 
 
 Content-Type validation
