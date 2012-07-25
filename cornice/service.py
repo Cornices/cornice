@@ -21,27 +21,20 @@ SERVICES = []
 
 
 def clear_services():
-    global SERVICES
-    SERVICES = []
+    SERVICES[:] = []
 
 
 def get_services(names=None, exclude=None):
-    if exclude is None:
-        exclude = []
 
-    services = []
-
-    for service in SERVICES:
-        include = True
-        if names is not None and service.name not in names:
-            include = False
+    def _keep(service):
         if exclude is not None and service.name in exclude:
-            include = False
+            # excluded !
+            return False
 
-        if include:
-            services.append(service)
+        # in white list or no white list provided
+        return names is None or service.name in names
 
-    return services
+    return [service for service in SERVICES if _keep(service)]
 
 
 class Service(object):
