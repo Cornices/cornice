@@ -3,108 +3,97 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 # Contributors: Vincent Fretin
 """
-Sphinx extension that displays the API documentation.
+Sphinx extension that is able to convert a service into a documentation.
 """
 import sys
+from importlib import import_module
 
-from collections import defaultdict
 from docutils import nodes
 from docutils.parsers.rst import Directive, directives
 
 from sphinx.util.docfields import DocFieldTransformer
 
 from cornice.util import rst2node, to_list
+from cornice.service import get_services
 
 
-def trim(docstring):
-    """Implementation taken from
-    http://www.python.org/dev/peps/pep-0257/
-    """
-    if not docstring:
-        return ''
-    # Convert tabs to spaces (following the normal Python rules)
-    # and split into a list of lines:
-    lines = docstring.expandtabs().splitlines()
-    # Determine minimum indentation (first line doesn't count):
-    indent = sys.maxint
-    for line in lines[1:]:
-        stripped = line.lstrip()
-        if stripped:
-            indent = min(indent, len(line) - len(stripped))
-    # Remove indentation (first line is special):
-    trimmed = [lines[0].strip()]
-    if indent < sys.maxint:
-        for line in lines[1:]:
-            trimmed.append(line[indent:].rstrip())
-    # Strip off trailing and leading blank lines:
-    while trimmed and not trimmed[-1]:
-        trimmed.pop()
-    while trimmed and not trimmed[0]:
-        trimmed.pop(0)
-    # Return a single string:
-    res = '\n'.join(trimmed)
-    if not isinstance(res, unicode):
-        res = res.decode('utf8')
-    return res
+def convert_to_list(argument):
+    """Convert a comma separated list into a list of python values"""
+    if argument is None:
+        return []
+    else:
+        return [i.strip() for i in argument.split(',')]
 
-from sphinx.locale import l_
-from sphinx.util.docfields import Field, GroupedField, TypedField
+
+def convert_to_list_required(argument):
+    if argument is None:
+        raise ValueError('argument required but none supplied')
+    return convert_to_list(argument)
 
 
 class ServiceDirective(Directive):
     """ Service directive.
 
-    Will inject sections in the documentation.
+    Injects sections in the documentation about the services registered in the
+    given module.
+
+    Usage, in a sphinx documentation::
+
+        .. service::
+            :modules: your.module
+            :services: name1, name2
+            :service: name1 # no need to specify both services and service.
+            :ignore: a comma separated list of services names to ignore
     """
     has_content = True
-    option_spec = {'package': directives.unchanged,
+    option_spec = {'modules': convert_to_list_required,
                    'service': directives.unchanged,
-                   'ignore': directives.unchanged}
-    domain = 'py'
-    # copied from sphinx.domains.python.PyObject
-    doc_field_types = [
-        TypedField('parameter', label=l_('Parameters'),
-                   names=('param', 'parameter', 'arg', 'argument',
-                          'keyword', 'kwarg', 'kwparam'),
-                   typerolename='obj', typenames=('paramtype', 'type'),
-                   can_collapse=True),
-        TypedField('variable', label=l_('Variables'), rolename='obj',
-                   names=('var', 'ivar', 'cvar'),
-                   typerolename='obj', typenames=('vartype',),
-                   can_collapse=True),
-        GroupedField('exceptions', label=l_('Raises'), rolename='exc',
-                     names=('raises', 'raise', 'exception', 'except'),
-                     can_collapse=True),
-        Field('returnvalue', label=l_('Returns'), has_arg=False,
-              names=('returns', 'return')),
-        Field('returntype', label=l_('Return type'), has_arg=False,
-              names=('rtype',)),
-    ]
+                   'services': convert_to_list,
+                   'ignore': convert_to_list}
+    domain = 'cornice'
+    doc_field_types = []
 
-    def _render_service(self, path, service, methods):
-        env = self.state.document.settings.env
-        service_id = "service-%d" % env.new_serialno('service')
+    def __init__(self, *args, **kwargs):
+        super(ServiceDirective, self).__init__(*args, **kwargs)
+        self.env = self.state.document.settings.env
+
+    def run(self):
+        # import the modules, which will populate the SERVICES variable.
+        for module in self.options.get('modules'):
+            import_module(module)
+
+        names = self.options.get('services')
+
+        service = self.options.get('service')
+        if service is not None:
+            names.append(service)
+
+        # filter the services according to the options we got
+        services = get_services(names=names,
+                                exclude=self.options.get('exclude'))
+
+        for service in services:
+            self._render_service(service)
+
+        return [self._render_service(s) for s in services]
+
+    def _render_service(self, service):
+        service_id = "service-%d" % self.env.new_serialno('service')
         service_node = nodes.section(ids=[service_id])
-        service_node += nodes.title(text='Service at %s' %
-                                    service.route_name)
+        service_node += nodes.title(text='Service at %s' % service.path)
 
         if service.description is not None:
             service_node += rst2node(trim(service.description))
 
-        for method, info in methods.items():
+        for method, view, args in service.definitions:
             method_id = '%s-%s' % (service_id, method)
             method_node = nodes.section(ids=[method_id])
             method_node += nodes.title(text=method)
 
-            if 'attr' in info:
-                docstring = getattr(info['func'], info['attr']).__doc__ or ""
-            else:
-                docstring = info['func'].__doc__ or ""
+            docstring = trim(view.__doc__ or "") + '\n'
 
-            docstring = trim(docstring) + '\n'
-
-            if method in service.schemas:
-                schema = service.schemas[method]
+            if 'schema' in args:
+                schema = args['schema']
 
                 attrs_node = nodes.inline()
                 for location in ('headers', 'querystring', 'body'):
@@ -132,22 +121,17 @@ class ServiceDirective(Directive):
                         attrs_node += location_attrs
                 method_node += attrs_node
 
-            if 'validators' in info:
-                for validator in info['validators']:
-                    if validator.__doc__ is not None:
-                        if docstring is not None:
-                            doc = trim(validator.__doc__)
-                            docstring += '\n' + doc
+            for validator in args.get('validators', ()):
+                if validator.__doc__ is not None:
+                    docstring += trim(validator.__doc__)
 
-            if 'accept' in info:
-                accept = info['accept']
+            if 'accept' in args:
+                accept = to_list(args['accept'])
 
                 if callable(accept):
                     if accept.__doc__ is not None:
                         docstring += accept.__doc__.strip()
                 else:
-                    accept = to_list(accept)
-
                     accept_node = nodes.strong(text='Accepted content types:')
                     node_accept_list = nodes.bullet_list()
                     accept_node += node_accept_list
@@ -164,7 +148,7 @@ class ServiceDirective(Directive):
             if node is not None:
                 method_node += node
 
-            renderer = info['renderer']
+            renderer = args['renderer']
             if renderer == 'simplejson':
                 renderer = 'json'
 
@@ -177,55 +161,43 @@ class ServiceDirective(Directive):
 
         return service_node
 
-    def _get_services(self, package, ignore):
-        from pyramid.config import Configurator
-        conf = Configurator()
-        conf.include('cornice')
-        conf.scan(package, ignore=ignore)
-        by_service = defaultdict(dict)
-        apidocs = conf.registry.settings.get('apidocs', {})
 
-        for (path, method), apidoc in apidocs.items():
-            service = apidoc['service']
-            by_service[path, service][method] = apidoc
+# Utils
 
-        return by_service
 
-    def run(self):
-        env = self.state.document.settings.env
-        # getting the options
-        pkg = self.options['package']
-        service_name = self.options.get('service')
-        ignore = self.options.get('ignore', '')
-        ignore = [str(ign.strip()) for ign in ignore.split(',')]
-        all_services = service_name is None
+def trim(docstring):
+    """
+    Remove the tabs to spaces, and remove the extra spaces / tabs that are in
+    front of the text in docstrings.
 
-        # listing the services for the package
-        services = self._get_services(pkg, ignore)
-
-        if all_services:
-            # we want to list all of them
-            services_id = "services-%d" % env.new_serialno('services')
-            services_node = nodes.section(ids=[services_id])
-            services_node += nodes.title(text='Services')
-
-            services_ = [(service.index, path, service, methods) \
-                         for (path, service), methods in services.items()]
-            services_.sort()
-
-            for _, path, service, methods in services_:
-                services_node += self._render_service(path, service, methods)
-
-            return [services_node]
-        else:
-            # we just want a single service
-            #
-            # XXX not efficient
-            for (path, service), methods in services.items():
-                if service.name != service_name:
-                    continue
-                return [self._render_service(path, service, methods)]
-            return []
+    Implementation taken from http://www.python.org/dev/peps/pep-0257/
+    """
+    if not docstring:
+        return ''
+    # Convert tabs to spaces (following the normal Python rules)
+    # and split into a list of lines:
+    lines = docstring.expandtabs().splitlines()
+    # Determine minimum indentation (first line doesn't count):
+    indent = sys.maxint
+    for line in lines[1:]:
+        stripped = line.lstrip()
+        if stripped:
+            indent = min(indent, len(line) - len(stripped))
+    # Remove indentation (first line is special):
+    trimmed = [lines[0].strip()]
+    if indent < sys.maxint:
+        for line in lines[1:]:
+            trimmed.append(line[indent:].rstrip())
+    # Strip off trailing and leading blank lines:
+    while trimmed and not trimmed[-1]:
+        trimmed.pop()
+    while trimmed and not trimmed[0]:
+        trimmed.pop(0)
+    # Return a single string:
+    res = '\n'.join(trimmed)
+    if not isinstance(res, unicode):
+        res = res.decode('utf8')
+    return res
 
 
 def setup(app):
