@@ -4,8 +4,10 @@
 - default schema values are assumed to be in the body
 - refactored the internal APIs so we are not using decorators anymore. The
   service definition is now separated from the service registration in the
-  rougin mechanism.
+  routing mechanism.
 - added class-level validators and filters
+- added documentation about cornice internals
+- deprecated the service.schema attribute. Use service.definitions instead.
 
 0.8 - 2012-04-06
 ================
