@@ -21,6 +21,7 @@ Documentation content
    exhaustive_list
    exampledoc
    api
+   internals
 
 
 Show me some code!
