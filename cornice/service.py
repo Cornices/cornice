@@ -20,6 +20,30 @@ except ImportError:
 SERVICES = []
 
 
+def clear_services():
+    global SERVICES
+    SERVICES = []
+
+
+def get_services(names=None, exclude=None):
+    if exclude is None:
+        exclude = []
+
+    services = []
+
+    for service in SERVICES:
+        include = True
+        if names is not None and service.name not in names:
+            include = False
+        if exclude is not None and service.name in exclude:
+            include = False
+
+        if include:
+            services.append(service)
+
+    return services
+
+
 class Service(object):
     """Contains a service definition (in the definition attribute).
 
