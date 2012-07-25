@@ -204,6 +204,8 @@ class Service(object):
         if 'schema' in kwargs:
             # this is deprecated and unusable because multiple schema
             # definitions for the same method will overwrite each other.
+            # still here for legacy reasons: you'll get a warning if you try to
+            # use it.
             self._schemas[method] = kwargs['schema']
 
         args = self.get_arguments(kwargs)
