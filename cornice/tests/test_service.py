@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import unittest
 
-from cornice import Service
+from cornice.service import Service, get_services, clear_services
 from cornice.tests import validationapp
 
 _validator = lambda req: True
@@ -11,6 +11,9 @@ _validator2 = lambda req: True
 
 
 class TestService(unittest.TestCase):
+
+    def tearDown(self):
+        clear_services()
 
     def test_service_instanciation(self):
         service = Service("coconuts", "/migrate")
@@ -160,3 +163,16 @@ class TestService(unittest.TestCase):
         method, view, args = service.definitions[0]
         self.assertEquals(view, "get_fresh_air")
         self.assertEquals(args["klass"], TemperatureCooler)
+
+    def test_get_services(self):
+        self.assertEquals([], get_services())
+        foobar = Service("Foobar", "/foobar")
+        self.assertIn(foobar, get_services())
+
+        barbaz = Service("Barbaz", "/barbaz")
+        self.assertIn(barbaz, get_services())
+
+        self.assertEquals([barbaz, ], get_services(exclude=['Foobar', ]))
+        self.assertEquals([foobar, ], get_services(names=['Foobar', ]))
+        self.assertEquals([foobar, barbaz],
+                          get_services(names=['Foobar', 'Barbaz']))
