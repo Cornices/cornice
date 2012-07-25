@@ -7,7 +7,7 @@ feature:
 Below is the result of this directive::
 
     .. services::
-       :package: cornice.tests.validationapp
+       :modules: cornice.tests.validationapp
 
 .. services::
-   :package: cornice.tests.validationapp
+   :modules: cornice.tests.validationapp
