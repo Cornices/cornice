@@ -1,4 +1,4 @@
-0.9 - XXXX-XX-XX
+0.9 - 2012-07-26
 ================
 
 - default schema values are assumed to be in the body
