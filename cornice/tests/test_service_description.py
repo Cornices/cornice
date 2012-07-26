@@ -16,10 +16,28 @@ from cornice.service import Service
 
 if COLANDER:
     from cornice.tests.validationapp import FooBarSchema
-    from colander import MappingSchema, SchemaNode, String
+    from colander import (MappingSchema, SchemaNode, String, SequenceSchema,
+                          Length)
 
     class SchemaFromQuerystring(MappingSchema):
         yeah = SchemaNode(String(), location="querystring", type='str')
+
+    class ModelField(MappingSchema):
+        name = SchemaNode(String())
+        description = SchemaNode(String())
+
+    class ModelFields(SequenceSchema):
+        field = ModelField()
+
+    class ModelDefinition(MappingSchema):
+        title = SchemaNode(String(), location="body")
+        fields = ModelFields(validator=Length(min=1), location="body")
+
+    nested_service = Service(name='nested', path='/nested')
+
+    @nested_service.post(schema=ModelDefinition)
+    def get_nested(request):
+        return "yay"
 
     foobar = Service(name="foobar", path="/foobar")
 
@@ -154,5 +172,17 @@ if COLANDER:
             # test required attribute
             data = {'foo': 'yeah', 'bar': 'open', 'ipsum': 2,
                     'integers': ('1', '2')}
-            resp = self.app.post('/foobar?yeah=test', params=json.dumps(data),
-                                 status=200)
+            self.app.post('/foobar?yeah=test', params=json.dumps(data),
+                          status=200)
+
+        def test_nested_schemas(self):
+
+            data = {"title": "Mushroom",
+                    "fields": [{"name": "genre", "description": "Genre"}]}
+
+            nested_data = {"title": "Mushroom",
+                           "fields": [{"schmil": "Blick"}]}
+
+            self.app.post('/nested', params=json.dumps(data), status=200)
+            self.app.post('/nested', params=json.dumps(nested_data),
+                          status=400)
