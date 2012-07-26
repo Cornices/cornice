@@ -71,14 +71,14 @@ def validate_colander_schema(schema, request):
             else:
                 try:
                     if not attr.name in data:
-                        deserialized = attr.deserialize(None)
+                        deserialized = attr.deserialize()
                     else:
                         deserialized = attr.deserialize(data[attr.name])
                 except Invalid, e:
                     # the struct is invalid
                     try:
                         request.errors.add(location, attr.name,
-                                       e.asdict()[attr.name])
+                                           e.asdict()[attr.name])
                     except KeyError:
                         for k, v in e.asdict().items():
                             if k.startswith(attr.name):

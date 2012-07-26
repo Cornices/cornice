@@ -102,10 +102,8 @@ if COLANDER:
         if value != 'open':
             raise Invalid(node, "The bar is not open.")
 
-
     class Integers(SequenceSchema):
         integer = SchemaNode(Integer(), type='int')
-
 
     class FooBarSchema(MappingSchema):
         # foo and bar are required, baz is optional
