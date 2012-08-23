@@ -108,7 +108,10 @@ Users managment
 We're going to get rid of the Hello service, and change this file in order
 to add our first service - the users managment ::
 
+    from cornice import Service
+
     _USERS = {}
+    users = Service(name='users', path='/', description="User registration")
 
     @users.get(validators=valid_token)
     def get_users(request):
