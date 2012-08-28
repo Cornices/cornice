@@ -4,6 +4,7 @@
 import logging
 
 from cornice import util
+from cornice.errors import Errors  # NOQA
 from cornice.service import Service   # NOQA
 from cornice.pyramidhook import (
     wrap_request,
