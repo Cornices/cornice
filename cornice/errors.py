@@ -12,12 +12,12 @@ class Errors(list):
         self.status = status
         super(Errors, self).__init__()
 
-    def add(self, location, name=None, description=None):
+    def add(self, location, name=None, description=None, **kw):
         """Registers a new error."""
         self.append(dict(
             location=location,
             name=name,
-            description=description))
+            description=description, **kw))
 
     @classmethod
     def from_json(cls, string):
