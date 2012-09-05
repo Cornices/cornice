@@ -162,6 +162,9 @@ class Service(object):
             arguments['schema'] = CorniceSchema.from_colander(
                                     conf.pop('schema'))
 
+        # Allow custom error handler
+        arguments['error_handler'] = conf.pop('error_handler', json_error)
+
         # exclude some validators or filters
         if 'exclude' in conf:
             for item in to_list(conf.pop('exclude')):
@@ -290,6 +293,8 @@ def decorate_view(view, args, method):
         if 'schema' in args:
             validate_colander_schema(args['schema'], request)
 
+
+
         # the validators can either be a list of callables or contain some
         # non-callable values. In which case we want to resolve them using the
         # object if any
@@ -300,7 +305,7 @@ def decorate_view(view, args, method):
             validator(request)
 
         if len(request.errors) > 0:
-            return json_error(request.errors)
+            return args['error_handler'](request.errors)
 
         # if we have an object, the request had already been passed to it
         if ob:

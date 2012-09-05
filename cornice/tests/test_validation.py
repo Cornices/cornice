@@ -39,6 +39,12 @@ class TestServiceDefinition(LoggingCatcher, unittest.TestCase):
         errors = Errors.from_json(res.body)
         self.assertEqual(len(errors), 1)
 
+    def test_validation_hooked_error_response(self):
+        app = TestApp(main({}))
+
+        res = app.post('/service4', status=400)
+        self.assertTrue('<errors>' in res.body)
+
     def test_accept(self):
         # tests that the accept headers are handled the proper way
         app = TestApp(main({}))

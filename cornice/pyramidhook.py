@@ -124,7 +124,8 @@ def register_service_views(config, service):
         args['request_method'] = method
 
         decorated_view = decorate_view(view, dict(args), method)
-        for item in ('filters', 'validators', 'schema', 'klass'):
+        for item in ('filters', 'validators', 'schema', 'klass',
+                     'error_handler'):
             if item in args:
                 del args[item]
 
