@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 from pyramid.config import Configurator
+from pyramid.httpexceptions import HTTPBadRequest
 
 from cornice import Service
 from cornice.tests import CatchErrors
@@ -73,6 +74,24 @@ def get3(request):
 def _filter(response):
     response.body = "filtered response"
     return response
+
+service4 = Service(name="service4", path="/service4")
+def fail(request):
+    request.errors.add('body', 'xml', 'Not XML')
+def xml_error(errors):
+    lines = ['<errors>']
+    for error in errors:
+        lines.append('<error>'
+                     '<location>%(location)s</location>'
+                     '<type>%(name)s</type>'
+                     '<message>%(description)s</message>'
+                     '</error>' % error)
+    lines.append('</errors>')
+    return HTTPBadRequest(body=''.join(lines))
+
+@service4.post(validators=fail, error_handler=xml_error)
+def post4(request):
+    raise ValueError("Shouldn't get here")
 
 # test filtered services
 filtered_service = Service(name="filtered", path="/filtered", filters=_filter)
