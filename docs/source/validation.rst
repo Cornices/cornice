@@ -54,6 +54,32 @@ With errors being a JSON dictionary with the keys "location", "name" and
 * **name** is the eventual name of the value that caused problems
 * **description** is a description of the problem encountered.
 
+You can override the default JSON error handler for a view with your own
+callable.  The following function, for instance, returns the error response
+with an XML document as its payload:
+
+.. code-block:: python
+
+    def xml_error(errors):
+        lines = ['<errors>']
+        for error in errors:
+            lines.append('<error>'
+                        '<location>%(location)s</location>'
+                        '<type>%(name)s</type>'
+                        '<message>%(description)s</message>'
+                        '</error>' % error)
+        lines.append('</errors>')
+        return HTTPBadRequest(body=''.join(lines),
+                              content_type='application/xml')
+
+Configure your views by passing your handler as ``error_handler``:
+
+.. code-block:: python
+
+    @service.post(validators=my_validator, error_handler=xml_error)
+    def post(request):
+        return {'OK': 1}
+
 
 Validators
 ==========

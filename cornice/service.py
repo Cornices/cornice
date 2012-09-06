@@ -79,6 +79,11 @@ class Service(object):
 
     :param klass: the class to use when resolving views (if they are not
                   callables)
+
+    :param error_handler: (optional) A callable which is used to render
+                  responses following validation failures.  Defaults to
+                  'json_renderer'.
+
     See
     http://readthedocs.org/docs/pyramid/en/1.0-branch/glossary.html#term-acl
     for more information about ACLs.

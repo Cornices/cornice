@@ -1,7 +1,8 @@
 0.10 - XXXX-XX-XX
 =================
 
--  use pcreate rather than paster create.
+- add an optional 'error_handler' to view declarations.
+- use pcreate rather than paster create.
 
 0.9 - 2012-07-26
 ================
