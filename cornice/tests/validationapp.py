@@ -76,8 +76,10 @@ def _filter(response):
     return response
 
 service4 = Service(name="service4", path="/service4")
+
 def fail(request):
     request.errors.add('body', 'xml', 'Not XML')
+
 def xml_error(errors):
     lines = ['<errors>']
     for error in errors:
