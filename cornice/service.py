@@ -239,7 +239,7 @@ class Service(object):
         for this service.
 
         :param method: the method to get the acceptable content-types for
-        :param filter_callables: it is possiible to give acceptable
+        :param filter_callables: it is possible to give acceptable
                                  content-types dinamycally, with callables.
                                  This filter or not the callables (default:
                                  False)
@@ -310,8 +310,6 @@ def decorate_view(view, args, method):
         # do schema validation
         if 'schema' in args:
             validate_colander_schema(args['schema'], request)
-
-
 
         # the validators can either be a list of callables or contain some
         # non-callable values. In which case we want to resolve them using the

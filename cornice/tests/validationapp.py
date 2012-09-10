@@ -77,8 +77,10 @@ def _filter(response):
 
 service4 = Service(name="service4", path="/service4")
 
+
 def fail(request):
     request.errors.add('body', 'xml', 'Not XML')
+
 
 def xml_error(errors):
     lines = ['<errors>']
@@ -90,6 +92,7 @@ def xml_error(errors):
                      '</error>' % error)
     lines.append('</errors>')
     return HTTPBadRequest(body=''.join(lines))
+
 
 @service4.post(validators=fail, error_handler=xml_error)
 def post4(request):

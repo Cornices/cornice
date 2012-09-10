@@ -2,7 +2,6 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import unittest
 import json
 import warnings
 
@@ -12,6 +11,7 @@ from webtest import TestApp
 from cornice.tests import CatchErrors
 from cornice.schemas import CorniceSchema
 from cornice.tests.validationapp import COLANDER
+from cornice.tests.support import TestCase
 from cornice.service import Service
 
 if COLANDER:
@@ -49,7 +49,7 @@ if COLANDER:
     def foobar_get(request):
         return {"test": "succeeded"}
 
-    class TestServiceDescription(unittest.TestCase):
+    class TestServiceDescription(TestCase):
 
         def setUp(self):
             self.config = testing.setUp()

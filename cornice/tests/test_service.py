@@ -1,16 +1,15 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import unittest
-
 from cornice.service import Service, get_services, clear_services
 from cornice.tests import validationapp
+from cornice.tests.support import TestCase
 
 _validator = lambda req: True
 _validator2 = lambda req: True
 
 
-class TestService(unittest.TestCase):
+class TestService(TestCase):
 
     def tearDown(self):
         clear_services()

@@ -5,6 +5,8 @@ import logging
 import logging.handlers
 import weakref
 
+from unittest2 import TestCase  # NOQA
+
 logger = logging.getLogger('cornice')
 
 # stolen from the packaging stdlib testsuite tools

@@ -1,7 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import unittest
+from cornice.tests.support import TestCase
 
 from pyramid import testing
 from pyramid.httpexceptions import HTTPNotFound
@@ -54,7 +54,7 @@ tc.add_view("GET", "get_fresh_air", filters=('make_it_fresh',),
             validators=('check_temperature',))
 
 
-class TestService(unittest.TestCase):
+class TestService(TestCase):
 
     def setUp(self):
         self.config = testing.setUp()
@@ -102,7 +102,7 @@ def return_foo(request):
     return 'foo'
 
 
-class TestServiceWithWrapper(unittest.TestCase):
+class TestServiceWithWrapper(TestCase):
     def setUp(self):
         self.config = testing.setUp()
         self.config.include("cornice")

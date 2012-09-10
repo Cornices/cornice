@@ -1,19 +1,18 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import unittest
 import simplejson as json
 
 from webtest import TestApp
 from pyramid.response import Response
 
-from cornice.tests.validationapp import main
-from cornice.tests.support import LoggingCatcher
 from cornice.errors import Errors
+from cornice.tests.validationapp import main
+from cornice.tests.support import LoggingCatcher, TestCase
 from cornice.validators import filter_json_xsrf
 
 
-class TestServiceDefinition(LoggingCatcher, unittest.TestCase):
+class TestServiceDefinition(LoggingCatcher, TestCase):
 
     def test_validation(self):
         app = TestApp(main({}))

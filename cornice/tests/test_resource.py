@@ -1,7 +1,6 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import unittest
 import json
 
 from pyramid import testing
@@ -10,6 +9,7 @@ from webtest import TestApp
 from cornice.resource import resource
 from cornice.resource import view
 from cornice.tests import CatchErrors
+from cornice.tests.support import TestCase
 
 
 USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
@@ -35,7 +35,7 @@ class User(object):
         return {'test': 'yeah'}
 
 
-class TestResource(unittest.TestCase):
+class TestResource(TestCase):
 
     def setUp(self):
         from pyramid.renderers import JSONP

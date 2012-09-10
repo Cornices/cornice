@@ -1,13 +1,13 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import unittest
 
 from pyramid import testing
 from webtest import TestApp
 
 from cornice import Service
 from cornice.tests import CatchErrors
+from cornice.tests.support import TestCase
 
 
 service1 = Service(name="service1", path="/service1")
@@ -30,7 +30,7 @@ def get2_or_post2(request):
     return {"test": "succeeded"}
 
 
-class TestServiceDefinition(unittest.TestCase):
+class TestServiceDefinition(TestCase):
 
     def setUp(self):
         self.config = testing.setUp()
