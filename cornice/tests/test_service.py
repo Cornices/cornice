@@ -138,6 +138,25 @@ class TestService(unittest.TestCase):
         self.assertEquals(len(service.get_acceptable("POST")), 2)
         self.assertEquals(len(service.get_acceptable("POST", True)), 1)
 
+    def test_get_validators(self):
+        # defining different validators for the same services, even with
+        # different calls to add_view should make them available in the
+        # get_validators method
+
+        def validator(request):
+            """Super validator"""
+            pass
+
+        def validator2(request):
+            pass
+
+        service = Service('/color', '/favorite-color')
+        service.add_view('GET', lambda x: 'ok',
+                         validators=(validator, validator))
+        service.add_view('GET', lambda x: 'ok', validators=(validator2))
+        self.assertEquals(service.get_validators('GET'),
+                          [validator, validator2])
+
     if validationapp.COLANDER:
         def test_schemas_for(self):
             schema = validationapp.FooBarSchema

@@ -253,6 +253,19 @@ class Service(object):
                 acceptable.extend(acc)
         return acceptable
 
+    def get_validators(self, method):
+        """return a list of validators for the given method.
+
+        :param method: the method to get the validators for.
+        """
+        validators = []
+        for meth, view, args in self.definitions:
+            if meth.upper() == method.upper() and 'validators' in args:
+                for validator in args['validators']:
+                    if validator not in validators:
+                        validators.append(validator)
+        return validators
+
     def schemas_for(self, method):
         """Returns a list of schemas defined for a given HTTP method.
 
