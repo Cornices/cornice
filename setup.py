@@ -9,10 +9,8 @@ with open(os.path.join(here, 'README.rst')) as f:
 with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
-requires = ['pyramid', 'coverage', 'simplejson',
-            'docutils', 'unittest2', 'Sphinx',
-            'webtest']
-test_requires = requires + ['colander']
+requires = ['pyramid',  'simplejson', 'docutils', 'Sphinx']
+test_requires = requires + ['colander', 'unittest2', 'coverage', 'webtest']
 
 entry_points = """\
 [paste.paster_create_template]
