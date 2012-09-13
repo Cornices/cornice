@@ -124,7 +124,7 @@ class Service(object):
         SERVICES.append(self)
 
         # register aliases for the decorators
-        for verb in ('GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'):
+        for verb in ('GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'):
             setattr(self, verb.lower(),
                     functools.partial(self.decorator, verb))
 
