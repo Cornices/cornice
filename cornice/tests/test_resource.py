@@ -4,6 +4,7 @@
 import json
 
 from pyramid import testing
+from pyramid.httpexceptions import HTTPOk, HTTPNotFound
 from webtest import TestApp
 
 from cornice.resource import resource
@@ -34,6 +35,11 @@ class User(object):
     def collection_post(self):
         return {'test': 'yeah'}
 
+    def patch(self):
+        return {'test': 'yeah'}
+
+    def collection_patch(self):
+        return {'test': 'yeah'}
 
 class TestResource(TestCase):
 
@@ -69,3 +75,18 @@ class TestResource(TestCase):
                     headers={'Accept': 'text/json'},
                     params=json.dumps({'test': 'yeah'})).json,
                 {'test': 'yeah'})
+
+    def patch(self, *args, **kwargs):
+        return self.app._gen_request('PATCH', *args, **kwargs)
+    
+    def test_head_and_patch(self):
+        self.app.head("/users", status=200)
+        self.app.head("/users/1", status=200)
+        
+        self.assertEquals(
+                self.patch("/users", status=200).json,
+                {'test': 'yeah'})
+        self.assertEquals(
+                self.patch("/users/1", status=200).json,
+                {'test': 'yeah'})
+

@@ -124,7 +124,7 @@ class Service(object):
         SERVICES.append(self)
 
         # register aliases for the decorators
-        for verb in ('GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'):
+        for verb in ('GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'):
             setattr(self, verb.lower(),
                     functools.partial(self.decorator, verb))
 
@@ -213,6 +213,8 @@ class Service(object):
         if hasattr(self, 'get_view_wrapper'):
             view = self.get_view_wrapper(kwargs)(view)
         self.definitions.append((method, view, args))
+        if method == 'get':
+            self.definitions.append(('head', view, args))
 
         # keep track of the defined methods for the service
         if method not in self.defined_methods:
