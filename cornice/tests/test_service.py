@@ -96,8 +96,6 @@ class TestService(TestCase):
 
         @service.get()
         def get_favorite_color(request):
-            if self.request.method == 'HEAD':
-                raise Exception('test_decorators HEAD')
             return "blue, hmm, red, hmm, aaaaaaaah"
 
         method, view, _ = service.definitions[0]
