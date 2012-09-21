@@ -5,7 +5,11 @@ import logging
 import logging.handlers
 import weakref
 
-from unittest2 import TestCase  # NOQA
+try:
+    from unittest2 import TestCase  # NOQA
+except:
+    # Maybe we're running in python2.7?
+    from unittest import TestCase # NOQA
 
 logger = logging.getLogger('cornice')
 

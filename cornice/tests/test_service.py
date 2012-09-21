@@ -96,6 +96,8 @@ class TestService(TestCase):
 
         @service.get()
         def get_favorite_color(request):
+            if self.request.method == 'HEAD':
+                raise Exception('test_decorators HEAD')
             return "blue, hmm, red, hmm, aaaaaaaah"
 
         method, view, _ = service.definitions[0]
@@ -109,6 +111,13 @@ class TestService(TestCase):
         # using multiple decorators on a resource should register them all in
         # as many different definitions in the service
         self.assertEquals(3, len(service.definitions))
+
+        @service.patch()
+        def patch_favorite_color(request):
+            return ""
+
+        method, view, _ = service.definitions[3]
+        self.assertEquals("PATCH", method)
 
     def test_get_acceptable(self):
         # defining a service with different "accept" headers, we should be able
