@@ -5,7 +5,7 @@ lib
 include
 bin
 deps
-*.egg-info
+*.egg*
 *.swp
 html
 doc/build
