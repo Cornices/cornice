@@ -77,8 +77,9 @@ def tween_factory(handler, registry):
         response = handler(request)
         if request.matched_route is not None:
             # do some sanity checking on the response using filters
+            services = request.registry.get('cornice_services', {})
             pattern = request.matched_route.pattern
-            service = request.registry['cornice_services'].get(pattern)
+            service = services.get(pattern, None)
             if service is not None:
                 kwargs, ob = getattr(request, "cornice_args", ({}, None))
                 for _filter in kwargs.get('filters', []):
