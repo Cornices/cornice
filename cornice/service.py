@@ -211,7 +211,7 @@ class Service(object):
 
         # Apply service validators, then view-specific validators.
         kwargs['validators'] = \
-            self.get_validators(method) + kwargs.pop('validators', [])
+            self.get_validators(method) + list(kwargs.pop('validators', []))
 
         args = self.get_arguments(kwargs)
         if hasattr(self, 'get_view_wrapper'):
