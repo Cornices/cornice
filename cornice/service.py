@@ -210,8 +210,14 @@ class Service(object):
             self._schemas[method] = kwargs['schema']
 
         # Apply service validators, then view-specific validators.
-        kwargs['validators'] = \
-            self.get_validators(method) + list(kwargs.pop('validators', []))
+        validators = kwargs.pop('validators', [])
+        if callable(validators):
+            # Validators is sometimes passed a single function.
+            validators = [validators]
+        else:
+            # Need a list for concatenation below.
+            validators = list(validators)
+        kwargs['validators'] = self.get_validators(method) + validators
 
         args = self.get_arguments(kwargs)
         if hasattr(self, 'get_view_wrapper'):
