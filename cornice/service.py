@@ -209,6 +209,10 @@ class Service(object):
             # use it.
             self._schemas[method] = kwargs['schema']
 
+        # Apply service validators, then view-specific validators.
+        kwargs['validators'] = \
+            self.get_validators(method) + kwargs.pop('validators', [])
+
         args = self.get_arguments(kwargs)
         if hasattr(self, 'get_view_wrapper'):
             view = self.get_view_wrapper(kwargs)(view)
@@ -258,7 +262,7 @@ class Service(object):
 
         :param method: the method to get the validators for.
         """
-        validators = []
+        validators = self.default_validators[:]
         for meth, view, args in self.definitions:
             if meth.upper() == method.upper() and 'validators' in args:
                 for validator in args['validators']:
