@@ -108,6 +108,14 @@ class Service(object):
         self.description = description
         self._schemas = {}
 
+        for key in ('validators', 'filters'):
+            # default_{validators,filters} and {filters,validators} doesn't
+            # have to be mutables, so we need to create a new list from them
+            extra = to_list(kw.get(key, []))
+            kw[key] = []
+            kw[key].extend(getattr(self, 'default_%s' % key))
+            kw[key].extend(extra)
+
         self.arguments = self.get_arguments(kw)
         for key, value in self.arguments.items():
             setattr(self, key, value)

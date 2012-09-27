@@ -2,6 +2,7 @@
 =================
 
 - add an optional 'error_handler' to view declarations.
+- Services.default_{validators, filters} is now used. (Fix #75)
 
 0.10 - 2012-08-29
 =================
