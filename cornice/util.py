@@ -82,7 +82,7 @@ class _JsonRenderer(object):
 def to_list(obj):
     """Convert an object to a list if it is not already one"""
     if not isinstance(obj, (list, tuple)):
-        obj = (obj,)
+        obj = [obj, ]
     return obj
 
 
