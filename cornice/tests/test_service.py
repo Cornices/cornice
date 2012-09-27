@@ -201,3 +201,53 @@ class TestService(TestCase):
         self.assertEquals([foobar, ], get_services(names=['Foobar', ]))
         self.assertEquals([foobar, barbaz],
                           get_services(names=['Foobar', 'Barbaz']))
+
+    def test_default_validators(self):
+
+        old_validators = Service.default_validators
+        old_filters = Service.default_filters
+        try:
+            def custom_validator(request):
+                pass
+
+            def custom_filter(request):
+                pass
+
+            def freshair(request):
+                pass
+
+            # the default validators should be used when registering a service
+            Service.default_validators = [custom_validator, ]
+            Service.default_filters = [custom_filter, ]
+            service = Service("TemperatureCooler", "/freshair")
+            service.add_view("get", freshair)
+            method, view, args = service.definitions[0]
+
+            self.assertIn(custom_validator, args['validators'])
+            self.assertIn(custom_filter, args['filters'])
+
+            # defining a service with additional filters / validators should
+            # work as well
+            def another_validator(request):
+                pass
+
+            def another_filter(request):
+                pass
+
+            def groove_em_all(request):
+                pass
+
+            service2 = Service('FunkyGroovy', '/funky-groovy',
+                               validators=[another_validator],
+                               filters=[another_filter])
+
+            service2.add_view("get", groove_em_all)
+            method, view, args = service2.definitions[0]
+
+            self.assertIn(custom_validator, args['validators'])
+            self.assertIn(another_validator, args['validators'])
+            self.assertIn(custom_filter, args['filters'])
+            self.assertIn(another_filter, args['filters'])
+        finally:
+            Service.default_validators = old_validators
+            Service.default_filters = old_filters
