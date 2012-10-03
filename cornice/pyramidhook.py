@@ -42,7 +42,7 @@ def get_fallback_view(service):
         if request.method not in service.defined_methods:
             response = HTTPMethodNotAllowed()
             response.allow = service.defined_methods
-            return response
+            raise response
         # Maybe we failed to match an acceptable content-type?
         # First search all the definitions to find the acceptable types.
         # XXX: precalculate this like the defined_methods list?
@@ -63,7 +63,7 @@ def get_fallback_view(service):
                     response = HTTPNotAcceptable()
                     response.content_type = "application/json"
                     response.body = json.dumps(acceptable)
-                    return response
+                    raise response
 
         # In the absence of further information about what went wrong,
         # let upstream deal with the mismatch.
