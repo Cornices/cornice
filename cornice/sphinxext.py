@@ -62,7 +62,7 @@ class ServiceDirective(Directive):
         for module in self.options.get('modules'):
             import_module(module)
 
-        names = self.options.get('services')
+        names = self.options.get('services', [])
 
         service = self.options.get('service')
         if service is not None:
