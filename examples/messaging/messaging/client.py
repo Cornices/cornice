@@ -5,7 +5,7 @@ import time
 import curses
 
 
-_SERVER = 'http://localhost:5000'
+_SERVER = 'http://localhost:6543'
 
 
 def post(message, token):
