@@ -67,13 +67,13 @@ def unique(request):
 #
 
 
-@users.get(validator=valid_token)
+@users.get(validators=valid_token)
 def get_users(request):
     """Returns a list of all users."""
     return {'users': _USERS.keys()}
 
 
-@users.post(validator=unique)
+@users.post(validators=unique)
 def create_user(request):
     """Adds a new user."""
     user = request.validated['user']
@@ -81,7 +81,7 @@ def create_user(request):
     return {'token': '%s-%s' % (user['name'], user['token'])}
 
 
-@users.delete(validator=valid_token)
+@users.delete(validators=valid_token)
 def del_user(request):
     """Removes the user."""
     name = request.validated['user']['name']
@@ -120,7 +120,7 @@ def get_messages(request):
     return _MESSAGES[:5]
 
 
-@messages.post(validator=(valid_token, valid_message))
+@messages.post(validators=(valid_token, valid_message))
 def post_message(request):
     """Adds a message"""
     _MESSAGES.insert(0, request.validated['message'])
