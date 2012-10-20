@@ -7,14 +7,13 @@ Sphinx extension that is able to convert a service into a documentation.
 """
 import sys
 from importlib import import_module
+from cornice.util import rst2node, to_list
+from cornice.service import get_services
 
 from docutils import nodes
 from docutils.parsers.rst import Directive, directives
 
 from sphinx.util.docfields import DocFieldTransformer
-
-from cornice.util import rst2node, to_list
-from cornice.service import get_services
 
 
 def convert_to_list(argument):
