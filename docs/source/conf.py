@@ -28,7 +28,7 @@ import sys, os
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 
 sys.path.insert(0, os.path.abspath("../.."))  # include cornice from the source
-extensions = ['cornice.sphinxext', 'sphinx.ext.autodoc']
+extensions = ['cornice.ext.sphinxext', 'sphinx.ext.autodoc']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

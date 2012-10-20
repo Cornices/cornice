@@ -25,7 +25,7 @@ Sphinx project :file:`conf.py` file::
     import cornice
 
     sys.path.insert(0, os.path.abspath(cornice.__file__))
-    extensions = ['cornice.sphinxext']
+    extensions = ['cornice.ext.sphinxext']
 
 Of course this may vary if you have other extensions.
 
