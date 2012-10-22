@@ -22,6 +22,7 @@ Documentation content
    exampledoc
    api
    internals
+   spore
 
 
 Show me some code!
