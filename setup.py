@@ -11,7 +11,7 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
 
 requires = ['pyramid',  'simplejson']
 test_requires = requires + ['colander', 'unittest2', 'coverage',
-                            'webtest', 'Sphinx']
+                            'webtest', 'Sphinx', 'rxjson']
 
 try:
     import importlib  # NOQA
