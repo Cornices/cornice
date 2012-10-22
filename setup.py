@@ -13,6 +13,12 @@ requires = ['pyramid',  'simplejson']
 test_requires = requires + ['colander', 'unittest2', 'coverage',
                             'webtest', 'Sphinx']
 
+try:
+    import importlib  # NOQA
+except ImportError:
+    test_requires.append('importlib')
+
+
 entry_points = """\
 [paste.paster_create_template]
 cornice=cornice.scaffolds:CorniceTemplate
