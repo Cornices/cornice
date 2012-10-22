@@ -7,12 +7,14 @@ Sphinx extension that is able to convert a service into a documentation.
 """
 import sys
 from importlib import import_module
-from cornice.util import rst2node, to_list
+
+from cornice.util import to_list
 from cornice.service import get_services
 
-from docutils import nodes
+import docutils
+from docutils import nodes, core
 from docutils.parsers.rst import Directive, directives
-
+from docutils.writers.html4css1 import Writer, HTMLTranslator
 from sphinx.util.docfields import DocFieldTransformer
 
 
@@ -197,6 +199,61 @@ def trim(docstring):
     if not isinstance(res, unicode):
         res = res.decode('utf8')
     return res
+
+
+class _HTMLFragmentTranslator(HTMLTranslator):
+    def __init__(self, document):
+        HTMLTranslator.__init__(self, document)
+        self.head_prefix = ['', '', '', '', '']
+        self.body_prefix = []
+        self.body_suffix = []
+        self.stylesheet = []
+
+    def astext(self):
+        return ''.join(self.body)
+
+
+class _FragmentWriter(Writer):
+    translator_class = _HTMLFragmentTranslator
+
+    def apply_template(self):
+        subs = self.interpolation_dict()
+        return subs['body']
+
+
+def rst2html(data):
+    """Converts a reStructuredText into its HTML
+    """
+    if not data:
+        return ''
+    return core.publish_string(data, writer=_FragmentWriter())
+
+
+class Env(object):
+    temp_data = {}
+    docname = ''
+
+
+def rst2node(data):
+    """Converts a reStructuredText into its node
+    """
+    if not data:
+        return
+    parser = docutils.parsers.rst.Parser()
+    document = docutils.utils.new_document('<>')
+    document.settings = docutils.frontend.OptionParser().get_default_values()
+    document.settings.tab_width = 4
+    document.settings.pep_references = False
+    document.settings.rfc_references = False
+    document.settings.env = Env()
+    parser.parse(data, document)
+    if len(document.children) == 1:
+        return document.children[0]
+    else:
+        par = docutils.nodes.paragraph()
+        for child in document.children:
+            par += child
+        return par
 
 
 def setup(app):

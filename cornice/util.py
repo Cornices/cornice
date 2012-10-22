@@ -2,70 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import simplejson as json
-from docutils import core
-from docutils.writers.html4css1 import Writer, HTMLTranslator
-import docutils
 
 from pyramid import httpexceptions as exc
 from pyramid.response import Response
 
 
-__all__ = ['rst2html', 'rst2node', 'json_renderer']
-
-
-class _HTMLFragmentTranslator(HTMLTranslator):
-    def __init__(self, document):
-        HTMLTranslator.__init__(self, document)
-        self.head_prefix = ['', '', '', '', '']
-        self.body_prefix = []
-        self.body_suffix = []
-        self.stylesheet = []
-
-    def astext(self):
-        return ''.join(self.body)
-
-
-class _FragmentWriter(Writer):
-    translator_class = _HTMLFragmentTranslator
-
-    def apply_template(self):
-        subs = self.interpolation_dict()
-        return subs['body']
-
-
-def rst2html(data):
-    """Converts a reStructuredText into its HTML
-    """
-    if not data:
-        return ''
-    return core.publish_string(data, writer=_FragmentWriter())
-
-
-class Env(object):
-    temp_data = {}
-    docname = ''
-
-
-def rst2node(data):
-    """Converts a reStructuredText into its node
-    """
-    if not data:
-        return
-    parser = docutils.parsers.rst.Parser()
-    document = docutils.utils.new_document('<>')
-    document.settings = docutils.frontend.OptionParser().get_default_values()
-    document.settings.tab_width = 4
-    document.settings.pep_references = False
-    document.settings.rfc_references = False
-    document.settings.env = Env()
-    parser.parse(data, document)
-    if len(document.children) == 1:
-        return document.children[0]
-    else:
-        par = docutils.nodes.paragraph()
-        for child in document.children:
-            par += child
-        return par
+__all__ = ['json_renderer', 'to_list', 'json_error', 'match_accept_header',
+           'extract_request_data']
 
 
 def json_renderer(helper):

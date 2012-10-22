@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 from cornice.tests.support import TestCase
-from cornice.util import rst2html
+from cornice.ext.sphinxext import rst2html
 
 
 class TestUtil(TestCase):
