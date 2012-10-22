@@ -1,8 +1,11 @@
+import os
+import json
+from rxjson import Rx
 from cornice.tests.support import TestCase
-
 from cornice.service import Service, get_services
 from cornice.ext.spore import generate_spore_description
 
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 class TestSporeGeneration(TestCase):
 
@@ -40,14 +43,14 @@ class TestSporeGeneration(TestCase):
         self.assertDictEqual(methods['get_coffees'], {
             'path': '/coffee',
             'method': 'GET',
-            'format': 'json',
+            'formats': ['json'],
             })
 
         self.assertIn('post_coffees', methods)
         self.assertDictEqual(methods['post_coffees'], {
             'path': '/coffee',
             'method': 'POST',
-            'format': 'json',
+            'formats': ['json'],
             'description': post_coffees.__doc__
             })
 
@@ -55,6 +58,25 @@ class TestSporeGeneration(TestCase):
         self.assertDictEqual(methods['get_coffee'], {
             'path': '/coffee/:bar/:id',
             'method': 'GET',
-            'format': 'json',
+            'formats': ['json'],
             'required_params': ['bar', 'id']
             })
+
+    def test_rxjson_spore(self):
+        rx = Rx.Factory({ "register_core_types": True })
+
+        coffees = Service(name='Coffees', path='/coffee')
+        coffee = Service(name='coffee', path='/coffee/{bar}/{id}')
+
+        self._define_coffee_methods(coffee)
+        self._define_coffee_methods(coffees)
+
+        services = get_services(names=('coffee', 'Coffees'))
+        spore = generate_spore_description(
+                services, name="oh yeah",
+                base_url="http://localhost/", version="1.0")
+                
+        with open(os.path.join(HERE, 'spore_validation.rx')) as f:
+            spore_json_schema = json.loads(f.read())
+            spore_schema = rx.make_schema(spore_json_schema)
+            self.assertTrue(spore_schema.check(spore))

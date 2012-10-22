@@ -33,7 +33,7 @@ def generate_spore_description(services, name, base_url, version, **kwargs):
             view_info = {
                 'path': service_path,
                 'method': method,
-                'format': format_name
+                'formats': [format_name]
             }
             if service_params:
                 view_info['required_params'] = service_params
