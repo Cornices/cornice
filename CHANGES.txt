@@ -1,3 +1,8 @@
+0.12 - Unreleased
+=================
+
+- add support for dynamic validation schemas for resources.
+
 0.11 - 2012-10-22
 =================
 
