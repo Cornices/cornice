@@ -73,9 +73,6 @@ class ServiceDirective(Directive):
         services = get_services(names=names or None,
                                 exclude=self.options.get('exclude'))
 
-        for service in services:
-            self._render_service(service)
-
         return [self._render_service(s) for s in services]
 
     def _render_service(self, service):
