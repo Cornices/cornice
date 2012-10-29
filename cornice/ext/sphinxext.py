@@ -70,7 +70,7 @@ class ServiceDirective(Directive):
             names.append(service)
 
         # filter the services according to the options we got
-        services = get_services(names=names,
+        services = get_services(names=names or None,
                                 exclude=self.options.get('exclude'))
 
         for service in services:
