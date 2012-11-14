@@ -32,7 +32,7 @@ package_data = {
      "cornice/+package+/*.*"]}
 
 setup(name='cornice',
-      version='0.11',
+      version='0.12',
       description='Define Web Services in Pyramid.',
       long_description=README + '\n\n' + CHANGES,
       classifiers=[
