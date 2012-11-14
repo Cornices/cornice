@@ -55,7 +55,7 @@ class CorniceSchema(object):
 
     @classmethod
     def from_colander(klass, colander_schema):
-        return CorniceSchema(colander_schema.nodes)
+        return CorniceSchema(colander_schema().children)
 
 
 def validate_colander_schema(schema, request):
