@@ -122,6 +122,8 @@ To describe a schema, using colander and cornice, here is how you can do::
     def foobar_post(request):
         return {"test": "succeeded"}
 
+You can even use Schema-Inheritance as introduced by Colander 0.9.9.
+
 Using formencode
 ~~~~~~~~~~~~~~~~
 
