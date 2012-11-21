@@ -1,6 +1,7 @@
-0.12 - XXXX-XX-XX
+0.12 - 2012-11-21
 =================
 
+- Fix auto-define of HEAD views from GET views.
 - Support for Colander inheritance (introduced in new versions of Colander)
 - Check for errors in the body of the view and in validators (was only checking
   in validators previously)
