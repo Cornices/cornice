@@ -330,14 +330,17 @@ def decorate_view(view, args, method):
                 validator = getattr(ob, validator)
             validator(request)
 
+        # only call the view if we don't have validation errors
+        if len(request.errors) == 0:
+            # if we have an object, the request had already been passed to it
+            if ob:
+                response = view_()
+            else:
+                response = view_(request)
+
+        # check for errors and return them if any
         if len(request.errors) > 0:
             return args['error_handler'](request.errors)
-
-        # if we have an object, the request had already been passed to it
-        if ob:
-            response = view_()
-        else:
-            response = view_(request)
 
         # We can't apply filters at this level, since "response" may not have
         # been rendered into a proper Response object yet.  Instead, give the
