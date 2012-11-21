@@ -98,8 +98,11 @@ class TestService(TestCase):
         def get_favorite_color(request):
             return "blue, hmm, red, hmm, aaaaaaaah"
 
+        self.assertEquals(2, len(service.definitions))
         method, view, _ = service.definitions[0]
         self.assertEquals(("GET", get_favorite_color), (method, view))
+        method, view, _ = service.definitions[1]
+        self.assertEquals(("HEAD", get_favorite_color), (method, view))
 
         @service.post(accept='text/plain', renderer='plain')
         @service.post(accept='application/json')
@@ -108,13 +111,13 @@ class TestService(TestCase):
 
         # using multiple decorators on a resource should register them all in
         # as many different definitions in the service
-        self.assertEquals(3, len(service.definitions))
+        self.assertEquals(4, len(service.definitions))
 
         @service.patch()
         def patch_favorite_color(request):
             return ""
 
-        method, view, _ = service.definitions[3]
+        method, view, _ = service.definitions[4]
         self.assertEquals("PATCH", method)
 
     def test_get_acceptable(self):
@@ -183,7 +186,7 @@ class TestService(TestCase):
                           klass=TemperatureCooler)
         service.add_view("get", "get_fresh_air")
 
-        self.assertEquals(len(service.definitions), 1)
+        self.assertEquals(len(service.definitions), 2)
 
         method, view, args = service.definitions[0]
         self.assertEquals(view, "get_fresh_air")

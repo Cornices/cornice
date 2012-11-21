@@ -221,12 +221,16 @@ class Service(object):
         if hasattr(self, 'get_view_wrapper'):
             view = self.get_view_wrapper(kwargs)(view)
         self.definitions.append((method, view, args))
-        if method == 'get':
-            self.definitions.append(('head', view, args))
-
         # keep track of the defined methods for the service
         if method not in self.defined_methods:
             self.defined_methods.append(method)
+
+        # auto-define a HEAD method if we have a definition for GET.
+        if method == 'GET':
+            self.definitions.append(('HEAD', view, args))
+            if 'HEAD' not in self.defined_methods:
+                self.defined_methods.append('HEAD')
+
 
     def decorator(self, method, **kwargs):
         """Add the ability to define methods using python's decorators
