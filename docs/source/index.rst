@@ -1,16 +1,15 @@
-===================================
-Welcome to Cornice's documentation!
-===================================
+Cornice: A REST framework for Pyramid
+#####################################
 
 **Cornice** provides helpers to build & document REST-ish Web Services
 with Pyramid, with decent default behaviors.
 
 
 Documentation content
----------------------
+=====================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    quickstart
    tutorial
@@ -26,7 +25,7 @@ Documentation content
 
 
 Show me some code!
-------------------
+==================
 
 A **full** Cornice WGSI application looks like this (this example is taken from
 the `demoapp project <https://github.com/mozilla-services/demoapp>`_)::
@@ -100,7 +99,7 @@ cornice in :doc:`builtin-features`
 
 
 Contribution & Feedback
------------------------
+=======================
 
 Cornice is a project initiated at Mozilla Services, where we build Web 
 Services for features like Firefox Sync. All of what we do is built with open
