@@ -8,9 +8,9 @@ does it for you without noticing.
 Errors
 ======
 
-When valitating contents, cornice will automatically throw a 400 error if the
+When validating contents, cornice will automatically throw a 400 error if the
 data is invalid. Along with the 400 error, the body will contain a JSON dict
-which can be parsed to know more about the problems ecountered.
+which can be parsed to know more about the problems encountered.
 
 Method not allowed
 ==================
@@ -24,15 +24,25 @@ Authorization
 
 Authorization can be done using the `acl` parameter. If the authentication or
 the authorization fails at this stage, a 401 or 403 error is returned,
-depending the cases.
+depending on the cases.
 
-Content Types
-=============
+Content Types (ingress)
+=======================
 
-Each method can specify a list of content types it can handle. Per default,
-`text/html` is assumed. In the case the client requests an invalid content
-type, cornice will return a `406, Not Acceptable` with a list of available
-content types for the particular URI and method.
+Each method can specify a list of content types it can receive. Per default,
+any content type is allowed. In the case the client sends a request with an
+invalid `Content-Type` header, cornice will return a
+`415 Unsupported Media Type` with an error message containing the list of
+valid request content types for the particular URI and method.
+
+Content Types (egress)
+======================
+
+Each method can specify a list of content types it can respond with.
+Per default, `text/html` is assumed. In the case the client requests an
+invalid content type via `Accept` header, cornice will return a
+`406 Not Acceptable` with an error message containing the list of available
+response content types for the particular URI and method.
 
 Warning when returning JSON lists
 =================================

@@ -1,7 +1,8 @@
 0.14 - XXXX-XX-XX
 =================
 
--  ???
+- Add validation of the ``Content-Type`` header sent in requests against a list of allowed ingress content types
+- ???
 
 0.13 - 2013-02-12
 =================
