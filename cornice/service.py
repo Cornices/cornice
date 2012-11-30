@@ -91,6 +91,33 @@ class Service(object):
     Service cornice instances also have methods :meth:`~get`, :meth:`~post`,
     :meth:`~put`, :meth:`~options` and :meth:`~delete` are decorators that can
     be used to decorate views.
+
+    NOTE ABOUT SERVICE DEFINITIONS ACROSS MODULES:
+
+    While it's possible to have service definitions and service view
+    decorators in different modules, there is a major caveat: You must obtain
+    a reference to the service object that was created in the other module,
+    and assign it to an object, then use that object to call the decorators.
+    This is due to the operation in Venusian, which must have an object local
+    to the module it's scanning in order to fire the callback attached to the
+    decorator.
+
+    Importing the service object directly will not work, as that results in
+    instantiating another copy of the Service object, causing a configuration
+    error.
+
+    Example of implementing service across modules:
+
+    In foo.py:
+
+      from cornice import Service
+      SERVICE = Service(path='foo')
+
+    In foo_view.py:
+
+      import foo
+      service = foo.SERVICE
+      @service.get(...)
     """
     renderer = 'simplejson'
     default_validators = DEFAULT_VALIDATORS
@@ -98,6 +125,11 @@ class Service(object):
 
     mandatory_arguments = ('renderer',)
     list_arguments = ('validators', 'filters')
+
+
+    # keep track of the registered routes and definitions
+    registered_routes = []
+    last_registered_definition = 0
 
     def __repr__(self):
         return u'<Service %s at %s>' % (self.name, self.path)
@@ -107,6 +139,7 @@ class Service(object):
         self.path = path
         self.description = description
         self._schemas = {}
+        self.depth = depth
 
         for key in ('validators', 'filters'):
             # default_{validators,filters} and {filters,validators} doesn't
@@ -135,16 +168,6 @@ class Service(object):
         for verb in ('GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'):
             setattr(self, verb.lower(),
                     functools.partial(self.decorator, verb))
-
-        if VENUSIAN:
-            # this callback will be called when config.scan (from pyramid) will
-            # be triggered.
-            def callback(context, name, ob):
-                config = context.config.with_package(info.module)
-                config.add_cornice_service(self)
-
-            info = venusian.attach(self, callback, category='pyramid',
-                                   depth=depth)
 
     def get_arguments(self, conf=None):
         """Return a dictionnary of arguments. Takes arguments from the :param
@@ -243,6 +266,16 @@ class Service(object):
             def my_view(request):
                 pass
         """
+        if VENUSIAN:
+            # this callback will be called when config.scan (from pyramid) will
+            # be triggered.
+            def callback(context, name, ob):
+                config = context.config.with_package(info.module)
+                config.add_cornice_service(self)
+
+            info = venusian.attach(self, callback, category='pyramid',
+                                   depth=self.depth)
+
         def wrapper(view):
             self.add_view(method, view, **kwargs)
             return view
