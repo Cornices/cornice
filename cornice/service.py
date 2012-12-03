@@ -460,13 +460,13 @@ def decorate_view(view, args, method):
     :param args: the args to use for the decoration
     :param method: the HTTP method
     """
-    def wrapper(request):
+    def wrapper(context, request):
         # if the args contain a klass argument then use it to resolve the view
         # location (if the view argument isn't a callable)
         ob = None
         view_ = view
         if 'klass' in args:
-            ob = args['klass'](request)
+            ob = args['klass'](request=request, context=context)
             if is_string(view):
                 view_ = getattr(ob, view.lower())
 
