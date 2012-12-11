@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import logging
 
-from cornice import util
+import cornice.util
 from cornice.errors import Errors  # NOQA
 from cornice.service import Service   # NOQA
 from cornice.pyramidhook import (

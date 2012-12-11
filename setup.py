@@ -1,3 +1,4 @@
+import sys
 import os
 from setuptools import setup, find_packages
 
@@ -9,9 +10,12 @@ with open(os.path.join(here, 'README.rst')) as f:
 with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
-requires = ['pyramid',  'simplejson']
-test_requires = requires + ['colander', 'unittest2', 'coverage',
+requires = ['pyramid', 'six']
+test_requires = requires + ['colander', 'coverage',
                             'webtest', 'Sphinx', 'rxjson']
+
+if sys.version_info < (2, 7):
+    test_requires.append('unittest2')
 
 try:
     import importlib  # NOQA

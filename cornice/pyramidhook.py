@@ -11,6 +11,8 @@ from cornice.service import decorate_view
 from cornice.errors import Errors
 from cornice.util import to_list
 
+import six
+
 
 def match_accept_header(func, context, request):
     acceptable = func(request)
@@ -83,7 +85,7 @@ def tween_factory(handler, registry):
             if service is not None:
                 kwargs, ob = getattr(request, "cornice_args", ({}, None))
                 for _filter in kwargs.get('filters', []):
-                    if isinstance(_filter, basestring) and ob is not None:
+                    if isinstance(_filter, six.string_types) and ob is not None:
                         _filter = getattr(ob, _filter)
                     response = _filter(response)
         return response

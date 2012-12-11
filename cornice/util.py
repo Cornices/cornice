@@ -1,7 +1,10 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import simplejson as json
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
 from pyramid import httpexceptions as exc
 from pyramid.response import Response
@@ -19,7 +22,7 @@ class _JsonRenderer(object):
     def __call__(self, data, context):
         response = context['request'].response
         response.content_type = 'application/json'
-        return json.dumps(data, use_decimal=True)
+        return json.dumps(data)
 
 
 def to_list(obj):
@@ -32,7 +35,7 @@ def to_list(obj):
 class _JSONError(exc.HTTPError):
     def __init__(self, errors, status=400):
         body = {'status': 'error', 'errors': errors}
-        Response.__init__(self, json.dumps(body, use_decimal=True))
+        Response.__init__(self, json.dumps(body))
         self.status = status
         self.content_type = 'application/json'
 
@@ -60,7 +63,7 @@ def extract_request_data(request):
     if request.body:
         try:
             body = json.loads(request.body)
-        except ValueError, e:
+        except ValueError as e:
             request.errors.add('body', None, e.message)
             body = {}
     else:
