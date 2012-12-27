@@ -74,7 +74,7 @@ def validate_colander_schema(schema, request):
                         deserialized = attr.deserialize()
                     else:
                         deserialized = attr.deserialize(data[attr.name])
-                except Invalid, e:
+                except Invalid as e:
                     # the struct is invalid
                     try:
                         request.errors.add(location, attr.name,

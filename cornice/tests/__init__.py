@@ -16,5 +16,5 @@ class CatchErrors(object):
     def __call__(self, request):
         try:
             return request.get_response(self.app)
-        except (exc.HTTPException, HTTPException), e:
+        except (exc.HTTPException, HTTPException) as e:
             return e

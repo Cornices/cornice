@@ -17,6 +17,8 @@ try:
 except ImportError:
     VENUSIAN = False
 
+import six
+
 SERVICES = []
 
 
@@ -318,7 +320,7 @@ def decorate_view(view, args, method):
         view_ = view
         if 'klass' in args:
             ob = args['klass'](request)
-            if isinstance(view, basestring):
+            if isinstance(view, six.string_types):
                 view_ = getattr(ob, view.lower())
 
         # do schema validation
@@ -330,7 +332,7 @@ def decorate_view(view, args, method):
         # object if any
         validators = args.get('validators', ())
         for validator in validators:
-            if isinstance(validator, basestring) and ob is not None:
+            if isinstance(validator, six.string_types) and ob is not None:
                 validator = getattr(ob, validator)
             validator(request)
 
