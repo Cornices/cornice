@@ -2,7 +2,11 @@ Cornice: A REST framework for Pyramid
 #####################################
 
 **Cornice** provides helpers to build & document REST-ish Web Services
-with Pyramid, with decent default behaviors.
+with Pyramid, with decent default behaviors. It takes care of following the
+HTTP specification in an automated way where possible.
+
+We designed and implemented cornice in a really simple way, so
+it is easy to use and you can get started in a matter of minutes.
 
 Show me some code!
 ==================
