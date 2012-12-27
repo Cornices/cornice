@@ -156,9 +156,18 @@ Here's their code::
 
     import os
     import binascii
-    from webob import HTTPUnauthorized
+    import json
+
+    from webob import Response, exc
+    from cornice import Service
+
+    users = Service(name='users', path='/users', description="Users")
+    _USERS = {}
 
 
+    #
+    # Helpers
+    #
     def _create_token():
         return binascii.b2a_hex(os.urandom(20))
 
@@ -197,6 +206,37 @@ Here's their code::
         else:
             user = {'name': name, 'token': _create_token()}
             request.validated['user'] = user
+
+
+    #
+    # Services
+    #
+
+    #
+    # User Managment
+    #
+
+
+    @users.get(validators=valid_token)
+    def get_users(request):
+        """Returns a list of all users."""
+        return {'users': _USERS.keys()}
+
+
+    @users.post(validators=unique)
+    def create_user(request):
+        """Adds a new user."""
+        user = request.validated['user']
+        _USERS[user['name']] = user['token']
+        return {'token': '%s-%s' % (user['name'], user['token'])}
+
+
+    @users.delete(validators=valid_token)
+    def del_user(request):
+        """Removes the user."""
+        name = request.validated['user']
+        del _USERS[name]
+        return {'Goodbye': name}
 
 
 When the validator finds errors, it adds them to the **request.errors**
@@ -298,7 +338,7 @@ Then create a Sphinx structure with **sphinx-quickstart**::
 
 
     $ mkdir docs
-    $ sphinx-quickstart
+    $ bin/sphinx-quickstart
     Welcome to the Sphinx 1.0.7 quickstart utility.
 
     ..
@@ -322,7 +362,7 @@ extension, by editing the :file:`source/conf.py` file. We want to change
 **extensions = []** into::
 
     import cornice   # makes sure cornice is available
-    extensions = ['cornice.sphinxext']
+    extensions = ['cornice.ext.sphinxext']
 
 
 The last step is to document your services by editing the
@@ -332,7 +372,7 @@ The last step is to document your services by editing the
     =====================================
 
     .. services::
-       :package: messaging
+       :modules: messaging.views
 
 
 The **services** directive is told to look at the services in the **messaging**
@@ -349,7 +389,7 @@ A simple client to use against our service can do three things:
 2. poll for the latest messages
 3. let the user send a message !
 
-Without going into great details, there's a Python CLI against messaging 
-that uses Curses.  
+Without going into great details, there's a Python CLI against messaging
+that uses Curses.
 
 See https://github.com/mozilla-services/cornice/blob/master/examples/messaging/messaging/client.py
