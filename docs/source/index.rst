@@ -4,26 +4,6 @@ Cornice: A REST framework for Pyramid
 **Cornice** provides helpers to build & document REST-ish Web Services
 with Pyramid, with decent default behaviors.
 
-
-Documentation content
-=====================
-
-.. toctree::
-   :maxdepth: 2
-
-   quickstart
-   tutorial
-   resources
-   validation
-   sphinx
-   testing
-   exhaustive_list
-   exampledoc
-   api
-   internals
-   spore
-
-
 Show me some code!
 ==================
 
@@ -84,13 +64,13 @@ the `demoapp project <https://github.com/mozilla-services/demoapp>`_)::
 
 What Cornice will do for you here is:
 
-- automatically raise a 405 if a DELETE or a PUT is called on 
+- automatically raise a 405 if a DELETE or a PUT is called on
   **/{username}/info**
 - automatically generate your doc via a Sphinx directive.
 - provide a validation framework that will return a nice JSON structure
   in Bad Request 400 responses explaining what's wrong.
-- provide an acceptable **Content-Type** whenever you send an HTTP "Accept" 
-  header 
+- provide an acceptable **Content-Type** whenever you send an HTTP "Accept"
+  header
   to it, resulting in a *406 Not Acceptable* with the list of acceptable ones
   if it can't answer.
 
@@ -98,10 +78,29 @@ You can also have a complete overview of the builtin validations provided by
 cornice in :doc:`builtin-features`
 
 
+Documentation content
+=====================
+
+.. toctree::
+   :maxdepth: 2
+
+   quickstart
+   tutorial
+   resources
+   validation
+   sphinx
+   testing
+   exhaustive_list
+   exampledoc
+   api
+   internals
+   spore
+
+
 Contribution & Feedback
 =======================
 
-Cornice is a project initiated at Mozilla Services, where we build Web 
+Cornice is a project initiated at Mozilla Services, where we build Web
 Services for features like Firefox Sync. All of what we do is built with open
 source, and this is one brick of our stack.
 
