@@ -5,8 +5,8 @@ import functools
 import warnings
 
 from cornice.validators import (
-        DEFAULT_VALIDATORS,
-        DEFAULT_FILTERS,
+    DEFAULT_VALIDATORS,
+    DEFAULT_FILTERS,
 )
 from cornice.schemas import CorniceSchema, validate_colander_schema
 from cornice.util import to_list, json_error
@@ -172,8 +172,8 @@ class Service(object):
 
         # schema validation handling
         if 'schema' in conf:
-            arguments['schema'] = CorniceSchema.from_colander(
-                                    conf.pop('schema'))
+            arguments['schema'] = (
+                CorniceSchema.from_colander(conf.pop('schema')))
 
         # Allow custom error handler
         arguments['error_handler'] = conf.pop('error_handler', json_error)
@@ -230,7 +230,6 @@ class Service(object):
             self.definitions.append(('HEAD', view, args))
             if 'HEAD' not in self.defined_methods:
                 self.defined_methods.append('HEAD')
-
 
     def decorator(self, method, **kwargs):
         """Add the ability to define methods using python's decorators
