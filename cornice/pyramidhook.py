@@ -114,12 +114,9 @@ def register_service_views(config, service):
     services = config.registry.setdefault('cornice_services', {})
     services[service.path] = service
 
-    # keep track of the registered routes
-    registered_routes = []
-
     # register the fallback view, which takes care of returning good error
     # messages to the user-agent
-    for method, view, args in service.definitions:
+    for method, view, args in service.definitions[service.last_registered_definition:]:
 
         args = dict(args)  # make a copy of the dict to not modify it
         args['request_method'] = method
@@ -139,11 +136,11 @@ def register_service_views(config, service):
             route_args['factory'] = args.pop('factory')
 
         # register the route name with the path if it's not already done
-        if service.path not in registered_routes:
+        if service.path not in service.registered_routes:
             config.add_route(service.path, service.path, **route_args)
             config.add_view(view=get_fallback_view(service),
                             route_name=service.path)
-            registered_routes.append(service.path)
+            service.registered_routes.append(service.path)
 
         # loop on the accept fields: we need to build custom predicate if
         # callables were passed
@@ -164,8 +161,10 @@ def register_service_views(config, service):
                 # accept / custom_predicates arguments
                 config.add_view(view=decorated_view, route_name=service.path,
                                 **args)
+                service.last_registered_definition += 1
         else:
             # it is a simple view, we don't need to loop on the definitions
             # and just add it one time.
             config.add_view(view=decorated_view, route_name=service.path,
                             **args)
+            service.last_registered_definition += 1
