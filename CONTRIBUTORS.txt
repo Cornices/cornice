@@ -1,7 +1,27 @@
-Here is a list of the people who contributed to this project:
+Here is a (alphabetically-ordered) list of the people who contributed to
+Cornice:
 
-* Alexis Métaireau <alexis@mozilla.com>
-* Gaël Pasgrimaud <gawel@gawel.org>
-* Tarek Ziadé <tarek@mozilla.com>
+* Alexis Metaireau <alexis@notmyidea.org>
+* Andre Caron <alexis@notmyidea.org>
+* Anton D <anton@screwtop>
+* Ben Bangert <ben@groovie.org>
+* Bruno Binet <bruno.binet@gmail.com>
+* Bryan Zegar <bryanzegar@gmail.com>
+* David Charboneau 
+* Gael Pasgrimaud <gael@gawel.org>
+* Janek Hiis <janek@utopic.me>
+* Lorenzo Gil Sanchez <lorenzo.gil.sanchez@gmail.com>
+* Marc Abramowitz <marca@surveymonkey.com>
+* Marconi Moreto <caketoad@gmail.com>
+* Markus Zapke-Gründemann <markus@keimlink.de>
+* matthias <matthias@itemfire.com>
+* Rémy HUBSCHER <hubscher.remy@gmail.com>
+* rforkel <rforkel@rforkel-ubuntu.gulp.biz>
+* Rob Miller <rafrombrc@gmail.com>
+* Rob Miller <rob@kalistra.com>
+* Ryan Kelly <ryan@rfk.id.au>
+* Tarek Ziade <tarek@ziade.org>
+* Tres Seaver <tseaver@palladion.com>
+* Victor Ng <crankycoder@gmail.com>
 * Vincent Fretin <vincent.fretin@gmail.com>
-* Domen Kožar <domen@dev.si>
+* Ymage <o2heltem@gmail.com>
