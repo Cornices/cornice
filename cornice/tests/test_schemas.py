@@ -41,16 +41,18 @@ if COLANDER:
             support inheritance of colander.Schema
             introduced in colander 0.9.9
 
-            attributes of base-classes with the same name than subclass-attributes
-            get overwritten.
+            attributes of base-classes with the same name than
+            subclass-attributes get overwritten.
             """
             base_schema = CorniceSchema.from_colander(TestingSchema)
             inherited_schema = CorniceSchema.from_colander(InheritedSchema)
 
-            self.assertEquals(len(base_schema.get_attributes()), len(inherited_schema.get_attributes()))
+            self.assertEquals(len(base_schema.get_attributes()),
+                              len(inherited_schema.get_attributes()))
 
             foo_filter = lambda x: x.name == "foo"
             base_foo = filter(foo_filter, base_schema.get_attributes())[0]
-            inherited_foo = filter(foo_filter, inherited_schema.get_attributes())[0]
+            inherited_foo = filter(foo_filter,
+                                   inherited_schema.get_attributes())[0]
             self.assertTrue(base_foo.required)
             self.assertFalse(inherited_foo.required)

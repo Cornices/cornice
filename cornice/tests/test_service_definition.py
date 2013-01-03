@@ -6,8 +6,7 @@ from pyramid import testing
 from webtest import TestApp
 
 from cornice import Service
-from cornice.tests import CatchErrors
-from cornice.tests.support import TestCase
+from cornice.tests.support import TestCase, CatchErrors
 
 
 service1 = Service(name="service1", path="/service1")
@@ -45,12 +44,12 @@ class TestServiceDefinition(TestCase):
 
         self.app.get("/unknown", status=404)
         self.assertEquals(
-                self.app.get("/service1").json,
-                {'test': "succeeded"})
+            self.app.get("/service1").json,
+            {'test': "succeeded"})
 
         self.assertEquals(
-                self.app.post("/service1", params="BODY").json,
-                {'body': 'BODY'})
+            self.app.post("/service1", params="BODY").json,
+            {'body': 'BODY'})
 
     def test_loading_into_multiple_configurators(self):
         # When initializing a second configurator, it shouldn't interfere
@@ -61,12 +60,14 @@ class TestServiceDefinition(TestCase):
 
         # Calling the new configurator works as expected.
         app = TestApp(CatchErrors(config2.make_wsgi_app()))
-        self.assertEqual(app.get("/service1").json,
-                {'test': 'succeeded'})
+        self.assertEqual(
+            app.get("/service1").json,
+            {'test': 'succeeded'})
 
         # Calling the old configurator works as expected.
-        self.assertEqual(self.app.get("/service1").json,
-                {'test': 'succeeded'})
+        self.assertEqual(
+            self.app.get("/service1").json,
+            {'test': 'succeeded'})
 
     def test_stacking_api_decorators(self):
         # Stacking multiple @api calls on a single function should

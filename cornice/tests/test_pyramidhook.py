@@ -11,7 +11,7 @@ from pyramid.security import Allow
 from webtest import TestApp
 
 from cornice import Service
-from cornice.tests import CatchErrors
+from cornice.tests.support import CatchErrors
 
 
 service = Service(name="service", path="/service")

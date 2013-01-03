@@ -5,7 +5,7 @@ from pyramid.config import Configurator
 from pyramid.httpexceptions import HTTPBadRequest
 
 from cornice import Service
-from cornice.tests import CatchErrors
+from cornice.tests.support import CatchErrors
 import json
 
 

@@ -9,7 +9,12 @@ try:
     from unittest2 import TestCase
 except ImportError:
     # Maybe we're running in python2.7?
-    from unittest import TestCase # NOQA
+    from unittest import TestCase  # NOQA
+
+from webob.dec import wsgify
+from webob import exc
+from pyramid.httpexceptions import HTTPException
+
 
 logger = logging.getLogger('cornice')
 
@@ -74,3 +79,17 @@ class LoggingCatcher(object):
         if flush:
             self.loghandler.flush()
         return messages
+
+
+class CatchErrors(object):
+    def __init__(self, app):
+        self.app = app
+        if hasattr(app, 'registry'):
+            self.registry = app.registry
+
+    @wsgify
+    def __call__(self, request):
+        try:
+            return request.get_response(self.app)
+        except (exc.HTTPException, HTTPException), e:
+            return e
