@@ -71,7 +71,7 @@ def resource(**kw):
                 # get the callbacks registred by the inner services
                 # and call them from here when the @resource classes are being
                 # scanned by venusian.
-                for service in services.values():
+                for service in list(services.values()):
                     config = context.config.with_package(info.module)
                     config.add_cornice_service(service)
 

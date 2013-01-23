@@ -60,7 +60,7 @@ def extract_request_data(request):
     if request.body:
         try:
             body = json.loads(request.body)
-        except ValueError, e:
+        except ValueError as e:
             request.errors.add('body', None, e.message)
             body = {}
     else:

@@ -102,7 +102,7 @@ if COLANDER:
             resp = self.app.post('/foobar?yeah=test',
                                  params=json.dumps(data), status=200)
 
-            self.assertEqual(resp.json, {u'baz': None, "test": "succeeded"})
+            self.assertEqual(resp.json, {'baz': None, "test": "succeeded"})
 
         def test_schema_validation2(self):
             resp = self.app.get('/foobar?yeah=test', status=200)
@@ -115,10 +115,10 @@ if COLANDER:
                                  status=400)
 
             self.assertEqual(resp.json, {
-                u'errors': [{u'description': u'The bar is not open.',
-                u'location': u'body',
-                u'name': u'bar'}],
-                u'status': u'error'})
+                'errors': [{'description': 'The bar is not open.',
+                'location': 'body',
+                'name': 'bar'}],
+                'status': 'error'})
 
         def test_foo_required(self):
             # test required attribute
@@ -127,10 +127,10 @@ if COLANDER:
                                  status=400)
 
             self.assertEqual(resp.json, {
-                u'errors': [{u'description': u'foo is missing',
-                u'location': u'body',
-                u'name': u'foo'}],
-                u'status': u'error'})
+                'errors': [{'description': 'foo is missing',
+                'location': 'body',
+                'name': 'foo'}],
+                'status': 'error'})
 
         def test_default_baz_value(self):
             # test required attribute
@@ -138,7 +138,7 @@ if COLANDER:
             resp = self.app.post('/foobar?yeah=test', params=json.dumps(data),
                                  status=200)
 
-            self.assertEqual(resp.json, {u'baz': None, "test": "succeeded"})
+            self.assertEqual(resp.json, {'baz': None, "test": "succeeded"})
 
         def test_ipsum_error_message(self):
             # test required attribute
@@ -147,11 +147,11 @@ if COLANDER:
                                  status=400)
 
             self.assertEqual(resp.json, {
-                u'errors': [
-                    {u'description': u'5 is greater than maximum value 3',
-                     u'location': u'body',
-                     u'name': u'ipsum'}],
-                u'status': u'error'})
+                'errors': [
+                    {'description': '5 is greater than maximum value 3',
+                     'location': 'body',
+                     'name': 'ipsum'}],
+                'status': 'error'})
 
         def test_integers_fail(self):
             # test required attribute
@@ -161,11 +161,11 @@ if COLANDER:
                                  status=400)
 
             self.assertEqual(resp.json, {
-                u'errors': [
-                    {u'description': u'"a" is not a number',
-                     u'location': u'body',
-                     u'name': u'integers.0'}],
-                u'status': u'error'})
+                'errors': [
+                    {'description': '"a" is not a number',
+                     'location': 'body',
+                     'name': 'integers.0'}],
+                'status': 'error'})
 
         def test_integers_ok(self):
             # test required attribute

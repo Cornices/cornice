@@ -10,6 +10,7 @@ from cornice.validators import (
 )
 from cornice.schemas import CorniceSchema, validate_colander_schema
 from cornice.util import to_list, json_error
+import collections
 
 try:
     import venusian
@@ -100,7 +101,7 @@ class Service(object):
     list_arguments = ('validators', 'filters')
 
     def __repr__(self):
-        return u'<Service %s at %s>' % (self.name, self.path)
+        return '<Service %s at %s>' % (self.name, self.path)
 
     def __init__(self, name, path, description=None, depth=1, **kw):
         self.name = name
@@ -117,7 +118,7 @@ class Service(object):
             kw[key].extend(extra)
 
         self.arguments = self.get_arguments(kw)
-        for key, value in self.arguments.items():
+        for key, value in list(self.arguments.items()):
             setattr(self, key, value)
 
         if hasattr(self, 'factory') and hasattr(self, 'acl'):
@@ -191,7 +192,7 @@ class Service(object):
         # if some keys have been defined service-wide, then we need to add
         # them to the returned dict.
         if hasattr(self, 'arguments'):
-            for key, value in self.arguments.items():
+            for key, value in list(self.arguments.items()):
                 if key not in arguments:
                     arguments[key] = value
 
@@ -262,7 +263,7 @@ class Service(object):
             if meth.upper() == method.upper():
                 acc = to_list(args.get('accept'))
                 if filter_callables:
-                    acc = [a for a in acc if not callable(a)]
+                    acc = [a for a in acc if not isinstance(a, collections.Callable)]
                 acceptable.extend(acc)
         return acceptable
 
@@ -317,7 +318,7 @@ def decorate_view(view, args, method):
         view_ = view
         if 'klass' in args:
             ob = args['klass'](request)
-            if isinstance(view, basestring):
+            if isinstance(view, str):
                 view_ = getattr(ob, view.lower())
 
         # do schema validation
@@ -329,7 +330,7 @@ def decorate_view(view, args, method):
         # object if any
         validators = args.get('validators', ())
         for validator in validators:
-            if isinstance(validator, basestring) and ob is not None:
+            if isinstance(validator, str) and ob is not None:
                 validator = getattr(ob, validator)
             validator(request)
 

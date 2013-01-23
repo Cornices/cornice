@@ -10,6 +10,7 @@ from pyramid.exceptions import PredicateMismatch
 from cornice.service import decorate_view
 from cornice.errors import Errors
 from cornice.util import to_list
+import collections
 
 
 def match_accept_header(func, context, request):
@@ -83,7 +84,7 @@ def tween_factory(handler, registry):
             if service is not None:
                 kwargs, ob = getattr(request, "cornice_args", ({}, None))
                 for _filter in kwargs.get('filters', []):
-                    if isinstance(_filter, basestring) and ob is not None:
+                    if isinstance(_filter, str) and ob is not None:
                         _filter = getattr(ob, _filter)
                     response = _filter(response)
         return response
@@ -150,7 +151,7 @@ def register_service_views(config, service):
         if 'accept' in args:
             for accept in to_list(args.pop('accept', ())):
                 predicates = args.get('custom_predicates', [])
-                if callable(accept):
+                if isinstance(accept, collections.Callable):
                     predicate_checker = functools.partial(match_accept_header,
                                                           accept)
                     predicates.append(predicate_checker)
