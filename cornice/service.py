@@ -117,6 +117,17 @@ class Service(object):
         ones (Default: True). If set to False, all the headers need be
         explicitely mentionned with the cors_headers parameter.
 
+    :param cors_policy:
+        It may be easier to have an external object containing all the policy
+        information related to CORS, e.g::
+
+            >>> cors_policy = {'origins': ('*',), 'max_age': 42,
+            ...                'credentials': True}
+
+        You can pass a dict here and all the values will be
+        unpacked and considered rather than the parameters starting by `cors_`
+        here.
+
     See
     http://readthedocs.org/docs/pyramid/en/1.0-branch/glossary.html#term-acl
     for more information about ACLs.
@@ -135,13 +146,18 @@ class Service(object):
     def __repr__(self):
         return u'<Service %s at %s>' % (self.name, self.path)
 
-    def __init__(self, name, path, description=None, depth=1, **kw):
+    def __init__(self, name, path, description=None, cors_policy=None, depth=1,
+                 **kw):
         self.name = name
         self.path = path
         self.description = description
         self.cors_expose_all_headers = True
         self._schemas = {}
         self._cors_enabled = None
+
+        if cors_policy:
+            for key, value in cors_policy.items():
+                kw.setdefault('cors_' + key, value)
 
         for key in self.list_arguments:
             # default_{validators,filters} and {filters,validators} doesn't
@@ -345,8 +361,6 @@ class Service(object):
     @cors_enabled.setter
     def cors_enabled(self, value):
         self._cors_enabled = value
-
-
 
     @property
     def cors_supported_headers(self):

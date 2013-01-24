@@ -386,3 +386,16 @@ class TestService(TestCase):
         self.assertEquals(foo.cors_max_age_for('GET'), 42)
         self.assertEquals(foo.cors_max_age_for('POST'), 32)
         self.assertEquals(foo.cors_max_age_for('PUT'), 7)
+
+    def test_cors_policy(self):
+        policy = {'origins': ('foo', 'bar', 'baz')}
+        foo = Service(name='foo', path='/foo', cors_policy=policy)
+        self.assertTrue('foo' in foo.cors_supported_origins)
+        self.assertTrue('bar' in foo.cors_supported_origins)
+        self.assertTrue('baz' in foo.cors_supported_origins)
+
+    def test_cors_policy_can_be_overwritten(self):
+        policy = {'origins': ('foo', 'bar', 'baz')}
+        foo = Service(name='foo', path='/foo', cors_origins=(),
+                      cors_policy=policy)
+        self.assertEquals(len(foo.cors_supported_origins), 0)
