@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import json
 import functools
+import copy
 
 from pyramid.httpexceptions import HTTPMethodNotAllowed, HTTPNotAcceptable
 from pyramid.exceptions import PredicateMismatch
@@ -11,6 +12,8 @@ from cornice.service import decorate_view
 from cornice.errors import Errors
 from cornice.util import to_list, b
 import collections
+from cornice.cors import (get_cors_filter, get_cors_validator,
+                          get_cors_preflight_view, CORS_PARAMETERS)
 
 
 def match_accept_header(func, context, request):
@@ -53,7 +56,7 @@ def get_fallback_view(service):
                 continue
             if 'accept' in args:
                 acceptable.extend(
-                        service.get_acceptable(method, filter_callables=True))
+                    service.get_acceptable(method, filter_callables=True))
                 if 'acceptable' in request.info:
                     for content_type in request.info['acceptable']:
                         if content_type not in acceptable:
@@ -86,7 +89,10 @@ def tween_factory(handler, registry):
                 for _filter in kwargs.get('filters', []):
                     if isinstance(_filter, str) and ob is not None:
                         _filter = getattr(ob, _filter)
-                    response = _filter(response)
+                    try:
+                        response = _filter(response, request)
+                    except TypeError:
+                        response = _filter(response)
         return response
     return cornice_tween
 
@@ -118,16 +124,29 @@ def register_service_views(config, service):
     # keep track of the registered routes
     registered_routes = []
 
+    # before doing anything else, register a view for the OPTIONS method
+    # if we need to
+    if service.cors_enabled and 'OPTIONS' not in service.defined_methods:
+        service.add_view('options', view=get_cors_preflight_view(service))
+
     # register the fallback view, which takes care of returning good error
     # messages to the user-agent
+    cors_validator = get_cors_validator(service)
+    cors_filter = get_cors_filter(service)
+
     for method, view, args in service.definitions:
 
-        args = dict(args)  # make a copy of the dict to not modify it
+        args = copy.deepcopy(args)  # make a copy of the dict to not modify it
         args['request_method'] = method
 
+        if service.cors_enabled:
+            args['validators'].insert(0, cors_validator)
+            args['filters'].append(cors_filter)
+
         decorated_view = decorate_view(view, dict(args), method)
+
         for item in ('filters', 'validators', 'schema', 'klass',
-                     'error_handler'):
+                     'error_handler') + CORS_PARAMETERS:
             if item in args:
                 del args[item]
 
