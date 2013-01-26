@@ -67,3 +67,11 @@ def extract_request_data(request):
         body = {}
 
     return request.GET, request.headers, body, request.matchdict
+
+# http://python3porting.com/problems.html
+import sys
+if sys.version < '3':
+        def b(x): return x
+else:
+    import codecs
+    def b(x): return codecs.latin_1_encode(x)[0]

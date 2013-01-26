@@ -9,7 +9,7 @@ from pyramid.exceptions import PredicateMismatch
 
 from cornice.service import decorate_view
 from cornice.errors import Errors
-from cornice.util import to_list
+from cornice.util import to_list, b
 import collections
 
 
@@ -63,7 +63,7 @@ def get_fallback_view(service):
                 if not request.accept.best_match(acceptable):
                     response = HTTPNotAcceptable()
                     response.content_type = "application/json"
-                    response.body = json.dumps(acceptable)
+                    response.body = b(json.dumps(acceptable))
                     raise response
 
         # In the absence of further information about what went wrong,

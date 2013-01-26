@@ -8,7 +8,7 @@ from webtest import TestApp
 
 from cornice.resource import resource
 from cornice.resource import view
-from cornice.tests.support import TestCase, CatchErrors
+from cornice.tests.support import TestCase, CatchErrors, b
 
 
 USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
@@ -60,7 +60,7 @@ class TestResource(TestCase):
         self.assertEquals(self.app.get("/users/1").json, {'name': 'gawel'})
 
         resp = self.app.get("/users/1?callback=test")
-        self.assertEquals(resp.body, 'test({"name": "gawel"})', resp.body)
+        self.assertEquals(resp.body, b('test({"name": "gawel"})'), resp.body)
 
     def test_accept_headers(self):
         # the accept headers should work even in case they're specified in a

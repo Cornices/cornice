@@ -93,3 +93,11 @@ class CatchErrors(object):
             return request.get_response(self.app)
         except (exc.HTTPException, HTTPException) as e:
             return e
+
+# http://python3porting.com/problems.html
+import sys
+if sys.version < '3':
+        def b(x): return x
+else:
+    import codecs
+    def b(x): return codecs.latin_1_encode(x)[0]

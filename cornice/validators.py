@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import re
 
+from cornice.util import b
 
 def filter_json_xsrf(response):
     """drops a warning if a service is returning a json array.
@@ -11,7 +12,7 @@ def filter_json_xsrf(response):
     on this
     """
     if response.content_type in ('application/json', 'text/json'):
-        if re.match(r'\s?[\(\[).*[\)\]]\s?', response.body):
+        if re.match(b('\s?[\(\[).*[\)\]]\s?'), response.body):
             from cornice import logger
             logger.warn("returning a json array is a potential security "
                      "hole, please ensure you really want to do this. See "

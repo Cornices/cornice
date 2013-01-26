@@ -5,7 +5,7 @@ from pyramid.config import Configurator
 from pyramid.httpexceptions import HTTPBadRequest
 
 from cornice import Service
-from cornice.tests.support import CatchErrors
+from cornice.tests.support import CatchErrors, b
 import json
 
 
@@ -41,8 +41,11 @@ def _json(request):
     """The request body should be a JSON object."""
     try:
         request.validated['json'] = json.loads(request.body)
-    except ValueError:
-        request.errors.add('body', 'json', 'Not a json body')
+    except TypeError:
+        try:
+            request.validated['json'] = json.loads(request.text)
+        except ValueError:
+            request.errors.add('body', 'json', 'Not a json body')
 
 
 @service.post(validators=_json)
@@ -72,7 +75,7 @@ def get3(request):
 
 
 def _filter(response):
-    response.body = "filtered response"
+    response.body = b("filtered response")
     return response
 
 service4 = Service(name="service4", path="/service4")

@@ -11,7 +11,7 @@ from pyramid.security import Allow
 from webtest import TestApp
 
 from cornice import Service
-from cornice.tests.support import CatchErrors
+from cornice.tests.support import CatchErrors, b
 
 
 service = Service(name="service", path="/service")
@@ -37,11 +37,11 @@ class TemperatureCooler(object):
 
     def get_fresh_air(self):
         resp = Response()
-        resp.body = 'air'
+        resp.body = b('air')
         return resp
 
     def make_it_fresh(self, response):
-        response.body = 'fresh ' + response.body
+        response.body = b('fresh ') + response.body
         return response
 
     def check_temperature(self, request):
@@ -81,7 +81,7 @@ class TestService(TestCase):
     def test_class_support(self):
         self.app.get('/fresh-air', status=400)
         resp = self.app.get('/fresh-air', headers={'X-Temperature': '50'})
-        self.assertEquals(resp.body, 'fresh air')
+        self.assertEquals(resp.body, b('fresh air'))
 
 
 class WrapperService(Service):
