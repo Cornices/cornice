@@ -63,7 +63,7 @@ def unique(request):
 #
 
 #
-# User Managment
+# User Management
 #
 
 
@@ -89,7 +89,7 @@ def del_user(request):
     return {'Goodbye': name}
 
 #
-# Messages managment
+# Messages management
 #
 
 
