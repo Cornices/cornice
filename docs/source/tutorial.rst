@@ -101,12 +101,12 @@ Let's open the file in messaging/views.py, it contains all the Services::
         return {'Hello': 'World'}
 
 
-Users managment
+Users management
 :::::::::::::::
 
 
 We're going to get rid of the Hello service, and change this file in order
-to add our first service - the users managment ::
+to add our first service - the users management ::
 
     from cornice import Service
 
@@ -213,7 +213,7 @@ Here's their code::
     #
 
     #
-    # User Managment
+    # User Management
     #
 
 
@@ -259,7 +259,7 @@ Let's try our application so far with CURL::
 
 
 
-Messages managment
+Messages management
 ::::::::::::::::::
 
 Now that we have users, let's post and get messages. This is done via two very
