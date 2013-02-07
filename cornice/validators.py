@@ -4,7 +4,7 @@
 import re
 
 # Strings and arrays are potentially exploitable
-safe_json_re = re.compile(r'\s*[\{tfn\-0-9]', re.MULTILINE)
+safe_json_re = re.compile(r'\s*[\{tfn\-0-9]'.encode('ascii'), re.MULTILINE)
 
 
 def filter_json_xsrf(response):

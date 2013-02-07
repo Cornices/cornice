@@ -34,7 +34,7 @@ class CorniceSchema(object):
                 valid_location = attr.location in to_list(location)
             return valid_location and attr.required in to_list(required)
 
-        return filter(_filter, self._attributes)
+        return list(filter(_filter, self._attributes))
 
     def as_dict(self):
         """returns a dict containing keys for the different attributes, and
@@ -86,7 +86,7 @@ def validate_colander_schema(schema, request):
                         deserialized = attr.deserialize()
                     else:
                         deserialized = attr.deserialize(data[attr.name])
-                except Invalid, e:
+                except Invalid as e:
                     # the struct is invalid
                     try:
                         request.errors.add(location, attr.name,

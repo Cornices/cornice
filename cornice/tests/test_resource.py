@@ -21,7 +21,7 @@ class User(object):
         self.request = request
 
     def collection_get(self):
-        return {'users': USERS.keys()}
+        return {'users': list(USERS.keys())}
 
     @view(renderer='jsonp')
     @view(renderer='json')
@@ -60,7 +60,7 @@ class TestResource(TestCase):
         self.assertEquals(self.app.get("/users/1").json, {'name': 'gawel'})
 
         resp = self.app.get("/users/1?callback=test")
-        self.assertEquals(resp.body, 'test({"name": "gawel"})', resp.body)
+        self.assertEquals(resp.body, b'test({"name": "gawel"})', resp.body)
 
     def test_accept_headers(self):
         # the accept headers should work even in case they're specified in a

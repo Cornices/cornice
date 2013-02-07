@@ -74,9 +74,9 @@ if COLANDER:
                               len(inherited_schema.get_attributes()))
 
             foo_filter = lambda x: x.name == "foo"
-            base_foo = filter(foo_filter, base_schema.get_attributes())[0]
-            inherited_foo = filter(foo_filter,
-                                   inherited_schema.get_attributes())[0]
+            base_foo = list(filter(foo_filter, base_schema.get_attributes()))[0]
+            inherited_foo = list(filter(foo_filter,
+                                        inherited_schema.get_attributes()))[0]
             self.assertTrue(base_foo.required)
             self.assertFalse(inherited_foo.required)
 
