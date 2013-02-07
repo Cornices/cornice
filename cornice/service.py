@@ -9,7 +9,7 @@ from cornice.validators import (
     DEFAULT_FILTERS,
 )
 from cornice.schemas import CorniceSchema, validate_colander_schema
-from cornice.util import to_list, json_error
+from cornice.util import is_string, to_list, json_error
 
 try:
     import venusian
@@ -441,7 +441,7 @@ def decorate_view(view, args, method):
         view_ = view
         if 'klass' in args:
             ob = args['klass'](request)
-            if isinstance(view, basestring):
+            if is_string(view):
                 view_ = getattr(ob, view.lower())
 
         # do schema validation
@@ -453,7 +453,7 @@ def decorate_view(view, args, method):
         # object if any
         validators = args.get('validators', ())
         for validator in validators:
-            if isinstance(validator, basestring) and ob is not None:
+            if is_string(validator) and ob is not None:
                 validator = getattr(ob, validator)
             validator(request)
 

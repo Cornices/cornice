@@ -1,6 +1,8 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+import sys
+
 import simplejson as json
 
 from pyramid import httpexceptions as exc
@@ -9,6 +11,18 @@ from pyramid.response import Response
 
 __all__ = ['json_renderer', 'to_list', 'json_error', 'match_accept_header',
            'extract_request_data']
+
+
+PY3 = sys.version_info[0] == 3
+
+if PY3:
+    string_types = str,
+else:
+    string_types = basestring,
+
+
+def is_string(s):
+    return isinstance(s, string_types)
 
 
 def json_renderer(helper):

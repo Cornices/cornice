@@ -10,7 +10,7 @@ from pyramid.exceptions import PredicateMismatch
 
 from cornice.service import decorate_view
 from cornice.errors import Errors
-from cornice.util import to_list
+from cornice.util import is_string, to_list
 from cornice.cors import (get_cors_filter, get_cors_validator,
                           get_cors_preflight_view, CORS_PARAMETERS)
 
@@ -94,7 +94,7 @@ def tween_factory(handler, registry):
             if service is not None:
                 kwargs, ob = getattr(request, "cornice_args", ({}, None))
                 for _filter in kwargs.get('filters', []):
-                    if isinstance(_filter, basestring) and ob is not None:
+                    if is_string(_filter) and ob is not None:
                         _filter = getattr(ob, _filter)
                     try:
                         response = _filter(response, request)
