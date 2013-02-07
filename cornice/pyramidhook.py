@@ -73,7 +73,7 @@ def get_fallback_view(service):
                 if not request.accept.best_match(acceptable):
                     response = HTTPNotAcceptable()
                     response.content_type = "application/json"
-                    response.body = json.dumps(acceptable)
+                    response.body = json.dumps(acceptable).encode('ascii')
                     raise response
 
         # In the absence of further information about what went wrong,

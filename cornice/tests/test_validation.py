@@ -19,11 +19,11 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         app.get('/service', status=400)
 
         res = app.post('/service', params='buh', status=400)
-        self.assertTrue('Not a json body' in res.body)
+        self.assertTrue(b'Not a json body' in res.body)
 
         res = app.post('/service', params=json.dumps('buh'))
 
-        self.assertEqual(res.body, json.dumps({'body': '"buh"'}))
+        self.assertEqual(res.body, json.dumps({'body': '"buh"'}).encode('ascii'))
 
         app.get('/service?paid=yup')
 
@@ -42,7 +42,7 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         app = TestApp(main({}))
 
         res = app.post('/service4', status=400)
-        self.assertTrue('<errors>' in res.body)
+        self.assertTrue(b'<errors>' in res.body)
 
     def test_accept(self):
         # tests that the accept headers are handled the proper way
@@ -122,8 +122,8 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         app = TestApp(main({}))
 
         # filters can be applied to all the methods of a service
-        self.assertTrue("filtered response" in app.get('/filtered').body)
-        self.assertTrue("unfiltered" in app.post('/filtered').body)
+        self.assertTrue(b"filtered response" in app.get('/filtered').body)
+        self.assertTrue(b"unfiltered" in app.post('/filtered').body)
 
     def test_json_xsrf(self):
         def json_response(string_value):

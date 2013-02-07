@@ -10,5 +10,5 @@ class TestUtil(TestCase):
     def test_rendering(self):
         text = '**simple render**'
         res = rst2html(text)
-        self.assertEquals(res, '<p><strong>simple render</strong></p>')
+        self.assertEquals(res, b'<p><strong>simple render</strong></p>')
         self.assertEquals(rst2html(''), '')
