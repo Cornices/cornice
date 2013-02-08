@@ -21,7 +21,7 @@ class User(object):
         self.request = request
 
     def collection_get(self):
-        return {'users': USERS.keys()}
+        return {'users': list(USERS.keys())}
 
     @view(renderer='jsonp')
     @view(renderer='json')
