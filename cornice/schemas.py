@@ -80,7 +80,7 @@ def validate_colander_schema(schema, request):
                         request.errors.add(location, attr.name,
                                            e.asdict()[attr.name])
                     except KeyError:
-                        for k, v in list(e.asdict().items()):
+                        for k, v in e.asdict().items():
                             if k.startswith(attr.name):
                                 request.errors.add(location, k, v)
                 else:
