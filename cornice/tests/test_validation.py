@@ -69,11 +69,11 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
 
         # and requested preference order should be respected
         r = app.get('/service2',
-                    headers={'Accept': 'application/json, text/plain'})
+                    headers={'Accept': 'application/json; q=1.0, text/plain; q=0.9'})
         self.assertEquals(r.content_type, "application/json")
 
         r = app.get('/service2',
-                    headers={'Accept': 'text/plain, application/json'})
+                    headers={'Accept': 'text/plain; q=0.9, application/json; q=1.0'})
         self.assertEquals(r.content_type, "application/json")
 
         # test that using a callable to define what's accepted works as well
@@ -84,9 +84,9 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         self.assertEquals(res.content_type, "text/json")
 
         # if we are not asking for a particular content-type,
-        # we should get the type defined by outermost declaration.
+        # we should get one of the two types that the service supports.
         r = app.get('/service2', status=200)
-        self.assertEquals(r.content_type, "application/json")
+        self.assertTrue(r.content_type in ("application/json", "text/plain"))
 
     def test_accept_issue_113_text_star(self):
         app = TestApp(main({}))
