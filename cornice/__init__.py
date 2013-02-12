@@ -12,7 +12,7 @@ from cornice.pyramidhook import (
 )
 
 logger = logging.getLogger('cornice')
-__version__ = 0.13
+__version__ = 0.14
 
 
 def add_renderer_globals(event):
