@@ -118,6 +118,11 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         res = app.get('/service2', headers={'Accept': 'audio/mp4; q=0.9, text/plain; q=0.5'}, status=200)
         self.assertEquals(res.content_type, "text/plain")
 
+        # if we are not asking for a particular content-type,
+        # we should get the type defined by outermost declaration.
+        r = app.get('/service2', status=200)
+        self.assertTrue(r.content_type in ("application/json", "text/plain"))
+
     def test_filters(self):
         app = TestApp(main({}))
 
