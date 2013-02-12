@@ -1,4 +1,4 @@
-0.13 - XXXX-XX-XX
+0.13 - 2013-02-12
 =================
 
 - Added Cross-Origin Resource Sharing (CORS) support.
