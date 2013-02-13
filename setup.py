@@ -42,6 +42,7 @@ setup(name='cornice',
       license='MPLv2.0',
       classifiers=[
         "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
         "Framework :: Pylons",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
