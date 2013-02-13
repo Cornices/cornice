@@ -51,7 +51,7 @@ The :file:`views` module can look like this::
         """
         key = request.matchdict['value']
         try:
-            _VALUES.set(key, json.loads(request.body))
+            _VALUES[key] = json.loads(request.body)
         except ValueError:
             return False
         return True
