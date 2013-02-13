@@ -119,7 +119,7 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         self.assertEquals(res.content_type, "text/plain")
 
         # if we are not asking for a particular content-type,
-        # we should get the type defined by outermost declaration.
+        # we should get one of the two types that the service supports.
         r = app.get('/service2', status=200)
         self.assertTrue(r.content_type in ("application/json", "text/plain"))
 
