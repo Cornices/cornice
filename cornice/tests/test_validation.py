@@ -80,7 +80,8 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         res = app.get('/service3', headers={'Accept': 'audio/*'}, status=406)
         self.assertTrue('text/json' in res.json)
 
-        app.get('/service3', headers={'Accept': 'text/*'}, status=200)
+        res = app.get('/service3', headers={'Accept': 'text/*'}, status=200)
+        self.assertTrue(r.content_type, "text/json")
 
         # if we are not asking for a particular content-type,
         # we should get the type defined by outermost declaration.

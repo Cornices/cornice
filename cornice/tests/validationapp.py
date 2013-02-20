@@ -63,7 +63,7 @@ service3 = Service(name="service3", path="/service3")
 
 
 def _accept(request):
-    return ('text/json', 'application/json')
+    return ('application/json', 'text/json')
 
 
 @service3.get(accept=_accept)
