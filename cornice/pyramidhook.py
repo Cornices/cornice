@@ -15,7 +15,15 @@ from cornice.cors import (get_cors_filter, get_cors_validator,
                           get_cors_preflight_view, CORS_PARAMETERS)
 
 
-def match_accept_header(func, context, request):
+def match_accept_header(func, info, request):
+    """
+    Return True if the request matches the values returned by the given :param:
+    func callable.
+
+    :param func:
+        The callable returning the list of acceptable content-types,
+        given a request. It should accept a "request" argument.
+    """
     acceptable = func(request)
     # attach the accepted content types to the request
     request.info['acceptable'] = acceptable
