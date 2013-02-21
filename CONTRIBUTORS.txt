@@ -12,6 +12,7 @@ Cornice:
 * Janek Hiis <janek@utopic.me>
 * Lorenzo Gil Sanchez <lorenzo.gil.sanchez@gmail.com>
 * Marc Abramowitz <marca@surveymonkey.com>
+* Marcin Lulek <info@webreactor.eu>
 * Marconi Moreto <caketoad@gmail.com>
 * Markus Zapke-Gründemann <markus@keimlink.de>
 * matthias <matthias@itemfire.com>
