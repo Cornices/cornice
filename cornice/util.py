@@ -5,21 +5,21 @@ import simplejson as json
 
 from pyramid import httpexceptions as exc
 from pyramid.response import Response
+from pyramid.renderers import JSON
 
 
-__all__ = ['json_renderer', 'to_list', 'json_error', 'match_accept_header',
+__all__ = ['json_datetime_adapter', 'json_decimal_adapter', 'json_renderer', 'to_list', 'json_error', 'match_accept_header',
            'extract_request_data']
 
-
-def json_renderer(helper):
-    return _JsonRenderer()
+json_renderer = JSON(serializer=json.dumps)
 
 
-class _JsonRenderer(object):
-    def __call__(self, data, context):
-        response = context['request'].response
-        response.content_type = 'application/json'
-        return json.dumps(data, use_decimal=True)
+def json_datetime_adapter(obj, request):
+    return obj.isoformat()
+
+
+def json_decimal_adapter(obj, request):
+    return json.dumps(obj, use_decimal=True)
 
 
 def to_list(obj):
