@@ -7,16 +7,26 @@ from cornice.util import to_list, extract_request_data
 class CorniceSchema(object):
     """Defines a cornice schema"""
 
-    def __init__(self, nodes):
-        self._attributes = nodes
+    def __init__(self, _colander_schema):
+        self._c_schema = _colander_schema
+
+    def bind_attributes(self, request=None):
+        if request:
+            self._attributes = self._c_schema().bind(request=request).children
+        else:
+            self._attributes = self._c_schema().children
 
     def get_attributes(self, location=("body", "headers", "querystring"),
-                       required=(True, False)):
+                       required=(True, False),
+                       request=None):
         """Return a list of attributes that match the given criteria.
 
         By default, if nothing is specified, it will return all the attributes,
         without filtering anything.
         """
+        if not hasattr(self, '_attributes'):
+            self.bind_attributes(request)
+
         def _filter(attr):
             if not hasattr(attr, "location"):
                 valid_location = 'body' in location
@@ -42,6 +52,8 @@ class CorniceSchema(object):
              # ...
              }
         """
+        if not hasattr(self, '_attributes'):
+            self.bind_attributes()
         schema = {}
         for attr in self._attributes:
             schema[attr.name] = {
@@ -55,15 +67,15 @@ class CorniceSchema(object):
 
     @classmethod
     def from_colander(klass, colander_schema):
-        return CorniceSchema(colander_schema().children)
+        return CorniceSchema(colander_schema)
 
 
 def validate_colander_schema(schema, request):
     """Validates that the request is conform to the given schema"""
     from colander import Invalid
-
     def _validate_fields(location, data):
-        for attr in schema.get_attributes(location=location):
+        for attr in schema.get_attributes(location=location,
+                                          request=request):
             if attr.required and not attr.name in data:
                 # missing
                 request.errors.add(location, attr.name,
