@@ -96,16 +96,33 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         self.assertTrue("unfiltered" in app.post('/filtered').body)
 
     def test_json_xsrf(self):
-        # a view returning a json list should issue a warning
-        resp = Response(json.dumps(('value1', 'value2')))
-        resp.status = 200
-        resp.content_type = 'application/json'
-        filter_json_xsrf(resp)
-        self.assertEquals(len(self.get_logs()), 1)
+        def json_response(string_value):
+            resp = Response(string_value)
+            resp.status = 200
+            resp.content_type = 'application/json'
+            filter_json_xsrf(resp)
 
-        # json lists can also start end end with spaces
-        resp = Response(" ('value1', 'value2') ")
-        resp.status = 200
-        resp.content_type = 'application/json'
-        filter_json_xsrf(resp)
-        self.assertEquals(len(self.get_logs()), 1)
+        # a view returning a vulnerable json response should issue a warning
+        for value in [
+            '["value1", "value2"]',  # json array
+            '  \n ["value1", "value2"] ',  # may include whitespace
+            '"value"',  # strings may contain nasty characters in UTF-7
+            ]:
+            resp = Response(value)
+            resp.status = 200
+            resp.content_type = 'application/json'
+            filter_json_xsrf(resp)
+            assert len(self.get_logs()) == 1, "Expected warning: %s" % value
+
+        # a view returning safe json response should not issue a warning
+        for value in [
+            '{"value1": "value2"}',  # json object
+            '  \n {"value1": "value2"} ',  # may include whitespace
+            'true', 'false', 'null',  # primitives
+            '123', '-123', '0.123',  # numbers
+            ]:
+            resp = Response(value)
+            resp.status = 200
+            resp.content_type = 'application/json'
+            filter_json_xsrf(resp)
+            assert len(self.get_logs()) == 0, "Unexpected warning: %s" % value
