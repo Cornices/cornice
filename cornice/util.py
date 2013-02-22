@@ -8,7 +8,7 @@ from pyramid.response import Response
 from pyramid.renderers import JSON
 
 
-__all__ = ['json_datetime_adapter', 'json_decimal_adapter', 'json_renderer', 'to_list', 'json_error', 'match_accept_header',
+__all__ = ['json_renderer', 'to_list', 'json_error', 'match_accept_header',
            'extract_request_data']
 
 json_renderer = JSON(serializer=json.dumps)
