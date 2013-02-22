@@ -10,6 +10,8 @@ from cornice.pyramidhook import (
     wrap_request,
     register_service_views
 )
+from datetime import datetime
+from decimal import Decimal
 
 logger = logging.getLogger('cornice')
 __version__ = 0.14
@@ -36,4 +38,6 @@ def includeme(config):
     config.add_subscriber(add_renderer_globals, BeforeRender)
     config.add_subscriber(wrap_request, NewRequest)
     config.add_tween('cornice.pyramidhook.tween_factory')
+    util.json_renderer.add_adapter(datetime, util.json_datetime_adapter)
+    util.json_renderer.add_adapter(datetime, util.json_decimal_adapter)
     config.add_renderer('simplejson', util.json_renderer)
