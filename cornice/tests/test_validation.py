@@ -88,6 +88,36 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         r = app.get('/service2', status=200)
         self.assertEquals(r.content_type, "application/json")
 
+    def test_accept_issue_113_text_star(self):
+        app = TestApp(main({}))
+
+        res = app.get('/service3', headers={'Accept': 'text/*'}, status=200)
+        self.assertEquals(res.content_type, "text/json")
+
+    def test_accept_issue_113_text_application_star(self):
+        app = TestApp(main({}))
+
+        res = app.get('/service3', headers={'Accept': 'application/*'}, status=200)
+        self.assertEquals(res.content_type, "application/json")
+
+    def test_accept_issue_113_text_application_json(self):
+        app = TestApp(main({}))
+
+        res = app.get('/service3', headers={'Accept': 'application/json'}, status=200)
+        self.assertEquals(res.content_type, "application/json")
+
+    def test_accept_issue_113_text_html_not_acceptable(self):
+        app = TestApp(main({}))
+
+        # requesting an unsupported content type should return a HTTP 406 (Not Acceptable)
+        res = app.get('/service3', headers={'Accept': 'text/html'}, status=406)
+
+    def test_accept_issue_113_audio_or_text(self):
+        app = TestApp(main({}))
+
+        res = app.get('/service2', headers={'Accept': 'audio/mp4; q=0.9, text/plain; q=0.5'}, status=200)
+        self.assertEquals(res.content_type, "text/plain")
+
     def test_filters(self):
         app = TestApp(main({}))
 
