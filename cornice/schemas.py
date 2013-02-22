@@ -64,6 +64,8 @@ def validate_colander_schema(schema, request):
 
     def _validate_fields(location, data):
         for attr in schema.get_attributes(location=location):
+            attr = attr.bind(request=request)
+
             if attr.required and not attr.name in data:
                 # missing
                 request.errors.add(location, attr.name,
