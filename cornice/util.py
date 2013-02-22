@@ -18,7 +18,7 @@ def json_renderer(helper):
 class _JsonRenderer(object):
     def __call__(self, data, context):
         response = context['request'].response
-        response.content_type = 'application/json'
+        response.content_type = context['request'].accept.best_match(('application/json', 'text/json', 'text/plain')) or 'application/json'
         return json.dumps(data, use_decimal=True)
 
 
