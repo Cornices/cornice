@@ -124,6 +124,9 @@ To describe a schema, using colander and cornice, here is how you can do::
 
 You can even use Schema-Inheritance as introduced by Colander 0.9.9.
 
+Schema binding is also supported by binding the active request object to the
+"request" key. See `Colander Binding`_ for more info.
+
 Using formencode
 ~~~~~~~~~~~~~~~~
 
@@ -276,3 +279,6 @@ In case you would like to register a filter for all the services but one, you
 can use the `exclude` parameter. It works either on services or on methods::
 
     @foo.get(exclude=your_callable)
+
+
+.. _Colander Binding: http://docs.pylonsproject.org/projects/colander/en/latest/binding.html
