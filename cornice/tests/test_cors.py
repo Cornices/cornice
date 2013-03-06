@@ -47,10 +47,9 @@ def is_bacon_good(request):
 
 @bacon.get(validators=is_bacon_good)
 def get_some_bacon(request):
-    # if you got here, the only kind of bacon existing is 'good'.
+    # Okay, you there. Bear in mind, the only kind of bacon existing is 'good'.
     if request.matchdict['type'] != 'good':
         raise NotFound('Not. Found.')
-
     return "yay"
 
 
@@ -208,7 +207,7 @@ class TestCORS(TestCase):
             'Access-Control-Request-Method': 'GET',
             'Access-Control-Request-Headers': 'x-my-header', })
 
-    def test_400_return_CORS_headers(self):
+    def test_400_returns_CORS_headers(self):
         resp = self.app.get('/bacon/not', status=400,
                             headers={'Origin': 'notmyidea.org'})
         self.assertIn('Access-Control-Allow-Origin', resp.headers)
