@@ -1,4 +1,6 @@
 from pyramid import testing
+from pyramid.exceptions import NotFound
+
 from webtest import TestApp
 
 from cornice.service import Service
@@ -7,8 +9,9 @@ from cornice.tests.support import TestCase, CatchErrors
 
 squirel = Service(path='/squirel', name='squirel', cors_origins=('foobar',))
 spam = Service(path='/spam', name='spam', cors_origins=('*',))
-eggs = Service(path='/eggs', name='egg', cors_origins=('*'),
+eggs = Service(path='/eggs', name='egg', cors_origins=('*',),
                cors_expose_all_headers=False)
+bacon = Service(path='/bacon/{type}', name='bacon', cors_origins=('*',))
 
 
 @squirel.get(cors_origins=('notmyidea.org',))
@@ -35,6 +38,19 @@ def gimme_some_spam_please(request):
 @spam.post()
 def moar_spam(request):
     return 'moar spam'
+
+
+def is_bacon_good(request):
+    if not request.matchdict['type'].endswith('good'):
+        request.errors.add('querystring', 'type', 'should be better!')
+
+
+@bacon.get(validators=is_bacon_good)
+def get_some_bacon(request):
+    # Okay, you there. Bear in mind, the only kind of bacon existing is 'good'.
+    if request.matchdict['type'] != 'good':
+        raise NotFound('Not. Found.')
+    return "yay"
 
 
 class TestCORS(TestCase):
@@ -190,3 +206,13 @@ class TestCORS(TestCase):
             'Origin': 'notmyidea.org',
             'Access-Control-Request-Method': 'GET',
             'Access-Control-Request-Headers': 'x-my-header', })
+
+    def test_400_returns_CORS_headers(self):
+        resp = self.app.get('/bacon/not', status=400,
+                            headers={'Origin': 'notmyidea.org'})
+        self.assertIn('Access-Control-Allow-Origin', resp.headers)
+
+    def test_404_returns_CORS_headers(self):
+        resp = self.app.get('/bacon/notgood', status=404,
+                            headers={'Origin': 'notmyidea.org'})
+        self.assertIn('Access-Control-Allow-Origin', resp.headers)
