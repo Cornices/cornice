@@ -467,6 +467,9 @@ def decorate_view(view, args, method):
 
         # check for errors and return them if any
         if len(request.errors) > 0:
+            # We already checked for CORS, but since the response is created
+            # again, we want to do that again before returning the response.
+            request.info['cors_checked'] = False
             return args['error_handler'](request.errors)
 
         # We can't apply filters at this level, since "response" may not have

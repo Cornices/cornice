@@ -8,7 +8,8 @@ from cornice.errors import Errors  # NOQA
 from cornice.service import Service   # NOQA
 from cornice.pyramidhook import (
     wrap_request,
-    register_service_views
+    register_service_views,
+    handle_exceptions
 )
 
 logger = logging.getLogger('cornice')
@@ -35,5 +36,5 @@ def includeme(config):
     config.add_directive('add_cornice_service', register_service_views)
     config.add_subscriber(add_renderer_globals, BeforeRender)
     config.add_subscriber(wrap_request, NewRequest)
-    config.add_tween('cornice.pyramidhook.tween_factory')
     config.add_renderer('simplejson', util.json_renderer)
+    config.add_view(handle_exceptions, context=Exception)

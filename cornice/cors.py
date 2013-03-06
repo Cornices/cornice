@@ -1,4 +1,5 @@
 import fnmatch
+import functools
 
 
 CORS_PARAMETERS = ('cors_headers', 'cors_enabled', 'cors_origins',
@@ -78,19 +79,14 @@ def _get_method(request):
     return method
 
 
-def get_cors_validator(service):
-    """Create a cornice validator to handle CORS-related verifications.
+def ensure_origin(service, request, response=None):
+    """Ensure that the origin header is set and allowed."""
+    response = response or request.response
 
-    Checks, if an "Origin" header is present, that the origin is authorized
-    (and issue an error if not)
-    """
-
-    def _cors_validator(request):
-        response = request.response
+    # Don't check this twice.
+    if not request.info.get('cors_checked', False):
         method = _get_method(request)
 
-        # If we have an "Origin" header, check it's authorized and add the
-        # response headers accordingly.
         origin = request.headers.get('Origin')
         if origin:
             if not any([fnmatch.fnmatchcase(origin, o)
@@ -99,30 +95,32 @@ def get_cors_validator(service):
                                    '%s not allowed' % origin)
             else:
                 response.headers['Access-Control-Allow-Origin'] = origin
-    return _cors_validator
+        request.info['cors_checked'] = True
+    return response
 
 
-def get_cors_filter(service):
-    """Create a cornice filter to handle CORS-related post-request
-    things.
+def get_cors_validator(service):
+    return functools.partial(ensure_origin, service)
+
+
+def apply_cors_post_request(service, request, response):
+    """Handles CORS-related post-request things.
 
     Add some response headers, such as the Expose-Headers and the
     Allow-Credentials ones.
     """
+    response = ensure_origin(service, request, response)
+    method = _get_method(request)
 
-    def _cors_filter(response, request):
-        method = _get_method(request)
+    if (service.cors_support_credentials(method) and
+            not 'Access-Control-Allow-Credentials' in response.headers):
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
 
-        if (service.cors_support_credentials(method) and
-                not 'Access-Control-Allow-Credentials' in response.headers):
-            response.headers['Access-Control-Allow-Credentials'] = 'true'
+    if request.method is not 'OPTIONS':
+        # Which headers are exposed?
+        supported_headers = service.cors_supported_headers
+        if supported_headers:
+            response.headers['Access-Control-Expose-Headers'] = (
+                    ', '.join(supported_headers))
 
-        if request.method is not 'OPTIONS':
-            # Which headers are exposed?
-            supported_headers = service.cors_supported_headers
-            if supported_headers:
-                response.headers['Access-Control-Expose-Headers'] = (
-                        ', '.join(supported_headers))
-
-        return response
-    return _cors_filter
+    return response
