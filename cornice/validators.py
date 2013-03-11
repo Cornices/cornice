@@ -3,20 +3,18 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import re
 
+# Strings and arrays are potentially exploitable
+safe_json_re = re.compile(r'\s*[\{tfn\-0-9]'.encode('ascii'), re.MULTILINE)
+
 
 def filter_json_xsrf(response):
-    """drops a warning if a service is returning a json array.
-
-    See http://wiki.pylonshq.com/display/pylonsfaq/Warnings for more info
-    on this
+    """drops a warning if a service returns potentially exploitable json
     """
     if response.content_type in ('application/json', 'text/json'):
-        if re.match(r'\s?[\(\[).*[\)\]]\s?', response.body):
+        if safe_json_re.match(response.body) is None:
             from cornice import logger
-            logger.warn("returning a json array is a potential security "
-                     "hole, please ensure you really want to do this. See "
-                     "http://wiki.pylonshq.com/display/pylonsfaq/Warnings "
-                     "for more info")
+            logger.warn("returning a json string or array is a potential "
+                "security hole, please ensure you really want to do this.")
     return response
 
 

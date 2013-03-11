@@ -1,3 +1,4 @@
+import sys
 import os
 from setuptools import setup, find_packages
 
@@ -10,8 +11,11 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
 requires = ['pyramid',  'simplejson']
-test_requires = requires + ['colander', 'unittest2', 'coverage',
+test_requires = requires + ['colander', 'coverage',
                             'webtest', 'Sphinx', 'rxjson']
+
+if sys.version_info < (2, 7):
+    test_requires.append('unittest2')
 
 try:
     import importlib  # NOQA
@@ -32,14 +36,17 @@ package_data = {
      "cornice/+package+/*.*"]}
 
 setup(name='cornice',
-      version='0.11',
+      version='0.14',
       description='Define Web Services in Pyramid.',
       long_description=README + '\n\n' + CHANGES,
+      license='MPLv2.0',
       classifiers=[
         "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
         "Framework :: Pylons",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+        "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
         ],
       entry_points=entry_points,
       author='Mozilla Services',

@@ -4,13 +4,11 @@
 import json
 
 from pyramid import testing
-from pyramid.httpexceptions import HTTPOk, HTTPNotFound
 from webtest import TestApp
 
 from cornice.resource import resource
 from cornice.resource import view
-from cornice.tests import CatchErrors
-from cornice.tests.support import TestCase
+from cornice.tests.support import TestCase, CatchErrors
 
 
 USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
@@ -23,7 +21,7 @@ class User(object):
         self.request = request
 
     def collection_get(self):
-        return {'users': USERS.keys()}
+        return {'users': list(USERS.keys())}
 
     @view(renderer='jsonp')
     @view(renderer='json')
@@ -41,6 +39,7 @@ class User(object):
     def collection_patch(self):
         return {'test': 'yeah'}
 
+
 class TestResource(TestCase):
 
     def setUp(self):
@@ -56,37 +55,32 @@ class TestResource(TestCase):
 
     def test_basic_resource(self):
 
-        self.assertEquals(
-                self.app.get("/users").json,
-                {'users': [1, 2]})
+        self.assertEquals(self.app.get("/users").json, {'users': [1, 2]})
 
-        self.assertEquals(
-                self.app.get("/users/1").json,
-                {'name': 'gawel'})
+        self.assertEquals(self.app.get("/users/1").json, {'name': 'gawel'})
+
         resp = self.app.get("/users/1?callback=test")
-        self.assertEquals(resp.body,
-                'test({"name": "gawel"})', resp.body)
+        self.assertEquals(resp.body, b'test({"name": "gawel"})', resp.body)
 
     def test_accept_headers(self):
         # the accept headers should work even in case they're specified in a
         # resource method
         self.assertEquals(
-                self.app.post("/users",
-                    headers={'Accept': 'text/json'},
-                    params=json.dumps({'test': 'yeah'})).json,
-                {'test': 'yeah'})
+            self.app.post("/users", headers={'Accept': 'text/json'},
+                          params=json.dumps({'test': 'yeah'})).json,
+            {'test': 'yeah'})
 
     def patch(self, *args, **kwargs):
         return self.app._gen_request('PATCH', *args, **kwargs)
-    
+
     def test_head_and_patch(self):
         self.app.head("/users", status=200)
         self.app.head("/users/1", status=200)
-        
-        self.assertEquals(
-                self.patch("/users", status=200).json,
-                {'test': 'yeah'})
-        self.assertEquals(
-                self.patch("/users/1", status=200).json,
-                {'test': 'yeah'})
 
+        self.assertEquals(
+            self.patch("/users", status=200).json,
+            {'test': 'yeah'})
+
+        self.assertEquals(
+            self.patch("/users/1", status=200).json,
+            {'test': 'yeah'})

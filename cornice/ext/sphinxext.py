@@ -70,11 +70,8 @@ class ServiceDirective(Directive):
             names.append(service)
 
         # filter the services according to the options we got
-        services = get_services(names=names,
+        services = get_services(names=names or None,
                                 exclude=self.options.get('exclude'))
-
-        for service in services:
-            self._render_service(service)
 
         return [self._render_service(s) for s in services]
 
@@ -108,8 +105,13 @@ class ServiceDirective(Directive):
                             temp = nodes.list_item()
                             desc = "%s : " % attr.name
 
+                            # Get attribute data-type
                             if hasattr(attr, 'type'):
-                                desc += " %s, " % attr.type
+                                attr_type = attr.type
+                            elif hasattr(attr, 'typ'):
+                                attr_type = attr.typ.__class__.__name__
+
+                            desc += " %s, " % attr_type
 
                             if attr.required:
                                 desc += "required "

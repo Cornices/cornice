@@ -63,7 +63,7 @@ def unique(request):
 #
 
 #
-# User Managment
+# User Management
 #
 
 
@@ -84,12 +84,12 @@ def create_user(request):
 @users.delete(validators=valid_token)
 def del_user(request):
     """Removes the user."""
-    name = request.validated['user']['name']
+    name = request.validated['user']
     del _USERS[name]
     return {'Goodbye': name}
 
 #
-# Messages managment
+# Messages management
 #
 
 

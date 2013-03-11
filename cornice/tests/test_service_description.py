@@ -8,10 +8,9 @@ import warnings
 from pyramid import testing
 from webtest import TestApp
 
-from cornice.tests import CatchErrors
 from cornice.schemas import CorniceSchema
 from cornice.tests.validationapp import COLANDER
-from cornice.tests.support import TestCase
+from cornice.tests.support import TestCase, CatchErrors
 from cornice.service import Service
 
 if COLANDER:
@@ -100,8 +99,8 @@ if COLANDER:
             # and if we add the required values in the body of the post,
             # then we should be good
             data = {'foo': 'yeah', 'bar': 'open'}
-            resp = self.app.post('/foobar?yeah=test', params=json.dumps(data),
-                                status=200)
+            resp = self.app.post('/foobar?yeah=test',
+                                 params=json.dumps(data), status=200)
 
             self.assertEqual(resp.json, {u'baz': None, "test": "succeeded"})
 
@@ -116,10 +115,10 @@ if COLANDER:
                                  status=400)
 
             self.assertEqual(resp.json, {
-                    u'errors': [{u'description': u'The bar is not open.',
-                    u'location': u'body',
-                    u'name': u'bar'}],
-                    u'status': u'error'})
+                u'errors': [{u'description': u'The bar is not open.',
+                u'location': u'body',
+                u'name': u'bar'}],
+                u'status': u'error'})
 
         def test_foo_required(self):
             # test required attribute
@@ -128,10 +127,10 @@ if COLANDER:
                                  status=400)
 
             self.assertEqual(resp.json, {
-                    u'errors': [{u'description': u'foo is missing',
-                    u'location': u'body',
-                    u'name': u'foo'}],
-                    u'status': u'error'})
+                u'errors': [{u'description': u'foo is missing',
+                u'location': u'body',
+                u'name': u'foo'}],
+                u'status': u'error'})
 
         def test_default_baz_value(self):
             # test required attribute
@@ -148,11 +147,11 @@ if COLANDER:
                                  status=400)
 
             self.assertEqual(resp.json, {
-                    u'errors': [
-                        {u'description': u'5 is greater than maximum value 3',
-                         u'location': u'body',
-                         u'name': u'ipsum'}],
-                     u'status': u'error'})
+                u'errors': [
+                    {u'description': u'5 is greater than maximum value 3',
+                     u'location': u'body',
+                     u'name': u'ipsum'}],
+                u'status': u'error'})
 
         def test_integers_fail(self):
             # test required attribute
@@ -162,11 +161,11 @@ if COLANDER:
                                  status=400)
 
             self.assertEqual(resp.json, {
-                    u'errors': [
-                        {u'description': u'"a" is not a number',
-                         u'location': u'body',
-                         u'name': u'integers.0'}],
-                     u'status': u'error'})
+                u'errors': [
+                    {u'description': u'"a" is not a number',
+                     u'location': u'body',
+                     u'name': u'integers.0'}],
+                u'status': u'error'})
 
         def test_integers_ok(self):
             # test required attribute

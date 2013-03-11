@@ -1,7 +1,21 @@
-0.12 - Unreleased
+0.14 - XXXX-XX-XX
 =================
 
 - add support for dynamic validation schemas for resources.
+
+0.13 - 2013-02-12
+=================
+
+- Added Cross-Origin Resource Sharing (CORS) support.
+
+0.12 - 2012-11-21
+=================
+
+- Fix auto-define of HEAD views from GET views.
+- Support for Colander inheritance (introduced in new versions of Colander)
+- Check for errors in the body of the view and in validators (was only checking
+  in validators previously)
+- Add a __version__ utility in cornice/__init__.py
 
 0.11 - 2012-10-22
 =================

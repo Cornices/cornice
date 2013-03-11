@@ -3,16 +3,31 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import json
 import functools
+import copy
 
 from pyramid.httpexceptions import HTTPMethodNotAllowed, HTTPNotAcceptable
 from pyramid.exceptions import PredicateMismatch
 
 from cornice.service import decorate_view
 from cornice.errors import Errors
-from cornice.util import to_list
+from cornice.util import is_string, to_list
+from cornice.cors import (
+    get_cors_validator,
+    get_cors_preflight_view,
+    apply_cors_post_request,
+    CORS_PARAMETERS
+)
 
 
-def match_accept_header(func, context, request):
+def match_accept_header(func, info, request):
+    """
+    Return True if the request matches the values returned by the given :param:
+    func callable.
+
+    :param func:
+        The callable returning the list of acceptable content-types,
+        given a request. It should accept a "request" argument.
+    """
     acceptable = func(request)
     # attach the accepted content types to the request
     request.info['acceptable'] = acceptable
@@ -52,7 +67,7 @@ def get_fallback_view(service):
                 continue
             if 'accept' in args:
                 acceptable.extend(
-                        service.get_acceptable(method, filter_callables=True))
+                    service.get_acceptable(method, filter_callables=True))
                 if 'acceptable' in request.info:
                     for content_type in request.info['acceptable']:
                         if content_type not in acceptable:
@@ -62,7 +77,7 @@ def get_fallback_view(service):
                 if not request.accept.best_match(acceptable):
                     response = HTTPNotAcceptable()
                     response.content_type = "application/json"
-                    response.body = json.dumps(acceptable)
+                    response.body = json.dumps(acceptable).encode('ascii')
                     raise response
 
         # In the absence of further information about what went wrong,
@@ -71,23 +86,33 @@ def get_fallback_view(service):
     return _fallback_view
 
 
-def tween_factory(handler, registry):
-    """Wraps the default WSGI workflow to provide cornice utilities"""
-    def cornice_tween(request):
-        response = handler(request)
-        if request.matched_route is not None:
-            # do some sanity checking on the response using filters
-            services = request.registry.get('cornice_services', {})
-            pattern = request.matched_route.pattern
-            service = services.get(pattern, None)
-            if service is not None:
-                kwargs, ob = getattr(request, "cornice_args", ({}, None))
-                for _filter in kwargs.get('filters', []):
-                    if isinstance(_filter, basestring) and ob is not None:
-                        _filter = getattr(ob, _filter)
+def apply_filters(request, response):
+    if request.matched_route is not None:
+        # do some sanity checking on the response using filters
+        services = request.registry.get('cornice_services', {})
+        pattern = request.matched_route.pattern
+        service = services.get(pattern, None)
+        if service is not None:
+            kwargs, ob = getattr(request, "cornice_args", ({}, None))
+            for _filter in kwargs.get('filters', []):
+                if is_string(_filter) and ob is not None:
+                    _filter = getattr(ob, _filter)
+                try:
+                    response = _filter(response, request)
+                except TypeError:
                     response = _filter(response)
-        return response
-    return cornice_tween
+
+        if service.cors_enabled:
+            apply_cors_post_request(service, request, response)
+
+    return response
+
+
+def handle_exceptions(exc, request):
+    # At this stage, the checks done by the validators had been removed because
+    # a new response started (the exception), so we need to do that again.
+    request.info['cors_checked'] = False
+    return apply_filters(request, exc)
 
 
 def wrap_request(event):
@@ -95,6 +120,8 @@ def wrap_request(event):
     the request object if they don't already exists
     """
     request = event.request
+    request.add_response_callback(apply_filters)
+
     if not hasattr(request, 'validated'):
         setattr(request, 'validated', {})
 
@@ -117,16 +144,27 @@ def register_service_views(config, service):
     # keep track of the registered routes
     registered_routes = []
 
+    # before doing anything else, register a view for the OPTIONS method
+    # if we need to
+    if service.cors_enabled and 'OPTIONS' not in service.defined_methods:
+        service.add_view('options', view=get_cors_preflight_view(service))
+
     # register the fallback view, which takes care of returning good error
     # messages to the user-agent
+    cors_validator = get_cors_validator(service)
+
     for method, view, args in service.definitions:
 
-        args = dict(args)  # make a copy of the dict to not modify it
+        args = copy.deepcopy(args)  # make a copy of the dict to not modify it
         args['request_method'] = method
 
+        if service.cors_enabled:
+            args['validators'].insert(0, cors_validator)
+
         decorated_view = decorate_view(view, dict(args), method)
+
         for item in ('filters', 'validators', 'schema', 'klass',
-                     'error_handler'):
+                     'error_handler') + CORS_PARAMETERS:
             if item in args:
                 del args[item]
 

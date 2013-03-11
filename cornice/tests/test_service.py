@@ -7,6 +7,7 @@ from cornice.tests.support import TestCase
 
 _validator = lambda req: True
 _validator2 = lambda req: True
+_stub = lambda req: None
 
 
 class TestService(TestCase):
@@ -98,8 +99,11 @@ class TestService(TestCase):
         def get_favorite_color(request):
             return "blue, hmm, red, hmm, aaaaaaaah"
 
+        self.assertEquals(2, len(service.definitions))
         method, view, _ = service.definitions[0]
         self.assertEquals(("GET", get_favorite_color), (method, view))
+        method, view, _ = service.definitions[1]
+        self.assertEquals(("HEAD", get_favorite_color), (method, view))
 
         @service.post(accept='text/plain', renderer='plain')
         @service.post(accept='application/json')
@@ -108,13 +112,13 @@ class TestService(TestCase):
 
         # using multiple decorators on a resource should register them all in
         # as many different definitions in the service
-        self.assertEquals(3, len(service.definitions))
+        self.assertEquals(4, len(service.definitions))
 
         @service.patch()
         def patch_favorite_color(request):
             return ""
 
-        method, view, _ = service.definitions[3]
+        method, view, _ = service.definitions[4]
         self.assertEquals("PATCH", method)
 
     def test_get_acceptable(self):
@@ -170,7 +174,7 @@ class TestService(TestCase):
             service.add_view("GET", lambda x: "red", schema=schema)
             self.assertEquals(len(service.schemas_for("GET")), 1)
             service.add_view("GET", lambda x: "red", validators=_validator,
-                              schema=schema)
+                             schema=schema)
             self.assertEquals(len(service.schemas_for("GET")), 2)
 
     def test_class_parameters(self):
@@ -183,7 +187,7 @@ class TestService(TestCase):
                           klass=TemperatureCooler)
         service.add_view("get", "get_fresh_air")
 
-        self.assertEquals(len(service.definitions), 1)
+        self.assertEquals(len(service.definitions), 2)
 
         method, view, args = service.definitions[0]
         self.assertEquals(view, "get_fresh_air")
@@ -220,7 +224,7 @@ class TestService(TestCase):
             Service.default_validators = [custom_validator, ]
             Service.default_filters = [custom_filter, ]
             service = Service("TemperatureCooler", "/freshair")
-            service.add_view("get", freshair)
+            service.add_view("GET", freshair)
             method, view, args = service.definitions[0]
 
             self.assertIn(custom_validator, args['validators'])
@@ -241,7 +245,7 @@ class TestService(TestCase):
                                validators=[another_validator],
                                filters=[another_filter])
 
-            service2.add_view("get", groove_em_all)
+            service2.add_view("GET", groove_em_all)
             method, view, args = service2.definitions[0]
 
             self.assertIn(custom_validator, args['validators'])
@@ -251,3 +255,147 @@ class TestService(TestCase):
         finally:
             Service.default_validators = old_validators
             Service.default_filters = old_filters
+
+    def test_cors_support(self):
+        self.assertFalse(
+            Service(name='foo', path='/foo').cors_enabled)
+
+        self.assertTrue(
+            Service(name='foo', path='/foo', cors_enabled=True)
+            .cors_enabled)
+
+        self.assertFalse(
+            Service(name='foo', path='/foo', cors_enabled=False)
+            .cors_enabled)
+
+        self.assertTrue(
+            Service(name='foo', path='/foo', cors_origins=('*',))
+            .cors_enabled)
+
+        self.assertFalse(
+            Service(name='foo', path='/foo',
+                    cors_origins=('*'), cors_enabled=False)
+            .cors_enabled)
+
+    def test_cors_headers_for_service_instanciation(self):
+        # When definining services, it's possible to add headers. This tests
+        # it is possible to list all the headers supported by a service.
+        service = Service('coconuts', '/migrate',
+                          cors_headers=('X-Header-Coconut'))
+        self.assertNotIn('X-Header-Coconut', service.cors_supported_headers)
+
+        service.add_view('POST', _stub)
+        self.assertIn('X-Header-Coconut', service.cors_supported_headers)
+
+    def test_cors_headers_for_view_definition(self):
+        # defining headers in the view should work.
+        service = Service('coconuts', '/migrate')
+        service.add_view('POST', _stub, cors_headers=('X-Header-Foobar'))
+        self.assertIn('X-Header-Foobar', service.cors_supported_headers)
+
+    def test_cors_headers_extension(self):
+        # definining headers in the service and in the view
+        service = Service('coconuts', '/migrate',
+                          cors_headers=('X-Header-Foobar'))
+        service.add_view('POST', _stub, cors_headers=('X-Header-Barbaz'))
+        self.assertIn('X-Header-Foobar', service.cors_supported_headers)
+        self.assertIn('X-Header-Barbaz', service.cors_supported_headers)
+
+        # check that adding the same header twice doesn't make bad things
+        # happen
+        service.add_view('POST', _stub, cors_headers=('X-Header-Foobar'),)
+        self.assertEquals(len(service.cors_supported_headers), 2)
+
+        # check that adding a header on a cors disabled method doesn't
+        # change anything
+        service.add_view('put', _stub,
+                         cors_headers=('X-Another-Header',),
+                         cors_enabled=False)
+
+        self.assertFalse('X-Another-Header' in service.cors_supported_headers)
+
+    def test_cors_supported_methods(self):
+        foo = Service(name='foo', path='/foo', cors_enabled=True)
+        foo.add_view('GET', _stub)
+        self.assertIn('GET', foo.cors_supported_methods)
+
+        foo.add_view('POST', _stub)
+        self.assertIn('POST', foo.cors_supported_methods)
+
+    def test_disabling_cors_for_one_method(self):
+        foo = Service(name='foo', path='/foo', cors_enabled=True)
+        foo.add_view('GET', _stub)
+        self.assertIn('GET', foo.cors_supported_methods)
+
+        foo.add_view('POST', _stub, cors_enabled=False)
+        self.assertIn('GET', foo.cors_supported_methods)
+        self.assertFalse('POST' in foo.cors_supported_methods)
+
+    def test_cors_supported_origins(self):
+        foo = Service(
+            name='foo', path='/foo', cors_origins=('mozilla.org',))
+
+        foo.add_view('GET', _stub,
+                     cors_origins=('notmyidea.org', 'lolnet.org'))
+
+        self.assertIn('mozilla.org', foo.cors_supported_origins)
+        self.assertIn('notmyidea.org', foo.cors_supported_origins)
+        self.assertIn('lolnet.org', foo.cors_supported_origins)
+
+    def test_per_method_supported_origins(self):
+        foo = Service(
+            name='foo', path='/foo', cors_origins=('mozilla.org',))
+        foo.add_view('GET', _stub, cors_origins=('lolnet.org',))
+
+        self.assertTrue('mozilla.org' in foo.cors_origins_for('GET'))
+        self.assertTrue('lolnet.org' in foo.cors_origins_for('GET'))
+
+        foo.add_view('POST', _stub)
+        self.assertFalse('lolnet.org' in foo.cors_origins_for('POST'))
+
+    def test_credential_support_can_be_enabled(self):
+        foo = Service(name='foo', path='/foo', cors_credentials=True)
+        self.assertTrue(foo.cors_support_credentials())
+
+    def test_credential_support_is_disabled_by_default(self):
+        foo = Service(name='foo', path='/foo')
+        self.assertFalse(foo.cors_support_credentials())
+
+    def test_per_method_credential_support(self):
+        foo = Service(name='foo', path='/foo')
+        foo.add_view('GET', _stub, cors_credentials=True)
+        foo.add_view('POST', _stub)
+        self.assertTrue(foo.cors_support_credentials('GET'))
+        self.assertFalse(foo.cors_support_credentials('POST'))
+
+    def test_method_takes_precendence_for_credential_support(self):
+        foo = Service(name='foo', path='/foo', cors_credentials=True)
+        foo.add_view('GET', _stub, cors_credentials=False)
+        self.assertFalse(foo.cors_support_credentials('GET'))
+
+    def test_max_age_can_be_defined(self):
+        foo = Service(name='foo', path='/foo', cors_max_age=42)
+        self.assertEquals(foo.cors_max_age_for(), 42)
+
+    def test_max_age_can_be_different_dependeing_methods(self):
+        foo = Service(name='foo', path='/foo', cors_max_age=42)
+        foo.add_view('GET', _stub)
+        foo.add_view('POST', _stub, cors_max_age=32)
+        foo.add_view('PUT', _stub, cors_max_age=7)
+
+        self.assertEquals(foo.cors_max_age_for('GET'), 42)
+        self.assertEquals(foo.cors_max_age_for('POST'), 32)
+        self.assertEquals(foo.cors_max_age_for('PUT'), 7)
+
+    def test_cors_policy(self):
+        policy = {'origins': ('foo', 'bar', 'baz')}
+        foo = Service(name='foo', path='/foo', cors_policy=policy)
+        self.assertTrue('foo' in foo.cors_supported_origins)
+        self.assertTrue('bar' in foo.cors_supported_origins)
+        self.assertTrue('baz' in foo.cors_supported_origins)
+
+    def test_cors_policy_can_be_overwritten(self):
+        policy = {'origins': ('foo', 'bar', 'baz')}
+        foo = Service(name='foo', path='/foo', cors_origins=(),
+                      cors_policy=policy)
+        self.assertEquals(len(foo.cors_supported_origins), 0)

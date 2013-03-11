@@ -101,24 +101,24 @@ Let's open the file in messaging/views.py, it contains all the Services::
         return {'Hello': 'World'}
 
 
-Users managment
+Users management
 :::::::::::::::
 
 
 We're going to get rid of the Hello service, and change this file in order
-to add our first service - the users managment ::
+to add our first service - the users management ::
 
     from cornice import Service
 
     _USERS = {}
-    users = Service(name='users', path='/', description="User registration")
+    users = Service(name='users', path='/users', description="User registration")
 
     @users.get(validators=valid_token)
     def get_users(request):
         """Returns a list of all users."""
         return {'users': _USERS.keys()}
 
-    @users.put(validators=unique)
+    @users.post(validators=unique)
     def create_user(request):
         """Adds a new user."""
         user = request.validated['user']
@@ -128,9 +128,9 @@ to add our first service - the users managment ::
     @users.delete(validators=valid_token)
     def del_user(request):
         """Removes the user."""
-        user = request.validated['user']
-        del _USERS[user['name']]
-        return {'goodbye': user['name']}
+        name = request.validated['user']
+        del _USERS[name]
+        return {'Goodbye': name}
 
 
 What we have here is 3 methods on **/users**:
@@ -156,28 +156,45 @@ Here's their code::
 
     import os
     import binascii
-    from webob import HTTPUnauthorized
+    import json
+
+    from webob import Response, exc
+    from cornice import Service
+
+    users = Service(name='users', path='/users', description="Users")
+    _USERS = {}
 
 
+    #
+    # Helpers
+    #
     def _create_token():
         return binascii.b2a_hex(os.urandom(20))
 
+
+    class _401(exc.HTTPError):
+        def __init__(self, msg='Unauthorized'):
+            body = {'status': 401, 'message': msg}
+            Response.__init__(self, json.dumps(body))
+            self.status = 401
+            self.content_type = 'application/json'
+
+
     def valid_token(request):
         header = 'X-Messaging-Token'
-
         token = request.headers.get(header)
         if token is None:
-            raise HTTPUnauthorized()
+            raise _401()
 
         token = token.split('-')
         if len(token) != 2:
-            raise HTTPUnauthorized()
+            raise _401()
 
         user, token = token
 
         valid = user in _USERS and _USERS[user] == token
         if not valid:
-            raise HTTPUnauthorized()
+            raise _401()
 
         request.validated['user'] = user
 
@@ -191,6 +208,37 @@ Here's their code::
             request.validated['user'] = user
 
 
+    #
+    # Services
+    #
+
+    #
+    # User Management
+    #
+
+
+    @users.get(validators=valid_token)
+    def get_users(request):
+        """Returns a list of all users."""
+        return {'users': _USERS.keys()}
+
+
+    @users.post(validators=unique)
+    def create_user(request):
+        """Adds a new user."""
+        user = request.validated['user']
+        _USERS[user['name']] = user['token']
+        return {'token': '%s-%s' % (user['name'], user['token'])}
+
+
+    @users.delete(validators=valid_token)
+    def del_user(request):
+        """Removes the user."""
+        name = request.validated['user']
+        del _USERS[name]
+        return {'Goodbye': name}
+
+
 When the validator finds errors, it adds them to the **request.errors**
 mapping, and that will return a 400 with the errors.
 
@@ -198,13 +246,10 @@ Let's try our application so far with CURL::
 
 
     $ curl http://localhost:6543/users
-    {"status": "error", "errors": [{"location": "header",
-                                    "name": "X-Messaging-Token",
-                                    "description": "No token"}]}
+    {"status": 401, "message": "Unauthorized"}
 
-    $ curl -X PUT http://localhost:6543/users -d 'tarek'
+    $ curl -X POST http://localhost:6543/users -d 'tarek'
     {"token": "tarek-a15fa2ea620aac8aad3e1b97a64200ed77dc7524"}
-
 
     $ curl http://localhost:6543/users -H "X-Messaging-Token:tarek-a15fa2ea620aac8aad3e1b97a64200ed77dc7524"
     {'users': ['tarek']}
@@ -214,7 +259,7 @@ Let's try our application so far with CURL::
 
 
 
-Messages managment
+Messages management
 ::::::::::::::::::
 
 Now that we have users, let's post and get messages. This is done via two very
@@ -293,7 +338,7 @@ Then create a Sphinx structure with **sphinx-quickstart**::
 
 
     $ mkdir docs
-    $ sphinx-quickstart
+    $ bin/sphinx-quickstart
     Welcome to the Sphinx 1.0.7 quickstart utility.
 
     ..
@@ -317,7 +362,7 @@ extension, by editing the :file:`source/conf.py` file. We want to change
 **extensions = []** into::
 
     import cornice   # makes sure cornice is available
-    extensions = ['cornice.sphinxext']
+    extensions = ['cornice.ext.sphinxext']
 
 
 The last step is to document your services by editing the
@@ -327,7 +372,7 @@ The last step is to document your services by editing the
     =====================================
 
     .. services::
-       :package: messaging
+       :modules: messaging.views
 
 
 The **services** directive is told to look at the services in the **messaging**
@@ -344,7 +389,7 @@ A simple client to use against our service can do three things:
 2. poll for the latest messages
 3. let the user send a message !
 
-Without going into great details, there's a Python CLI against messaging 
-that uses Curses.  
+Without going into great details, there's a Python CLI against messaging
+that uses Curses.
 
 See https://github.com/mozilla-services/cornice/blob/master/examples/messaging/messaging/client.py
