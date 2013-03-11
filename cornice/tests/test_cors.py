@@ -230,4 +230,4 @@ class TestCORS(TestCase):
     def test_existing_non_service_route(self):
         resp = self.app.get('/noservice', status=200,
                             headers={'Origin': 'notmyidea.org'})
-        self.assertEquals(resp.body, 'No Service here.')
+        self.assertEquals(resp.body, b'No Service here.')
