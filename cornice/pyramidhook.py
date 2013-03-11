@@ -101,9 +101,8 @@ def apply_filters(request, response):
                     response = _filter(response, request)
                 except TypeError:
                     response = _filter(response)
-
-        if service.cors_enabled:
-            apply_cors_post_request(service, request, response)
+            if service.cors_enabled:
+                apply_cors_post_request(service, request, response)
 
     return response
 
