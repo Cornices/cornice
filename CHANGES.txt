@@ -2,6 +2,7 @@
 =================
 
 - add support for dynamic validation schemas for resources.
+- add support for context factory.
 
 0.14 - 2013-06-06
 =================
