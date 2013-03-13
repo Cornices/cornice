@@ -7,7 +7,6 @@ from cornice.schemas import CorniceSchema
 try:
     from colander import (
         deferred,
-        Mapping,
         MappingSchema,
         SchemaNode,
         String,
@@ -48,13 +47,6 @@ if COLANDER:
         foo = SchemaNode(Int(), missing=1)
         bazinga = SchemaNode(String(), type='str', location="body",
                              validator=deferred_validator)
-
-    imperative_schema = SchemaNode(Mapping())
-    imperative_schema.add(SchemaNode(String(), name='foo', type='str'))
-    imperative_schema.add(SchemaNode(String(), name='bar', type='str',
-                          location="body"))
-    imperative_schema.add(SchemaNode(String(), name='baz', type='str',
-                          location="querystring"))
 
     class TestSchemas(TestCase):
 
@@ -99,11 +91,3 @@ if COLANDER:
             field = b_schema.get_attributes(request=other_dummy_request)[3]
             self.assertEqual(field.validator.choices, ['c','d'])
                        
-        def test_imperative_colander_schema(self):
-            # not specifying body should act the same way as specifying it
-            schema = CorniceSchema.from_colander(imperative_schema)
-            body_fields = schema.get_attributes(location="body")
-            qs_fields = schema.get_attributes(location="querystring")
-
-            self.assertEquals(len(body_fields), 2)
-            self.assertEquals(len(qs_fields), 1)
