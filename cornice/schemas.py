@@ -11,10 +11,14 @@ class CorniceSchema(object):
         self._c_schema = _colander_schema
 
     def bind_attributes(self, request=None):
-        if request:
-            self._attributes = self._c_schema().bind(request=request).children
+        if callable(self._c_schema):
+            schema = self._c_schema()
         else:
-            self._attributes = self._c_schema().children
+            schema = self._c_schema
+        if request:
+            self._attributes = schema.bind(request=request).children
+        else:
+            self._attributes = schema.children
 
     def get_attributes(self, location=("body", "headers", "querystring"),
                        required=(True, False),
