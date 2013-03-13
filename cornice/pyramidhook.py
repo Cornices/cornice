@@ -177,9 +177,9 @@ def register_service_views(config, service):
 
         # register the route name with the path if it's not already done
         if service.path not in registered_routes:
-            config.add_route(service.path, service.path, **route_args)
+            config.add_route(service.name, service.path, **route_args)
             config.add_view(view=get_fallback_view(service),
-                            route_name=service.path)
+                            route_name=service.name)
             registered_routes.append(service.path)
 
         # loop on the accept fields: we need to build custom predicate if
@@ -199,10 +199,10 @@ def register_service_views(config, service):
 
                 # We register multiple times the same view with different
                 # accept / custom_predicates arguments
-                config.add_view(view=decorated_view, route_name=service.path,
+                config.add_view(view=decorated_view, route_name=service.name,
                                 **args)
         else:
             # it is a simple view, we don't need to loop on the definitions
             # and just add it one time.
-            config.add_view(view=decorated_view, route_name=service.path,
+            config.add_view(view=decorated_view, route_name=service.name,
                             **args)
