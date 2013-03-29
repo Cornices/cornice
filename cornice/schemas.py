@@ -20,7 +20,7 @@ class CorniceSchema(object):
         else:
             self._attributes = schema.children
 
-    def get_attributes(self, location=("body", "headers", "querystring"),
+    def get_attributes(self, location=("body", "header", "querystring"),
                        required=(True, False),
                        request=None):
         """Return a list of attributes that match the given criteria.

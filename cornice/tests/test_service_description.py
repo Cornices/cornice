@@ -21,6 +21,9 @@ if COLANDER:
     class SchemaFromQuerystring(MappingSchema):
         yeah = SchemaNode(String(), location="querystring", type='str')
 
+    class SchemaFromHeader(MappingSchema):
+        x_qux = SchemaNode(String(), location="header", type='str', name="X-Qux")
+
     class ModelField(MappingSchema):
         name = SchemaNode(String())
         description = SchemaNode(String())
@@ -46,6 +49,10 @@ if COLANDER:
 
     @foobar.get(schema=SchemaFromQuerystring)
     def foobar_get(request):
+        return {"test": "succeeded"}
+
+    @foobar.delete(schema=SchemaFromHeader)
+    def foobar_delete(request):
         return {"test": "succeeded"}
 
     class TestServiceDescription(TestCase):
@@ -185,3 +192,15 @@ if COLANDER:
             self.app.post('/nested', params=json.dumps(data), status=200)
             self.app.post('/nested', params=json.dumps(nested_data),
                           status=400)
+
+        def test_qux_header(self):
+            resp = self.app.delete('/foobar', status=400)
+            self.assertEqual(resp.json, {
+                u'errors': [
+                    {u'description': u'X-Qux is missing',
+                     u'location': u'header',
+                     u'name': u'X-Qux'}],
+                u'status': u'error'})
+
+            self.app.delete('/foobar', headers={'X-Qux': 'Hotzenplotz'},
+                          status=200)

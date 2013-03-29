@@ -94,7 +94,7 @@ class ServiceDirective(Directive):
                 schema = args['schema']
 
                 attrs_node = nodes.inline()
-                for location in ('headers', 'querystring', 'body'):
+                for location in ('header', 'querystring', 'body'):
                     attributes = schema.get_attributes(location=location)
                     if attributes:
                         attrs_node += nodes.inline(
