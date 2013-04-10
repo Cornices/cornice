@@ -4,6 +4,7 @@
 import functools
 import warnings
 
+from pyramid.response import Response
 from cornice.validators import (
     DEFAULT_VALIDATORS,
     DEFAULT_FILTERS,
@@ -464,6 +465,11 @@ def decorate_view(view, args, method):
                 response = view_()
             else:
                 response = view_(request)
+
+            if isinstance(response, Response):
+                # We already checked for CORS, but since we got an actual
+                # Response, chances are the headers are missing.
+                request.info['cors_checked'] = False
 
         # check for errors and return them if any
         if len(request.errors) > 0:
