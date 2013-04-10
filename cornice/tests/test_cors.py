@@ -41,6 +41,11 @@ def moar_spam(request):
     return 'moar spam'
 
 
+@spam.put()
+def spam_response(request):
+    return Response(status_code=202, json={'foo': 'bar'})
+
+
 def is_bacon_good(request):
     if not request.matchdict['type'].endswith('good'):
         request.errors.add('querystring', 'type', 'should be better!')
@@ -231,3 +236,8 @@ class TestCORS(TestCase):
         resp = self.app.get('/noservice', status=200,
                             headers={'Origin': 'notmyidea.org'})
         self.assertEquals(resp.body, b'No Service here.')
+
+    def test_CORS_headers_added_if_Response_returned(self):
+        resp = self.app.put('/spam', status=202,
+                            headers={'Origin': 'notmyidea.org'})
+        self.assertIn('Access-Control-Allow-Origin', resp.headers)
