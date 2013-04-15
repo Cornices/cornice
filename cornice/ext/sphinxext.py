@@ -92,7 +92,7 @@ class ServiceDirective(Directive):
                 if 'klass' in args:
                     ob = args['klass']
                     view_ = getattr(ob, view.lower())
-                    docstring = view_.__doc__
+                    docstring = trim(view_.__doc__ or "") + '\n'
             else:
                 docstring = trim(view.__doc__ or "") + '\n'
 
