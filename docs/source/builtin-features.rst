@@ -17,9 +17,10 @@ JSON XSRF filter
 The `cornice.validators.filter_json_xsrf` filter checks out the views response,
 looking for json objects returning lists.
 
-It happens that json lists are subject to cross request forgery attacks (XSRF)
-when returning lists (see http://wiki.pylonshq.com/display/pylonsfaq/Warnings), 
-so cornice will drop a warning in case you're doing so.
+It happens that json lists are subject to cross site request forgery attacks
+(XSRF) when returning lists (see
+http://haacked.com/archive/2009/06/25/json-hijacking.aspx), so cornice will
+drop a warning in case you're doing so.
 
 Built-in validators
 ===================
