@@ -56,6 +56,12 @@ if COLANDER:
     imperative_schema.add(SchemaNode(String(), name='baz', type='str',
                           location="querystring"))
 
+    class TestingSchemaWithHeader(MappingSchema):
+        foo = SchemaNode(String(), type='str')
+        bar = SchemaNode(String(), type='str', location="body")
+        baz = SchemaNode(String(), type='str', location="querystring")
+        qux = SchemaNode(String(), type='str', location="header")
+
     class TestSchemas(TestCase):
 
         def test_colander_integration(self):
@@ -66,6 +72,18 @@ if COLANDER:
 
             self.assertEquals(len(body_fields), 2)
             self.assertEquals(len(qs_fields), 1)
+
+        def test_colander_integration_with_header(self):
+            schema = CorniceSchema.from_colander(TestingSchemaWithHeader)
+            all_fields = schema.get_attributes()
+            body_fields = schema.get_attributes(location="body")
+            qs_fields = schema.get_attributes(location="querystring")
+            header_fields = schema.get_attributes(location="header")
+
+            self.assertEquals(len(all_fields), 4)
+            self.assertEquals(len(body_fields), 2)
+            self.assertEquals(len(qs_fields), 1)
+            self.assertEquals(len(header_fields), 1)
 
         def test_colander_inheritance(self):
             """
