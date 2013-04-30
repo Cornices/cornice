@@ -68,7 +68,7 @@ def match_accept_header(func, context, request):
 
 def extract_request_data(request):
     """extract the different parts of the data from the request, and return
-    them as a list of (querystring, headers, body, path)
+    them as a tuple of (querystring, headers, body, path)
     """
     # XXX In the body, we're only handling JSON for now.
     if request.body:
