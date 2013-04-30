@@ -38,8 +38,8 @@ Warning when returning JSON lists
 =================================
 
 JSON lists are subject to security threats, as defined
-`in this document <http://wiki.pylonshq.com/display/pylonsfaq/Warnings`. In
-case you return a javascript list, a warning will be thrown. It will not
+`in this document <http://bob.ippoli.to/archives/2007/04/05/fortify-javascript-hijacking-fud`.
+In case you return a javascript list, a warning will be thrown. It will not
 however prevent you from returning the array.
 
 This behaviour can be disabled if needed (it can be removed from the list of
