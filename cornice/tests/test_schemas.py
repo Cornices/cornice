@@ -70,8 +70,8 @@ if COLANDER:
             body_fields = schema.get_attributes(location="body")
             qs_fields = schema.get_attributes(location="querystring")
 
-            self.assertEquals(len(body_fields), 2)
-            self.assertEquals(len(qs_fields), 1)
+            self.assertEqual(len(body_fields), 2)
+            self.assertEqual(len(qs_fields), 1)
 
         def test_colander_integration_with_header(self):
             schema = CorniceSchema.from_colander(TestingSchemaWithHeader)
@@ -80,10 +80,10 @@ if COLANDER:
             qs_fields = schema.get_attributes(location="querystring")
             header_fields = schema.get_attributes(location="header")
 
-            self.assertEquals(len(all_fields), 4)
-            self.assertEquals(len(body_fields), 2)
-            self.assertEquals(len(qs_fields), 1)
-            self.assertEquals(len(header_fields), 1)
+            self.assertEqual(len(all_fields), 4)
+            self.assertEqual(len(body_fields), 2)
+            self.assertEqual(len(qs_fields), 1)
+            self.assertEqual(len(header_fields), 1)
 
         def test_colander_inheritance(self):
             """
@@ -96,7 +96,7 @@ if COLANDER:
             base_schema = CorniceSchema.from_colander(TestingSchema)
             inherited_schema = CorniceSchema.from_colander(InheritedSchema)
 
-            self.assertEquals(len(base_schema.get_attributes()),
+            self.assertEqual(len(base_schema.get_attributes()),
                               len(inherited_schema.get_attributes()))
 
             foo_filter = lambda x: x.name == "foo"
@@ -123,5 +123,5 @@ if COLANDER:
             body_fields = schema.get_attributes(location="body")
             qs_fields = schema.get_attributes(location="querystring")
 
-            self.assertEquals(len(body_fields), 2)
-            self.assertEquals(len(qs_fields), 1)
+            self.assertEqual(len(body_fields), 2)
+            self.assertEqual(len(qs_fields), 1)
