@@ -58,30 +58,30 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
 
         # requesting a supported type should give an appropriate response type
         r = app.get('/service2', headers={'Accept': 'application/*'})
-        self.assertEquals(r.content_type, "application/json")
+        self.assertEqual(r.content_type, "application/json")
 
         r = app.get('/service2', headers={'Accept': 'text/plain'})
-        self.assertEquals(r.content_type, "text/plain")
+        self.assertEqual(r.content_type, "text/plain")
 
         # it should also work with multiple Accept headers
         r = app.get('/service2', headers={'Accept': 'audio/*, application/*'})
-        self.assertEquals(r.content_type, "application/json")
+        self.assertEqual(r.content_type, "application/json")
 
         # and requested preference order should be respected
         r = app.get('/service2',
                     headers={'Accept': 'application/json; q=1.0, text/plain; q=0.9'})
-        self.assertEquals(r.content_type, "application/json")
+        self.assertEqual(r.content_type, "application/json")
 
         r = app.get('/service2',
                     headers={'Accept': 'text/plain; q=0.9, application/json; q=1.0'})
-        self.assertEquals(r.content_type, "application/json")
+        self.assertEqual(r.content_type, "application/json")
 
         # test that using a callable to define what's accepted works as well
         res = app.get('/service3', headers={'Accept': 'audio/*'}, status=406)
         self.assertTrue('text/json' in res.json)
 
         res = app.get('/service3', headers={'Accept': 'text/*'}, status=200)
-        self.assertEquals(res.content_type, "text/json")
+        self.assertEqual(res.content_type, "text/json")
 
         # if we are not asking for a particular content-type,
         # we should get one of the two types that the service supports.
@@ -92,19 +92,19 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         app = TestApp(main({}))
 
         res = app.get('/service3', headers={'Accept': 'text/*'}, status=200)
-        self.assertEquals(res.content_type, "text/json")
+        self.assertEqual(res.content_type, "text/json")
 
     def test_accept_issue_113_text_application_star(self):
         app = TestApp(main({}))
 
         res = app.get('/service3', headers={'Accept': 'application/*'}, status=200)
-        self.assertEquals(res.content_type, "application/json")
+        self.assertEqual(res.content_type, "application/json")
 
     def test_accept_issue_113_text_application_json(self):
         app = TestApp(main({}))
 
         res = app.get('/service3', headers={'Accept': 'application/json'}, status=200)
-        self.assertEquals(res.content_type, "application/json")
+        self.assertEqual(res.content_type, "application/json")
 
     def test_accept_issue_113_text_html_not_acceptable(self):
         app = TestApp(main({}))
@@ -116,7 +116,7 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         app = TestApp(main({}))
 
         res = app.get('/service2', headers={'Accept': 'audio/mp4; q=0.9, text/plain; q=0.5'}, status=200)
-        self.assertEquals(res.content_type, "text/plain")
+        self.assertEqual(res.content_type, "text/plain")
 
         # if we are not asking for a particular content-type,
         # we should get one of the two types that the service supports.

@@ -81,7 +81,7 @@ class TestService(TestCase):
     def test_class_support(self):
         self.app.get('/fresh-air', status=400)
         resp = self.app.get('/fresh-air', headers={'X-Temperature': '50'})
-        self.assertEquals(resp.body, b'fresh air')
+        self.assertEqual(resp.body, b'fresh air')
 
 
 class WrapperService(Service):

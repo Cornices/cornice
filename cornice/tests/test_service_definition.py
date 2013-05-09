@@ -43,11 +43,11 @@ class TestServiceDefinition(TestCase):
     def test_basic_service_operation(self):
 
         self.app.get("/unknown", status=404)
-        self.assertEquals(
+        self.assertEqual(
             self.app.get("/service1").json,
             {'test': "succeeded"})
 
-        self.assertEquals(
+        self.assertEqual(
             self.app.post("/service1", params="BODY").json,
             {'body': 'BODY'})
 
@@ -73,7 +73,7 @@ class TestServiceDefinition(TestCase):
         # Stacking multiple @api calls on a single function should
         # register it multiple times, just like @view_config does.
         resp = self.app.get("/service2", headers={'Accept': 'text/html'})
-        self.assertEquals(resp.json, {'test': 'succeeded'})
+        self.assertEqual(resp.json, {'test': 'succeeded'})
 
         resp = self.app.post("/service2", headers={'Accept': 'audio/ogg'})
-        self.assertEquals(resp.json, {'test': 'succeeded'})
+        self.assertEqual(resp.json, {'test': 'succeeded'})
