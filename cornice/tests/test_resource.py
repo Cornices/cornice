@@ -55,17 +55,17 @@ class TestResource(TestCase):
 
     def test_basic_resource(self):
 
-        self.assertEquals(self.app.get("/users").json, {'users': [1, 2]})
+        self.assertEqual(self.app.get("/users").json, {'users': [1, 2]})
 
-        self.assertEquals(self.app.get("/users/1").json, {'name': 'gawel'})
+        self.assertEqual(self.app.get("/users/1").json, {'name': 'gawel'})
 
         resp = self.app.get("/users/1?callback=test")
-        self.assertEquals(resp.body, b'test({"name": "gawel"})', resp.body)
+        self.assertEqual(resp.body, b'test({"name": "gawel"})', resp.body)
 
     def test_accept_headers(self):
         # the accept headers should work even in case they're specified in a
         # resource method
-        self.assertEquals(
+        self.assertEqual(
             self.app.post("/users", headers={'Accept': 'text/json'},
                           params=json.dumps({'test': 'yeah'})).json,
             {'test': 'yeah'})
@@ -77,10 +77,10 @@ class TestResource(TestCase):
         self.app.head("/users", status=200)
         self.app.head("/users/1", status=200)
 
-        self.assertEquals(
+        self.assertEqual(
             self.patch("/users", status=200).json,
             {'test': 'yeah'})
 
-        self.assertEquals(
+        self.assertEqual(
             self.patch("/users/1", status=200).json,
             {'test': 'yeah'})
