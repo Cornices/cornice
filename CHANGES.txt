@@ -1,7 +1,7 @@
 0.14 - XXXX-XX-XX
 =================
 
--  ???
+- add support for context factory.
 
 0.13 - 2013-02-12
 =================
