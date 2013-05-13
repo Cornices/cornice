@@ -22,7 +22,8 @@ if COLANDER:
         yeah = SchemaNode(String(), location="querystring", type='str')
 
     class SchemaFromHeader(MappingSchema):
-        x_qux = SchemaNode(String(), location="header", type='str', name="X-Qux")
+        x_qux = SchemaNode(String(), location="header", type='str',
+                           name="X-Qux")
 
     class ModelField(MappingSchema):
         name = SchemaNode(String())

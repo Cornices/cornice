@@ -115,7 +115,8 @@ try:
         SchemaNode,
         String,
         Integer,
-        Range
+        Range,
+        Email
     )
     COLANDER = True
 except ImportError:
@@ -155,6 +156,15 @@ if COLANDER:
     @foobaz.get(schema=ListQuerystringSequence)
     def foobaz_get(request):
         return {"field": request.validated['field']}
+
+    class NewsletterSchema(MappingSchema):
+        email = SchemaNode(String(), validator=Email())
+
+    email_service = Service(name='newsletter', path='/newsletter')
+
+    @email_service.post(schema=NewsletterSchema)
+    def newsletter(request):
+        return "ohyeah"
 
 
 def includeme(config):

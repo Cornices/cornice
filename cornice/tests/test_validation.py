@@ -170,3 +170,8 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         self.assertEquals(b'{"field": ["5"]}', app.get('/foobaz?field=5').body)
         self.assertEquals(b'{"field": ["5", "2"]}',
                           app.get('/foobaz?field=5&field=2').body)
+
+    def test_email_field(self):
+        app = TestApp(main({}))
+        content = json.dumps({'email': 'alexis@notmyidea.org'})
+        app.post('/newsletter', params=content)
