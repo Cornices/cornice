@@ -140,10 +140,21 @@ if COLANDER:
         integers = Integers(location="body", type='list', missing=())
 
     foobar = Service(name="foobar", path="/foobar")
+    foobaz = Service(name="foobaz", path="/foobaz")
 
     @foobar.post(schema=FooBarSchema)
     def foobar_post(request):
         return {"test": "succeeded"}
+
+    class StringSequence(SequenceSchema):
+        _ = SchemaNode(String())
+
+    class ListQuerystringSequence(MappingSchema):
+        field = StringSequence(location="querystring")
+
+    @foobaz.get(schema=ListQuerystringSequence)
+    def foobaz_get(request):
+        return {"field": request.validated['field']}
 
 
 def includeme(config):

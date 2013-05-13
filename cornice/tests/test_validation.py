@@ -161,3 +161,13 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
             resp.content_type = 'application/json'
             filter_json_xsrf(resp)
             assert len(self.get_logs()) == 0, "Unexpected warning: %s" % value
+
+    def test_multile_querystrings(self):
+
+        #schema = CorniceSchema.from_colander(ListQuerystringSequence)
+        #import ipdb; ipdb.set_trace()
+        app = TestApp(main({}))
+
+        # filters can be applied to all the methods of a service
+        self.assertEquals('{"field": ["5"]}', app.get('/foobaz?field=5').body)
+        self.assertEquals('{"field": ["5", "2"]}', app.get('/foobaz?field=5&field=2').body)

@@ -76,7 +76,8 @@ class CorniceSchema(object):
 
 def validate_colander_schema(schema, request):
     """Validates that the request is conform to the given schema"""
-    from colander import Invalid
+    from colander import Invalid, Sequence
+
     def _validate_fields(location, data):
         for attr in schema.get_attributes(location=location,
                                           request=request):
@@ -89,7 +90,12 @@ def validate_colander_schema(schema, request):
                     if not attr.name in data:
                         deserialized = attr.deserialize()
                     else:
-                        deserialized = attr.deserialize(data[attr.name])
+                        if location == 'querystring'\
+                           and isinstance(attr.typ, Sequence):
+                            serialized = data.getall(attr.name)
+                        else:
+                            serialized = data[attr.name]
+                        deserialized = attr.deserialize(serialized)
                 except Invalid as e:
                     # the struct is invalid
                     try:
