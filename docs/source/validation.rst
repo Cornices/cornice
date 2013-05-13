@@ -201,16 +201,25 @@ Doing validation and filtering at class level
 
 If you want to use class methods to do validation, you can do so by passing the
 `klass` parameter to the `hook_view` or `@method` decorators, plus a string
-representing the name of the method you want to invoke on validation. This
-means something like this::
+representing the name of the method you want to invoke on validation.
 
-    class MyClass:
+Take care, though, because this only works if the class you are using has  an
+`__init__` method which takes a `request` as the first argument.
+
+This means something like this::
+
+    class MyClass(object):
+        def __init__(self, request):
+            self.request = request
+
         def validate_it(request):
-            # put the validation logic here
+            # pseudo-code validation logic
+            if whatever is wrong:
+                request.errors.add('something')
 
     @service.get(klass=MyClass, validators=('validate_it',))
     def view(request):
-        # do something with the request
+        return "ok"
 
 
 Content-Type validation
