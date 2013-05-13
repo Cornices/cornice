@@ -40,11 +40,12 @@ class ServiceDirective(Directive):
 
     Usage, in a sphinx documentation::
 
-        .. service::
+        .. cornice-autodoc::
             :modules: your.module
             :services: name1, name2
             :service: name1 # no need to specify both services and service.
             :ignore: a comma separated list of services names to ignore
+
     """
     has_content = True
     option_spec = {'modules': convert_to_list_required,
@@ -265,5 +266,6 @@ def rst2node(data):
 
 
 def setup(app):
-    """Sphinx setup."""
-    app.add_directive('services', ServiceDirective)
+    """Hook the directives when Sphinx ask for it."""
+    app.add_directive('services', ServiceDirective)  # deprecated
+    app.add_directive('cornice-autodoc', ServiceDirective)
