@@ -90,8 +90,8 @@ def validate_colander_schema(schema, request):
                     if not attr.name in data:
                         deserialized = attr.deserialize()
                     else:
-                        if location == 'querystring'\
-                           and isinstance(attr.typ, Sequence):
+                        if (location == 'querystring' and
+                                isinstance(attr.typ, Sequence)):
                             serialized = data.getall(attr.name)
                         else:
                             serialized = data[attr.name]

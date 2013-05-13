@@ -162,12 +162,11 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
             filter_json_xsrf(resp)
             assert len(self.get_logs()) == 0, "Unexpected warning: %s" % value
 
-    def test_multile_querystrings(self):
-
-        #schema = CorniceSchema.from_colander(ListQuerystringSequence)
-        #import ipdb; ipdb.set_trace()
+    def test_multiple_querystrings(self):
         app = TestApp(main({}))
 
-        # filters can be applied to all the methods of a service
-        self.assertEquals('{"field": ["5"]}', app.get('/foobaz?field=5').body)
-        self.assertEquals('{"field": ["5", "2"]}', app.get('/foobaz?field=5&field=2').body)
+        # it is possible to have more than one value with the same name in the
+        # querystring
+        self.assertEquals(b'{"field": ["5"]}', app.get('/foobaz?field=5').body)
+        self.assertEquals(b'{"field": ["5", "2"]}',
+                          app.get('/foobaz?field=5&field=2').body)
