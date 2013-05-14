@@ -69,10 +69,18 @@ class Service(object):
         the client.
 
     :param accept:
-        A list of headers accepted for this service (or method if overwritten
-        when defining a method). It can also be a callable, in which case the
-        content-type will be discovered at runtime. If a callable is passed, it
-        should be able to take the request as a first argument.
+        A list of ``Accept`` header values accepted for this service
+        (or method if overwritten when defining a method).
+        It can also be a callable, in which case the values will be
+        discovered at runtime. If a callable is passed, it should be able
+        to take the request as a first argument.
+
+    :param content_type:
+        A list of ``Content-Type`` header values accepted for this service
+        (or method if overwritten when defining a method).
+        It can also be a callable, in which case the values will be
+        discovered at runtime. If a callable is passed, it should be able
+        to take the request as a first argument.
 
     :param factory:
         A factory returning callables which return boolean values.  The
@@ -88,7 +96,7 @@ class Service(object):
 
     :param error_handler:
         A callable which is used to render responses following validation
-        failures.  Defaults to 'json_renderer'.
+        failures.  Defaults to 'json_error'.
 
     There is also a number of parameters that are related to the support of
     CORS (Cross Origin Resource Sharing). You can read the CORS specification
@@ -299,24 +307,42 @@ class Service(object):
             return view
         return wrapper
 
-    def get_acceptable(self, method, filter_callables=False):
-        """return a list of acceptable content-type headers that were defined
-        for this service.
-
-        :param method: the method to get the acceptable content-types for
-        :param filter_callables: it is possible to give acceptable
-                                 content-types dinamycally, with callables.
-                                 This filter or not the callables (default:
-                                 False)
+    def filter_argumentlist(self, method, argname, filter_callables=False):
         """
-        acceptable = []
+        Helper method to ``get_acceptable`` and ``get_contenttypes``. DRY.
+        """
+        result = []
         for meth, view, args in self.definitions:
             if meth.upper() == method.upper():
-                acc = to_list(args.get('accept'))
+                result_tmp = to_list(args.get(argname))
                 if filter_callables:
-                    acc = [a for a in acc if not callable(a)]
-                acceptable.extend(acc)
-        return acceptable
+                    result_tmp = [a for a in result_tmp if not callable(a)]
+                result.extend(result_tmp)
+        return result
+
+    def get_acceptable(self, method, filter_callables=False):
+        """return a list of acceptable egress content-type headers that were defined
+        for this service.
+
+        :param method: the method to get the acceptable egress content-types for
+        :param filter_callables: it is possible to give acceptable
+                                 content-types dynamically, with callables.
+                                 This toggles filtering the callables (default:
+                                 False)
+        """
+        return self.filter_argumentlist(method, 'accept', filter_callables)
+
+    def get_contenttypes(self, method, filter_callables=False):
+        """return a list of supported ingress content-type headers that were defined
+        for this service.
+
+        :param method: the method to get the supported ingress content-types for
+        :param filter_callables: it is possible to give supported
+                                 content-types dynamically, with callables.
+                                 This toggles filtering the callables (default:
+                                 False)
+        """
+        return self.filter_argumentlist(method, 'content_type', filter_callables)
 
     def get_validators(self, method):
         """return a list of validators for the given method.
