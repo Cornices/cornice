@@ -1,13 +1,12 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import json
 import functools
 import copy
 import itertools
 
-from pyramid.httpexceptions import HTTPMethodNotAllowed, HTTPNotAcceptable, \
-    HTTPUnsupportedMediaType
+from pyramid.httpexceptions import (HTTPMethodNotAllowed, HTTPNotAcceptable,
+                                    HTTPUnsupportedMediaType, HTTPException)
 from pyramid.exceptions import PredicateMismatch
 
 from cornice.service import decorate_view
@@ -119,6 +118,8 @@ def apply_filters(request, response):
 def handle_exceptions(exc, request):
     # At this stage, the checks done by the validators had been removed because
     # a new response started (the exception), so we need to do that again.
+    if not isinstance(exc, HTTPException):
+        raise
     request.info['cors_checked'] = False
     return apply_filters(request, exc)
 
