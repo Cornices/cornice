@@ -5,7 +5,8 @@ import json
 import functools
 import copy
 
-from pyramid.httpexceptions import HTTPMethodNotAllowed, HTTPNotAcceptable
+from pyramid.httpexceptions import (HTTPMethodNotAllowed, HTTPNotAcceptable,
+        HTTPException)
 from pyramid.exceptions import PredicateMismatch
 
 from cornice.service import decorate_view
@@ -110,6 +111,8 @@ def apply_filters(request, response):
 def handle_exceptions(exc, request):
     # At this stage, the checks done by the validators had been removed because
     # a new response started (the exception), so we need to do that again.
+    if not isinstance(exc, HTTPException):
+        raise
     request.info['cors_checked'] = False
     return apply_filters(request, exc)
 
