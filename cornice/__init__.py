@@ -11,6 +11,7 @@ from cornice.pyramidhook import (
     register_service_views,
     handle_exceptions
 )
+from cornice.util import ContentTypePredicate
 
 logger = logging.getLogger('cornice')
 __version__ = 0.14
@@ -38,3 +39,4 @@ def includeme(config):
     config.add_subscriber(wrap_request, NewRequest)
     config.add_renderer('simplejson', util.json_renderer)
     config.add_view(handle_exceptions, context=Exception)
+    config.add_view_predicate('content_type', ContentTypePredicate)

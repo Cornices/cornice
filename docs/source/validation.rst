@@ -46,6 +46,7 @@ The default returned JSON object is a dictionary of the following form::
         'errors': errors.
     }
 
+
 With errors being a JSON dictionary with the keys "location", "name" and
 "description".
 
@@ -222,10 +223,94 @@ This means something like this::
         return "ok"
 
 
-Content-Type validation
-=======================
+Content validation
+==================
 
-Cornice can automatically deal with content type validation for you.
+There are two flavors of content validations cornice can apply to services:
+
+    - **Content-Type validation** will match the ``Content-Type`` header sent
+      by the client against a list of allowed content types.
+      When failing on that, it will croak with a ``415 Unsupported Media Type``.
+
+    - **Content negotiation** checks if cornice is able to respond with the
+      requested content type asked by the client sending an ``Accept`` header.
+      Otherwise it will croak with a ``406 Not Acceptable``.
+
+
+Content validation
+==================
+
+There are two flavors of content validations cornice can apply to services:
+
+    - **Content-Type validation** will match the ``Content-Type`` header sent
+      by the client against a list of allowed content types.
+      When failing on that, it will croak with a ``415 Unsupported Media Type``.
+
+    - **Content negotiation** checks if cornice is able to respond with the
+      requested content type asked by the client sending an ``Accept`` header.
+      Otherwise it will croak with a ``406 Not Acceptable``.
+
+
+Content-Type validation
+-----------------------
+
+You can specify a list of allowed ingress content types using the
+`content_type` argument to the decorator, like this::
+
+    @service.post(content_type="application/json")
+    def foo(request):
+        return 'Foo'
+
+In case the client sends a request with a disallowed header - e.g.
+``Content-Type: application/x-www-form-urlencoded`` -
+cornice will reject the request with a http status of
+``415 Unsupported Media Type``.
+
+Additionally, a list of valid content types is sent using the configured
+`error_handler`. When using the default json `error_handler`, the response
+might look like this::
+
+    {
+        'status': 'error',
+        'errors': [
+            {
+                'location': 'header',
+                'name': 'Content-Type',
+                'description': 'Content-Type header should be one of ["application/json"]'
+            }
+        ]
+    }
+
+
+The `content_type` argument can either be a callable, a string or a list of
+accepted values. When a callable is specified, it is called *before* the
+request is passed to the destination function, with the `request` object as
+an argument.
+
+The callable should return a list of accepted content types::
+
+    def _content_type(request):
+        # interact with request if needed
+        return ("text/xml", "application/json")
+
+    @service.post(content_type=_content_type)
+    def foo(request):
+        return 'Foo'
+
+The match is done against the plain internet media type string without
+additional parameters like ``charset=utf-8`` or the like.
+
+.. seealso::
+
+    "Return the content type, but leaving off any parameters."
+
+    -- http://docs.webob.org/en/latest/modules/webob.html#webob.request.BaseRequest.content_type
+
+
+Content negotiation
+-------------------
+
+Cornice can automatically deal with egress content negotiation for you.
 If you want it to, you have to pass the `accept` argument to the decorator,
 like this::
 
@@ -237,8 +322,8 @@ In case the client sends a request, asking for some particular content types
 (using the HTTP **Accept** header), cornice will check that it is able to 
 handle it.
 
-If not, it will return a 406 HTTP code, with the list of accepted
-content types.
+If not, it will respond with a http status of ``406 Not Acceptable``. The body
+is an error message containing the list of available response content types.
 
 The `accept` argument can either be a callable, a string or a list of accepted
 values. When a callable is specified, it is called *before* the request is
@@ -253,6 +338,9 @@ The callable should return a list of accepted content types::
     @service.get(accept=_accept)
     def foo(request):
         return 'Foo'
+
+.. seealso:: https://developer.mozilla.org/en-US/docs/HTTP/Content_negotiation
+
 
 Managing ACLs
 =============
