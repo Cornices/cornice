@@ -1,8 +1,9 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+from cornice.errors import Errors
 from cornice.tests.support import TestCase
-from cornice.schemas import CorniceSchema
+from cornice.schemas import CorniceSchema, validate_colander_schema
 
 try:
     from colander import (
@@ -12,7 +13,8 @@ try:
         SchemaNode,
         String,
         Int,
-        OneOf
+        OneOf,
+        drop
     )
     COLANDER = True
 except ImportError:
@@ -48,6 +50,11 @@ if COLANDER:
         foo = SchemaNode(Int(), missing=1)
         bazinga = SchemaNode(String(), type='str', location="body",
                              validator=deferred_validator)
+
+    class DropSchema(MappingSchema):
+        foo = SchemaNode(String(), type='str', missing=drop)
+        bar = SchemaNode(String(), type='str')
+
 
     imperative_schema = SchemaNode(Mapping())
     imperative_schema.add(SchemaNode(String(), name='foo', type='str'))
@@ -125,3 +132,25 @@ if COLANDER:
 
             self.assertEqual(len(body_fields), 2)
             self.assertEqual(len(qs_fields), 1)
+
+        def test_colander_schema_using_drop(self):
+            """
+            remove fields from validated data if they deserialize to colander's
+            `drop` object.
+            """
+            schema = CorniceSchema.from_colander(DropSchema)
+
+            class Request(object):
+                def __init__(self, body):
+                    self.headers = {}
+                    self.matchdict = {}
+                    self.body = body
+                    self.GET = {}
+                    self.POST = {}
+                    self.validated = {}
+
+            dummy_request = Request('{"bar": "required_data"}')
+            setattr(dummy_request, 'errors', Errors(dummy_request))
+            validate_colander_schema(schema, dummy_request)
+
+            self.assertNotIn('foo', dummy_request.validated)
