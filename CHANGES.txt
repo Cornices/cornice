@@ -1,8 +1,13 @@
-0.14 - XXXX-XX-XX
+0.14 - 2013-06-06
 =================
 
 - Add validation of the ``Content-Type`` header sent in requests against a list of allowed ingress content types
-- ???
+- Handle HTTPNotFound and HTTPForbidden in Cornice. Fix some wrong behaviour with CORS support.
+- implement "415 Unsupported Media Type"
+- Allow Colander schemas with sequence fields in querystring
+- Remove PasteScript from the Cornice template.
+- Support imperative colander schemas
+- Update JSON CSRF warning filter with a better regex
 
 0.13 - 2013-02-12
 =================
