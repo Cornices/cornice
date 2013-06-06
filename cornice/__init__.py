@@ -16,7 +16,7 @@ from cornice.util import ContentTypePredicate
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 
 logger = logging.getLogger('cornice')
-__version__ = 0.14
+__version__ = 0.15
 
 
 def add_renderer_globals(event):
