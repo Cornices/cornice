@@ -79,12 +79,12 @@ class ServiceDirective(Directive):
     def _render_service(self, service):
         service_id = "service-%d" % self.env.new_serialno('service')
         service_node = nodes.section(ids=[service_id])
-        service_node += nodes.title(text='Service at %s' % service.path)
-
+        service_node += nodes.title(text='%s service at %s' % (service.name.title(), service.path))
+        
         if service.description is not None:
             service_node += rst2node(trim(service.description))
 
-        for method, view, args in service.definitions:
+        for method, view, args in [(m, v, a) for m, v, a in service.definitions if m != 'HEAD']:
             method_id = '%s-%s' % (service_id, method)
             method_node = nodes.section(ids=[method_id])
             method_node += nodes.title(text=method)
