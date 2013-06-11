@@ -140,7 +140,7 @@ if COLANDER:
             """
             schema = CorniceSchema.from_colander(DropSchema)
 
-            class Request(object):
+            class MockRequest(object):
                 def __init__(self, body):
                     self.headers = {}
                     self.matchdict = {}
@@ -149,7 +149,7 @@ if COLANDER:
                     self.POST = {}
                     self.validated = {}
 
-            dummy_request = Request('{"bar": "required_data"}')
+            dummy_request = MockRequest('{"bar": "required_data"}')
             setattr(dummy_request, 'errors', Errors(dummy_request))
             validate_colander_schema(schema, dummy_request)
 
