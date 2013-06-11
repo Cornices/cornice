@@ -84,3 +84,24 @@ class TestResource(TestCase):
         self.assertEqual(
             self.patch("/users/1", status=200).json,
             {'test': 'yeah'})
+
+
+class NonAutocommittingConfigurationTestResource(TestCase):
+    """
+    Test that we don't fail Pyramid's conflict detection when using a manually-
+    committing :class:`pyramid.config.Configurator` instance.
+    """
+
+    def setUp(self):
+        from pyramid.renderers import JSONP
+        self.config = testing.setUp(autocommit=False)
+        self.config.add_renderer('jsonp', JSONP(param_name='callback'))
+        self.config.include("cornice")
+        self.config.scan("cornice.tests.test_resource")
+        self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
+
+    def tearDown(self):
+        testing.tearDown()
+
+    def test_get(self):
+        self.app.get('/users/1')

@@ -193,6 +193,7 @@ def register_service_views(config, service):
             config.add_view(view=get_fallback_view(service),
                             route_name=service.name)
             registered_routes.append(service.path)
+            config.commit()
 
 
         # 2. register view(s)
@@ -217,6 +218,8 @@ def register_service_views(config, service):
             # and just add it one time.
             config.add_view(view=decorated_view, route_name=service.name,
                             **args)
+
+        config.commit()
 
 
 def _pop_complex_predicates(args):

@@ -50,7 +50,7 @@ def is_bacon_good(request):
 def get_some_bacon(request):
     # Okay, you there. Bear in mind, the only kind of bacon existing is 'good'.
     if request.matchdict['type'] != 'good':
-        raise NotFound('Not. Found.')
+        raise NotFound(detail='Not. Found.')
     return "yay"
 
 from pyramid.view import view_config
