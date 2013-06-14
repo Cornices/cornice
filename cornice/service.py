@@ -88,7 +88,7 @@ class Service(object):
         values.  This param is exclusive with the 'acl' one.
 
     :param acl:
-        A callable defininng the ACL (returns true or false, function of the
+        A callable defining the ACL (returns true or false, function of the
         given request). Exclusive with the 'factory' option.
 
     :param klass:
