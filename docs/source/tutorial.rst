@@ -252,10 +252,10 @@ Let's try our application so far with CURL::
     {"token": "tarek-a15fa2ea620aac8aad3e1b97a64200ed77dc7524"}
 
     $ curl http://localhost:6543/users -H "X-Messaging-Token:tarek-a15fa2ea620aac8aad3e1b97a64200ed77dc7524"
-    {'users': ['tarek']}
+    {"users": ["tarek"]}
 
     $ curl -X DELETE http://localhost:6543/users -H "X-Messaging-Token:tarek-a15fa2ea620aac8aad3e1b97a64200ed77dc7524"
-    {'Goodbye': 'tarek}
+    {"Goodbye": "tarek"}
 
 
 
