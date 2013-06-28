@@ -136,12 +136,12 @@ to add our first service - the users management ::
 What we have here is 3 methods on **/users**:
 
 - **GET**: simply return the list of users names -- the keys of _USERS
-- **PUT**: adds a new user and returns a unique token
+- **POST**: adds a new user and returns a unique token
 - **DELETE**: removes the user.
 
 Remarks:
 
-- **PUT** uses the **unique** validator to make sure that the user
+- **POST** uses the **unique** validator to make sure that the user
   name is not already taken. That validator is also in charge of
   generating a unique token associated with the user.
 - **GET** users the **valid_token** to verify that a **X-Messaging-Token**
