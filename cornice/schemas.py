@@ -76,7 +76,7 @@ class CorniceSchema(object):
 
 def validate_colander_schema(schema, request):
     """Validates that the request is conform to the given schema"""
-    from colander import Invalid, Sequence
+    from colander import Invalid, Sequence, drop
 
     def _validate_fields(location, data):
         for attr in schema.get_attributes(location=location,
@@ -106,7 +106,8 @@ def validate_colander_schema(schema, request):
                             if k.startswith(attr.name):
                                 request.errors.add(location, k, v)
                 else:
-                    request.validated[attr.name] = deserialized
+                    if deserialized is not drop:
+                        request.validated[attr.name] = deserialized
 
     qs, headers, body, path = extract_request_data(request)
 
