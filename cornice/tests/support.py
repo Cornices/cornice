@@ -22,7 +22,7 @@ logger = logging.getLogger('cornice')
 class DummyContext(object):
 
     def __repr__(self):
-        return 'dummy!'
+        return 'context!'
 
 
 def dummy_factory(request):
