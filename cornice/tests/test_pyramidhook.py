@@ -12,6 +12,7 @@ from webtest import TestApp
 
 from cornice import Service
 from cornice.tests.support import CatchErrors
+from cornice.tests.support import DummyContext, dummy_factory
 
 
 service = Service(name="service", path="/service")
@@ -32,12 +33,13 @@ def return_yay(request):
 
 
 class TemperatureCooler(object):
-    def __init__(self, request):
+    def __init__(self, request, context=None):
         self.request = request
+        self.context = context
 
     def get_fresh_air(self):
         resp = Response()
-        resp.body = b'air'
+        resp.body = b'air with ' + repr(self.context)
         return resp
 
     def make_it_fresh(self, response):
@@ -49,7 +51,7 @@ class TemperatureCooler(object):
             request.errors.add('header', 'X-Temperature')
 
 tc = Service(name="TemperatureCooler", path="/fresh-air",
-             klass=TemperatureCooler)
+             klass=TemperatureCooler, factory=dummy_factory)
 tc.add_view("GET", "get_fresh_air", filters=('make_it_fresh',),
             validators=('check_temperature',))
 
@@ -81,7 +83,7 @@ class TestService(TestCase):
     def test_class_support(self):
         self.app.get('/fresh-air', status=400)
         resp = self.app.get('/fresh-air', headers={'X-Temperature': '50'})
-        self.assertEqual(resp.body, b'fresh air')
+        self.assertEqual(resp.body, b'fresh air with context!')
 
 
 class WrapperService(Service):

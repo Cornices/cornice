@@ -51,3 +51,21 @@ We are passing the schema as another argument (than the `validators` one)
 so that cornice can do the heavy lifting for you. Another interesting thing to
 notice is that we are passing a `location` argument which specifies where
 cornice should look in the request for this argument.
+
+
+Route factory support
+=====================
+
+When defining a service or a resource, you can provide a `route factory 
+<http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/urldispatch.html#route-factories>`_,
+just like when defining a pyramid route. Cornice will then pass its result
+into the ``__init__`` of your service.
+
+For example::
+
+    @resource(path='/users', factory=user_factory)
+    class User(object):
+
+        def __init__(self, context, request):
+            self.request = request
+            self.user = context

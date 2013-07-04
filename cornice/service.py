@@ -466,7 +466,10 @@ def decorate_view(view, args, method):
         ob = None
         view_ = view
         if 'klass' in args:
-            ob = args['klass'](request)
+            params = dict(request=request)
+            if 'factory' in args and 'acl' not in args:
+                params['context'] = args['factory'](request)
+            ob = args['klass'](**params)
             if is_string(view):
                 view_ = getattr(ob, view.lower())
 
