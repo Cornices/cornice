@@ -8,6 +8,8 @@ from webtest import TestApp
 
 from cornice.resource import resource
 from cornice.resource import view
+from cornice.schemas import CorniceSchema
+from cornice.tests import validationapp
 from cornice.tests.support import TestCase, CatchErrors
 
 
@@ -84,6 +86,17 @@ class TestResource(TestCase):
         self.assertEqual(
             self.patch("/users/1", status=200).json,
             {'test': 'yeah'})
+
+    if validationapp.COLANDER:
+        def test_schema_on_resource(self):
+            User.schema = CorniceSchema.from_colander(validationapp.FooBarSchema)
+            result = self.patch("/users/1", status=400).json
+            self.assertEquals(
+                [(e['name'], e['description']) for e in result['errors']], [
+                    ('foo', 'foo is missing'),
+                    ('bar', 'bar is missing'),
+                    ('yeah', 'yeah is missing'),
+                ])
 
 
 class NonAutocommittingConfigurationTestResource(TestCase):

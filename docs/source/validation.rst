@@ -125,6 +125,18 @@ To describe a schema, using colander and cornice, here is how you can do::
 
 You can even use Schema-Inheritance as introduced by Colander 0.9.9.
 
+If you want the schema to be dynamic, i.e. you want to chose which one to use per request you can define it as a property on your class and it will be used instead. In this case, however, you must explitly bind it yourself. For example::
+
+    @property
+    def schema(self):
+        if self.request.method == 'POST':
+            schema = foo_schema
+        elif self.request.method == 'PUT':
+            schema = bar_schema
+        schema = schema().bind(context=self.context, request=self.request)
+        return CorniceSchema(schema.children)
+
+
 Using formencode
 ~~~~~~~~~~~~~~~~
 
