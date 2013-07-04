@@ -93,7 +93,7 @@ class TestResource(TestCase):
             {'test': 'yeah'})
 
     def test_context_factory(self):
-        self.assertEqual(self.app.put('/users/1').json, {'type': 'dummy!'})
+        self.assertEqual(self.app.put('/users/1').json, {'type': 'context!'})
 
     if validationapp.COLANDER:
         def test_schema_on_resource(self):
