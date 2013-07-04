@@ -60,15 +60,30 @@ def json_error(errors):
 
 
 def match_accept_header(func, context, request):
+    """
+    Return True if the request matches the values returned by the given :param:
+    func callable.
+
+    :param func:
+        The callable returning the list of acceptable content-types,
+        given a request. It should accept a "request" argument.
+    """
     acceptable = func(request)
-    # attach the accepted content types to the request
+    # attach the accepted egress content types to the request
     request.info['acceptable'] = acceptable
     return request.accept.best_match(acceptable) is not None
 
 
+def match_content_type_header(func, context, request):
+    supported_contenttypes = func(request)
+    # attach the accepted ingress content types to the request
+    request.info['supported_contenttypes'] = supported_contenttypes
+    return content_type_matches(request, supported_contenttypes)
+
+
 def extract_request_data(request):
     """extract the different parts of the data from the request, and return
-    them as a list of (querystring, headers, body, path)
+    them as a tuple of (querystring, headers, body, path)
     """
     # XXX In the body, we're only handling JSON for now.
     if request.body:
@@ -81,3 +96,32 @@ def extract_request_data(request):
         body = {}
 
     return request.GET, request.headers, body, request.matchdict
+
+
+def content_type_matches(request, content_types):
+    """
+    Check whether ``request.content_type``
+    matches given list of content types.
+    """
+    return request.content_type in content_types
+
+
+class ContentTypePredicate(object):
+    """
+    Pyramid predicate for matching against ``Content-Type`` request header.
+    Should live in ``pyramid.config.predicates``.
+
+    .. seealso::
+
+        http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/hooks.html#view-and-route-predicates
+    """
+    def __init__(self, val, config):
+        self.val = val
+
+    def text(self):
+        return 'content_type = %s' % (self.val,)
+
+    phash = text
+
+    def __call__(self, context, request):
+        return request.content_type == self.val

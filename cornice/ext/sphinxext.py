@@ -8,7 +8,7 @@ Sphinx extension that is able to convert a service into a documentation.
 import sys
 from importlib import import_module
 
-from cornice.util import to_list
+from cornice.util import to_list, is_string
 from cornice.service import get_services
 
 import docutils
@@ -40,11 +40,12 @@ class ServiceDirective(Directive):
 
     Usage, in a sphinx documentation::
 
-        .. service::
+        .. cornice-autodoc::
             :modules: your.module
             :services: name1, name2
             :service: name1 # no need to specify both services and service.
             :ignore: a comma separated list of services names to ignore
+
     """
     has_content = True
     option_spec = {'modules': convert_to_list_required,
@@ -88,13 +89,19 @@ class ServiceDirective(Directive):
             method_node = nodes.section(ids=[method_id])
             method_node += nodes.title(text=method)
 
-            docstring = trim(view.__doc__ or "") + '\n'
+            if is_string(view):
+                if 'klass' in args:
+                    ob = args['klass']
+                    view_ = getattr(ob, view.lower())
+                    docstring = trim(view_.__doc__ or "") + '\n'
+            else:
+                docstring = trim(view.__doc__ or "") + '\n'
 
             if 'schema' in args:
                 schema = args['schema']
 
                 attrs_node = nodes.inline()
-                for location in ('headers', 'querystring', 'body'):
+                for location in ('header', 'querystring', 'body'):
                     attributes = schema.get_attributes(location=location)
                     if attributes:
                         attrs_node += nodes.inline(
@@ -259,5 +266,6 @@ def rst2node(data):
 
 
 def setup(app):
-    """Sphinx setup."""
-    app.add_directive('services', ServiceDirective)
+    """Hook the directives when Sphinx ask for it."""
+    app.add_directive('services', ServiceDirective)  # deprecated
+    app.add_directive('cornice-autodoc', ServiceDirective)
