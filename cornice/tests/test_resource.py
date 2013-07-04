@@ -14,11 +14,22 @@ from cornice.tests.support import TestCase, CatchErrors
 USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
 
 
-@resource(collection_path='/users', path='/users/{id}')
+class DummyContext(object):
+
+    def __repr__(self):
+        return 'dummy!'
+
+
+def dummy_factory(request):
+    return DummyContext()
+
+
+@resource(collection_path='/users', path='/users/{id}', factory=dummy_factory)
 class User(object):
 
-    def __init__(self, request):
+    def __init__(self, request, context=None):
         self.request = request
+        self.context = context
 
     def collection_get(self):
         return {'users': list(USERS.keys())}
@@ -38,6 +49,9 @@ class User(object):
 
     def collection_patch(self):
         return {'test': 'yeah'}
+
+    def put(self):
+        return dict(type=repr(self.context))
 
 
 class TestResource(TestCase):
@@ -84,6 +98,9 @@ class TestResource(TestCase):
         self.assertEqual(
             self.patch("/users/1", status=200).json,
             {'test': 'yeah'})
+
+    def test_context_factory(self):
+        self.assertEqual(self.app.put('/users/1').json, {'type': 'dummy!'})
 
 
 class NonAutocommittingConfigurationTestResource(TestCase):
