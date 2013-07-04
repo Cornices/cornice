@@ -57,17 +57,17 @@ class TestResource(TestCase):
 
     def test_basic_resource(self):
 
-        self.assertEquals(self.app.get("/users").json, {'users': [1, 2]})
+        self.assertEqual(self.app.get("/users").json, {'users': [1, 2]})
 
-        self.assertEquals(self.app.get("/users/1").json, {'name': 'gawel'})
+        self.assertEqual(self.app.get("/users/1").json, {'name': 'gawel'})
 
         resp = self.app.get("/users/1?callback=test")
-        self.assertEquals(resp.body, b'test({"name": "gawel"})', resp.body)
+        self.assertEqual(resp.body, b'test({"name": "gawel"})', resp.body)
 
     def test_accept_headers(self):
         # the accept headers should work even in case they're specified in a
         # resource method
-        self.assertEquals(
+        self.assertEqual(
             self.app.post("/users", headers={'Accept': 'text/json'},
                           params=json.dumps({'test': 'yeah'})).json,
             {'test': 'yeah'})
@@ -79,11 +79,11 @@ class TestResource(TestCase):
         self.app.head("/users", status=200)
         self.app.head("/users/1", status=200)
 
-        self.assertEquals(
+        self.assertEqual(
             self.patch("/users", status=200).json,
             {'test': 'yeah'})
 
-        self.assertEquals(
+        self.assertEqual(
             self.patch("/users/1", status=200).json,
             {'test': 'yeah'})
 
@@ -97,3 +97,24 @@ class TestResource(TestCase):
                     ('bar', 'bar is missing'),
                     ('yeah', 'yeah is missing'),
                 ])
+
+
+class NonAutocommittingConfigurationTestResource(TestCase):
+    """
+    Test that we don't fail Pyramid's conflict detection when using a manually-
+    committing :class:`pyramid.config.Configurator` instance.
+    """
+
+    def setUp(self):
+        from pyramid.renderers import JSONP
+        self.config = testing.setUp(autocommit=False)
+        self.config.add_renderer('jsonp', JSONP(param_name='callback'))
+        self.config.include("cornice")
+        self.config.scan("cornice.tests.test_resource")
+        self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
+
+    def tearDown(self):
+        testing.tearDown()
+
+    def test_get(self):
+        self.app.get('/users/1')

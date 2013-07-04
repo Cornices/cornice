@@ -1,5 +1,6 @@
 from pyramid import testing
 from pyramid.exceptions import NotFound
+from pyramid.response import Response
 
 from webtest import TestApp
 
@@ -49,8 +50,15 @@ def is_bacon_good(request):
 def get_some_bacon(request):
     # Okay, you there. Bear in mind, the only kind of bacon existing is 'good'.
     if request.matchdict['type'] != 'good':
-        raise NotFound('Not. Found.')
+        raise NotFound(detail='Not. Found.')
     return "yay"
+
+from pyramid.view import view_config
+
+
+@view_config(route_name='noservice')
+def noservice(request):
+    return Response('No Service here.')
 
 
 class TestCORS(TestCase):
@@ -58,6 +66,8 @@ class TestCORS(TestCase):
     def setUp(self):
         self.config = testing.setUp()
         self.config.include("cornice")
+        self.config.add_route('noservice', '/noservice')
+
         self.config.scan("cornice.tests.test_cors")
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
 
@@ -70,7 +80,7 @@ class TestCORS(TestCase):
         # "Access-Control-Request-Method"or without the "Origin" header,
         # we should get a 400.
         resp = self.app.options('/squirel', status=400)
-        self.assertEquals(len(resp.json['errors']), 2)
+        self.assertEqual(len(resp.json['errors']), 2)
 
     def test_preflight_missing_origin(self):
 
@@ -78,7 +88,7 @@ class TestCORS(TestCase):
             '/squirel',
             headers={'Access-Control-Request-Method': 'GET'},
             status=400)
-        self.assertEquals(len(resp.json['errors']), 1)
+        self.assertEqual(len(resp.json['errors']), 1)
 
     def test_preflight_missing_request_method(self):
 
@@ -87,7 +97,7 @@ class TestCORS(TestCase):
             headers={'Origin': 'foobar.org'},
             status=400)
 
-        self.assertEquals(len(resp.json['errors']), 1)
+        self.assertEqual(len(resp.json['errors']), 1)
 
     def test_preflight_incorrect_origin(self):
         # we put "lolnet.org" where only "notmyidea.org" is authorized
@@ -96,14 +106,14 @@ class TestCORS(TestCase):
             headers={'Origin': 'lolnet.org',
                      'Access-Control-Request-Method': 'GET'},
             status=400)
-        self.assertEquals(len(resp.json['errors']), 1)
+        self.assertEqual(len(resp.json['errors']), 1)
 
     def test_preflight_correct_origin(self):
         resp = self.app.options(
             '/squirel',
             headers={'Origin': 'notmyidea.org',
                      'Access-Control-Request-Method': 'GET'})
-        self.assertEquals(
+        self.assertEqual(
             resp.headers['Access-Control-Allow-Origin'],
             'notmyidea.org')
 
@@ -139,7 +149,7 @@ class TestCORS(TestCase):
                      'Access-Control-Request-Method': 'GET'})
 
         self.assertIn('Access-Control-Allow-Credentials', resp.headers)
-        self.assertEquals(resp.headers['Access-Control-Allow-Credentials'],
+        self.assertEqual(resp.headers['Access-Control-Allow-Credentials'],
                           'true')
 
     def test_preflight_credentials_header_not_included_when_not_needed(self):
@@ -155,23 +165,23 @@ class TestCORS(TestCase):
                          'Access-Control-Request-Method': 'GET'})
 
         self.assertIn('Access-Control-Max-Age', resp.headers)
-        self.assertEquals(resp.headers['Access-Control-Max-Age'], '42')
+        self.assertEqual(resp.headers['Access-Control-Max-Age'], '42')
 
     def test_resp_dont_include_allow_origin(self):
         resp = self.app.get('/squirel')  # omit the Origin header
         self.assertNotIn('Access-Control-Allow-Origin', resp.headers)
-        self.assertEquals(resp.json, 'squirels')
+        self.assertEqual(resp.json, 'squirels')
 
     def test_responses_include_an_allow_origin_header(self):
         resp = self.app.get('/squirel', headers={'Origin': 'notmyidea.org'})
         self.assertIn('Access-Control-Allow-Origin', resp.headers)
-        self.assertEquals(resp.headers['Access-Control-Allow-Origin'],
+        self.assertEqual(resp.headers['Access-Control-Allow-Origin'],
                           'notmyidea.org')
 
     def test_credentials_are_included(self):
         resp = self.app.get('/spam', headers={'Origin': 'notmyidea.org'})
         self.assertIn('Access-Control-Allow-Credentials', resp.headers)
-        self.assertEquals(resp.headers['Access-Control-Allow-Credentials'],
+        self.assertEqual(resp.headers['Access-Control-Allow-Credentials'],
                           'true')
 
     def test_headers_are_exposed(self):
@@ -216,3 +226,8 @@ class TestCORS(TestCase):
         resp = self.app.get('/bacon/notgood', status=404,
                             headers={'Origin': 'notmyidea.org'})
         self.assertIn('Access-Control-Allow-Origin', resp.headers)
+
+    def test_existing_non_service_route(self):
+        resp = self.app.get('/noservice', status=200,
+                            headers={'Origin': 'notmyidea.org'})
+        self.assertEqual(resp.body, b'No Service here.')

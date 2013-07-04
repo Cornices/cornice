@@ -17,58 +17,58 @@ class TestService(TestCase):
 
     def test_service_instanciation(self):
         service = Service("coconuts", "/migrate")
-        self.assertEquals(service.name, "coconuts")
-        self.assertEquals(service.path, "/migrate")
-        self.assertEquals(service.renderer, Service.renderer)
+        self.assertEqual(service.name, "coconuts")
+        self.assertEqual(service.path, "/migrate")
+        self.assertEqual(service.renderer, Service.renderer)
 
         service = Service("coconuts", "/migrate", renderer="html")
-        self.assertEquals(service.renderer, "html")
+        self.assertEqual(service.renderer, "html")
 
         # test that lists are also set
         validators = [lambda x: True, ]
         service = Service("coconuts", "/migrate", validators=validators)
-        self.assertEquals(service.validators, validators)
+        self.assertEqual(service.validators, validators)
 
     def test_get_arguments(self):
         service = Service("coconuts", "/migrate")
         # not specifying anything, we should get the default values
         args = service.get_arguments({})
         for arg in Service.mandatory_arguments:
-            self.assertEquals(args[arg], getattr(Service, arg, None))
+            self.assertEqual(args[arg], getattr(Service, arg, None))
 
         # calling this method on a configured service should use the values
         # passed at instanciation time as default values
         service = Service("coconuts", "/migrate", renderer="html")
         args = service.get_arguments({})
-        self.assertEquals(args['renderer'], 'html')
+        self.assertEqual(args['renderer'], 'html')
 
         # if we specify another renderer for this service, despite the fact
         # that one is already set in the instance, this one should be used
         args = service.get_arguments({'renderer': 'foobar'})
-        self.assertEquals(args['renderer'], 'foobar')
+        self.assertEqual(args['renderer'], 'foobar')
 
         # test that list elements are not overwritten
         # define a validator for the needs of the test
 
         service = Service("vaches", "/fetchez", validators=(_validator,))
-        self.assertEquals(len(service.validators), 1)
+        self.assertEqual(len(service.validators), 1)
         args = service.get_arguments({'validators': (_validator2,)})
 
         # the list of validators didn't changed
-        self.assertEquals(len(service.validators), 1)
+        self.assertEqual(len(service.validators), 1)
 
         # but the one returned contains 2 validators
-        self.assertEquals(len(args['validators']), 2)
+        self.assertEqual(len(args['validators']), 2)
 
         # test that exclude effectively removes the items from the list of
         # validators / filters it returns, without removing it from the ones
         # registered for the service.
         service = Service("open bar", "/bar", validators=(_validator,
                                                           _validator2))
-        self.assertEquals(service.validators, [_validator, _validator2])
+        self.assertEqual(service.validators, [_validator, _validator2])
 
         args = service.get_arguments({"exclude": _validator2})
-        self.assertEquals(args['validators'], [_validator])
+        self.assertEqual(args['validators'], [_validator])
 
         # defining some non-mandatory arguments in a service should make
         # them available on further calls to get_arguments.
@@ -85,12 +85,12 @@ class TestService(TestCase):
         def view(request):
             pass
         service.add_view("post", view, validators=(_validator,))
-        self.assertEquals(len(service.definitions), 1)
+        self.assertEqual(len(service.definitions), 1)
         method, _view, _ = service.definitions[0]
 
         # the view had been registered. we also test here that the method had
         # been inserted capitalized (POST instead of post)
-        self.assertEquals(("POST", view), (method, _view))
+        self.assertEqual(("POST", view), (method, _view))
 
     def test_decorators(self):
         service = Service("color", "/favorite-color")
@@ -99,11 +99,11 @@ class TestService(TestCase):
         def get_favorite_color(request):
             return "blue, hmm, red, hmm, aaaaaaaah"
 
-        self.assertEquals(2, len(service.definitions))
+        self.assertEqual(2, len(service.definitions))
         method, view, _ = service.definitions[0]
-        self.assertEquals(("GET", get_favorite_color), (method, view))
+        self.assertEqual(("GET", get_favorite_color), (method, view))
         method, view, _ = service.definitions[1]
-        self.assertEquals(("HEAD", get_favorite_color), (method, view))
+        self.assertEqual(("HEAD", get_favorite_color), (method, view))
 
         @service.post(accept='text/plain', renderer='plain')
         @service.post(accept='application/json')
@@ -112,41 +112,95 @@ class TestService(TestCase):
 
         # using multiple decorators on a resource should register them all in
         # as many different definitions in the service
-        self.assertEquals(4, len(service.definitions))
+        self.assertEqual(4, len(service.definitions))
 
         @service.patch()
         def patch_favorite_color(request):
             return ""
 
         method, view, _ = service.definitions[4]
-        self.assertEquals("PATCH", method)
+        self.assertEqual("PATCH", method)
 
     def test_get_acceptable(self):
         # defining a service with different "accept" headers, we should be able
         # to retrieve this information easily
         service = Service("color", "/favorite-color")
         service.add_view("GET", lambda x: "blue", accept="text/plain")
-        self.assertEquals(service.get_acceptable("GET"), ['text/plain'])
+        self.assertEqual(service.get_acceptable("GET"), ['text/plain'])
 
         service.add_view("GET", lambda x: "blue", accept="application/json")
-        self.assertEquals(service.get_acceptable("GET"),
+        self.assertEqual(service.get_acceptable("GET"),
                           ['text/plain', 'application/json'])
 
         # adding a view for the POST method should not break everything :-)
         service.add_view("POST", lambda x: "ok", accept=('foo/bar'))
-        self.assertEquals(service.get_acceptable("GET"),
+        self.assertEqual(service.get_acceptable("GET"),
                           ['text/plain', 'application/json'])
-        # and of course the list of accepted content-types  should be available
+        # and of course the list of accepted egress content-types should be available
         # for the "POST" as well.
-        self.assertEquals(service.get_acceptable("POST"),
+        self.assertEqual(service.get_acceptable("POST"),
                           ['foo/bar'])
 
-        # it is possible to give acceptable content-types dynamically at
+        # it is possible to give acceptable egress content-types dynamically at
         # run-time. You don't always want to have the callables when retrieving
         # all the acceptable content-types
         service.add_view("POST", lambda x: "ok", accept=lambda r: "text/json")
-        self.assertEquals(len(service.get_acceptable("POST")), 2)
-        self.assertEquals(len(service.get_acceptable("POST", True)), 1)
+        self.assertEqual(len(service.get_acceptable("POST")), 2)
+        self.assertEqual(len(service.get_acceptable("POST", True)), 1)
+
+    def test_get_contenttypes(self):
+        # defining a service with different "content_type" headers, we should be able
+        # to retrieve this information easily
+        service = Service("color", "/favorite-color")
+        service.add_view("GET", lambda x: "blue", content_type="text/plain")
+        self.assertEquals(service.get_contenttypes("GET"), ['text/plain'])
+
+        service.add_view("GET", lambda x: "blue", content_type="application/json")
+        self.assertEquals(service.get_contenttypes("GET"),
+                          ['text/plain', 'application/json'])
+
+        # adding a view for the POST method should not break everything :-)
+        service.add_view("POST", lambda x: "ok", content_type=('foo/bar'))
+        self.assertEquals(service.get_contenttypes("GET"),
+                          ['text/plain', 'application/json'])
+        # and of course the list of supported ingress content-types should be available
+        # for the "POST" as well.
+        self.assertEquals(service.get_contenttypes("POST"),
+                          ['foo/bar'])
+
+        # it is possible to give supported ingress content-types dynamically at
+        # run-time. You don't always want to have the callables when retrieving
+        # all the supported content-types
+        service.add_view("POST", lambda x: "ok", content_type=lambda r: "text/json")
+        self.assertEquals(len(service.get_contenttypes("POST")), 2)
+        self.assertEquals(len(service.get_contenttypes("POST", True)), 1)
+
+    def test_get_contenttypes(self):
+        # defining a service with different "content_type" headers, we should be able
+        # to retrieve this information easily
+        service = Service("color", "/favorite-color")
+        service.add_view("GET", lambda x: "blue", content_type="text/plain")
+        self.assertEqual(service.get_contenttypes("GET"), ['text/plain'])
+
+        service.add_view("GET", lambda x: "blue", content_type="application/json")
+        self.assertEqual(service.get_contenttypes("GET"),
+                          ['text/plain', 'application/json'])
+
+        # adding a view for the POST method should not break everything :-)
+        service.add_view("POST", lambda x: "ok", content_type=('foo/bar'))
+        self.assertEqual(service.get_contenttypes("GET"),
+                          ['text/plain', 'application/json'])
+        # and of course the list of supported ingress content-types should be available
+        # for the "POST" as well.
+        self.assertEqual(service.get_contenttypes("POST"),
+                          ['foo/bar'])
+
+        # it is possible to give supported ingress content-types dynamically at
+        # run-time. You don't always want to have the callables when retrieving
+        # all the supported content-types
+        service.add_view("POST", lambda x: "ok", content_type=lambda r: "text/json")
+        self.assertEqual(len(service.get_contenttypes("POST")), 2)
+        self.assertEqual(len(service.get_contenttypes("POST", True)), 1)
 
     def test_get_validators(self):
         # defining different validators for the same services, even with
@@ -164,7 +218,7 @@ class TestService(TestCase):
         service.add_view('GET', lambda x: 'ok',
                          validators=(validator, validator))
         service.add_view('GET', lambda x: 'ok', validators=(validator2))
-        self.assertEquals(service.get_validators('GET'),
+        self.assertEqual(service.get_validators('GET'),
                           [validator, validator2])
 
     if validationapp.COLANDER:
@@ -172,10 +226,10 @@ class TestService(TestCase):
             schema = validationapp.FooBarSchema
             service = Service("color", "/favorite-color")
             service.add_view("GET", lambda x: "red", schema=schema)
-            self.assertEquals(len(service.schemas_for("GET")), 1)
+            self.assertEqual(len(service.schemas_for("GET")), 1)
             service.add_view("GET", lambda x: "red", validators=_validator,
                              schema=schema)
-            self.assertEquals(len(service.schemas_for("GET")), 2)
+            self.assertEqual(len(service.schemas_for("GET")), 2)
 
     def test_class_parameters(self):
         # when passing a "klass" argument, it gets registered. It also tests
@@ -187,23 +241,23 @@ class TestService(TestCase):
                           klass=TemperatureCooler)
         service.add_view("get", "get_fresh_air")
 
-        self.assertEquals(len(service.definitions), 2)
+        self.assertEqual(len(service.definitions), 2)
 
         method, view, args = service.definitions[0]
-        self.assertEquals(view, "get_fresh_air")
-        self.assertEquals(args["klass"], TemperatureCooler)
+        self.assertEqual(view, "get_fresh_air")
+        self.assertEqual(args["klass"], TemperatureCooler)
 
     def test_get_services(self):
-        self.assertEquals([], get_services())
+        self.assertEqual([], get_services())
         foobar = Service("Foobar", "/foobar")
         self.assertIn(foobar, get_services())
 
         barbaz = Service("Barbaz", "/barbaz")
         self.assertIn(barbaz, get_services())
 
-        self.assertEquals([barbaz, ], get_services(exclude=['Foobar', ]))
-        self.assertEquals([foobar, ], get_services(names=['Foobar', ]))
-        self.assertEquals([foobar, barbaz],
+        self.assertEqual([barbaz, ], get_services(exclude=['Foobar', ]))
+        self.assertEqual([foobar, ], get_services(names=['Foobar', ]))
+        self.assertEqual([foobar, barbaz],
                           get_services(names=['Foobar', 'Barbaz']))
 
     def test_default_validators(self):
@@ -304,7 +358,7 @@ class TestService(TestCase):
         # check that adding the same header twice doesn't make bad things
         # happen
         service.add_view('POST', _stub, cors_headers=('X-Header-Foobar'),)
-        self.assertEquals(len(service.cors_supported_headers), 2)
+        self.assertEqual(len(service.cors_supported_headers), 2)
 
         # check that adding a header on a cors disabled method doesn't
         # change anything
@@ -375,7 +429,7 @@ class TestService(TestCase):
 
     def test_max_age_can_be_defined(self):
         foo = Service(name='foo', path='/foo', cors_max_age=42)
-        self.assertEquals(foo.cors_max_age_for(), 42)
+        self.assertEqual(foo.cors_max_age_for(), 42)
 
     def test_max_age_can_be_different_dependeing_methods(self):
         foo = Service(name='foo', path='/foo', cors_max_age=42)
@@ -383,9 +437,9 @@ class TestService(TestCase):
         foo.add_view('POST', _stub, cors_max_age=32)
         foo.add_view('PUT', _stub, cors_max_age=7)
 
-        self.assertEquals(foo.cors_max_age_for('GET'), 42)
-        self.assertEquals(foo.cors_max_age_for('POST'), 32)
-        self.assertEquals(foo.cors_max_age_for('PUT'), 7)
+        self.assertEqual(foo.cors_max_age_for('GET'), 42)
+        self.assertEqual(foo.cors_max_age_for('POST'), 32)
+        self.assertEqual(foo.cors_max_age_for('PUT'), 7)
 
     def test_cors_policy(self):
         policy = {'origins': ('foo', 'bar', 'baz')}
@@ -398,4 +452,4 @@ class TestService(TestCase):
         policy = {'origins': ('foo', 'bar', 'baz')}
         foo = Service(name='foo', path='/foo', cors_origins=(),
                       cors_policy=policy)
-        self.assertEquals(len(foo.cors_supported_origins), 0)
+        self.assertEqual(len(foo.cors_supported_origins), 0)

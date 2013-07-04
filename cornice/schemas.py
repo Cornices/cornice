@@ -11,12 +11,16 @@ class CorniceSchema(object):
         self._c_schema = _colander_schema
 
     def bind_attributes(self, request=None):
-        if request:
-            self._attributes = self._c_schema().bind(request=request).children
+        if callable(self._c_schema):
+            schema = self._c_schema()
         else:
-            self._attributes = self._c_schema().children
+            schema = self._c_schema
+        if request:
+            self._attributes = schema.bind(request=request).children
+        else:
+            self._attributes = schema.children
 
-    def get_attributes(self, location=("body", "headers", "querystring"),
+    def get_attributes(self, location=("body", "header", "querystring"),
                        required=(True, False),
                        request=None):
         """Return a list of attributes that match the given criteria.
@@ -72,7 +76,8 @@ class CorniceSchema(object):
 
 def validate_colander_schema(schema, request):
     """Validates that the request is conform to the given schema"""
-    from colander import Invalid
+    from colander import Invalid, Sequence, drop
+
     def _validate_fields(location, data):
         for attr in schema.get_attributes(location=location,
                                           request=request):
@@ -85,7 +90,12 @@ def validate_colander_schema(schema, request):
                     if not attr.name in data:
                         deserialized = attr.deserialize()
                     else:
-                        deserialized = attr.deserialize(data[attr.name])
+                        if (location == 'querystring' and
+                                isinstance(attr.typ, Sequence)):
+                            serialized = data.getall(attr.name)
+                        else:
+                            serialized = data[attr.name]
+                        deserialized = attr.deserialize(serialized)
                 except Invalid as e:
                     # the struct is invalid
                     try:
@@ -96,7 +106,8 @@ def validate_colander_schema(schema, request):
                             if k.startswith(attr.name):
                                 request.errors.add(location, k, v)
                 else:
-                    request.validated[attr.name] = deserialized
+                    if deserialized is not drop:
+                        request.validated[attr.name] = deserialized
 
     qs, headers, body, path = extract_request_data(request)
 

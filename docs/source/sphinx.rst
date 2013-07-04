@@ -33,21 +33,27 @@ Of course this may vary if you have other extensions.
 The service directive
 ---------------------
 
-Cornice provides a single **service** directive you can use to
+Cornice provides a **cornice-autodoc** directive you can use to
 inject the Web Services documentation into Sphinx.
 
-The directive has two options:
+The directive has the following options:
 
-- **package**: the name of the Python package that contains Cornice web
-  services. Cornice will scan it and look for the services. **mandatory**
-
-- **service**: the name of the service to document. This is the name
-  you provide when you create a **Service** class. If not given, Cornice
-  will include **all** Services in the order it found them. **optional**
+- **modules**: a comma-separated list of the python modules that contain
+  Cornice Web services. Cornice will scan it and look for the services.
+  **mandatory**
+- **services**: a comma-separated list of services, as you named them when
+  using the cornice `Service` directive. **optional**
+- **service**: if you have only one name, then you can use `service` rather
+  than `services`. **optional**
+- **ignore**: a comma separated list of services names to ignore. **optional**
 
 You can use info fields (see 
 `Info field lists <http://sphinx.pocoo.org/domains.html#info-field-lists>`_)
 in your functions, methods and validators.
+
+.. note::
+    This directive used to be named "services" and had been renamed for
+    something more consistant with the Sphinx ecosystem.
 
 Full example
 ------------
@@ -121,8 +127,8 @@ And here's the **full** sphinx doc example::
 
     My **Cool** app provides a way to send cool quotes to the server !
 
-    .. services::
-       :package: coolapp
+    .. cornice-autodoc::
+       :modules: coolapp
        :service: quote
 
 The resulting doc is:
