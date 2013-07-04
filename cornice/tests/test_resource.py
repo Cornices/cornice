@@ -11,19 +11,10 @@ from cornice.resource import view
 from cornice.schemas import CorniceSchema
 from cornice.tests import validationapp
 from cornice.tests.support import TestCase, CatchErrors
+from cornice.tests.support import DummyContext, dummy_factory
 
 
 USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
-
-
-class DummyContext(object):
-
-    def __repr__(self):
-        return 'dummy!'
-
-
-def dummy_factory(request):
-    return DummyContext()
 
 
 @resource(collection_path='/users', path='/users/{id}', factory=dummy_factory)

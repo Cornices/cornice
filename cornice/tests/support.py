@@ -18,6 +18,17 @@ from pyramid.httpexceptions import HTTPException
 
 logger = logging.getLogger('cornice')
 
+
+class DummyContext(object):
+
+    def __repr__(self):
+        return 'dummy!'
+
+
+def dummy_factory(request):
+    return DummyContext()
+
+
 # stolen from the packaging stdlib testsuite tools
 
 
