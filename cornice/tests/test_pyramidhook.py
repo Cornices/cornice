@@ -39,11 +39,11 @@ class TemperatureCooler(object):
 
     def get_fresh_air(self):
         resp = Response()
-        resp.body = b'air with ' + repr(self.context)
+        resp.text = u'air with ' + repr(self.context)
         return resp
 
     def make_it_fresh(self, response):
-        response.body = b'fresh ' + response.body
+        response.text = u'fresh ' + response.text
         return response
 
     def check_temperature(self, request):
