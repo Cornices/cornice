@@ -84,7 +84,10 @@ class ServiceDirective(Directive):
         if service.description is not None:
             service_node += rst2node(trim(service.description))
 
-        for method, view, args in [(m, v, a) for m, v, a in service.definitions if m != 'HEAD']:
+        for method, view, args in service.definitions:
+            if method == 'HEAD':
+                #Skip head - this is essentially duplicating the get docs.
+                continue
             method_id = '%s-%s' % (service_id, method)
             method_node = nodes.section(ids=[method_id])
             method_node += nodes.title(text=method)
