@@ -195,7 +195,9 @@ class TestCORS(TestCase):
         resp = self.app.options('/squirel',
             headers={'Origin': 'notmyidea.org',
                      'Access-Control-Request-Method': 'GET',
-                     'Access-Control-Request-Headers': 'foo,bar,baz'})
+                     'Access-Control-Request-Headers': 'foo,    bar,baz  '})
+        # The specification says we can have any number of LWS (Linear white
+        # spaces) in the values and that it should be removed.
 
         # per default, they should be authorized, and returned in the list of
         # authorized headers
