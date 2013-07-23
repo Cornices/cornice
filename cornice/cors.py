@@ -36,7 +36,7 @@ def get_cors_preflight_view(service):
             request.headers.get('Access-Control-Request-Headers', ()))
 
         if requested_headers:
-            requested_headers = requested_headers.split(',')
+            requested_headers = map(str.strip, requested_headers.split(', '))
 
         if requested_method not in service.cors_supported_methods:
             request.errors.add('header', 'Access-Control-Request-Method',
