@@ -17,7 +17,8 @@ from cornice.tests.support import DummyContext, dummy_factory
 USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
 
 
-@resource(collection_path='/users', path='/users/{id}', factory=dummy_factory)
+@resource(collection_path='/users', path='/users/{id}',
+        name='user_service', factory=dummy_factory)
 class User(object):
 
     def __init__(self, request, context=None):
@@ -94,6 +95,10 @@ class TestResource(TestCase):
 
     def test_context_factory(self):
         self.assertEqual(self.app.put('/users/1').json, {'type': 'context!'})
+
+    def test_explicit_service_name(self):
+        route_url = testing.DummyRequest().route_url
+        self.assert_(route_url('user_service', id=42))  # service must exist
 
     if validationapp.COLANDER:
         def test_schema_on_resource(self):
