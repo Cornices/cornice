@@ -59,5 +59,6 @@ setup(name='cornice',
       zip_safe=False,
       install_requires=requires,
       tests_require=test_requires,
+      extras_require={'test': test_requires},
       test_suite="cornice.tests",
       paster_plugins=['pyramid'])
