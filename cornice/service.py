@@ -235,7 +235,9 @@ class Service(object):
                 CorniceSchema.from_colander(conf.pop('schema')))
 
         # Allow custom error handler
-        arguments['error_handler'] = conf.pop('error_handler', json_error)
+        arguments['error_handler'] = conf.pop('error_handler',
+                                              getattr(self, 'error_handler',
+                                                      json_error))
 
         # exclude some validators or filters
         if 'exclude' in conf:

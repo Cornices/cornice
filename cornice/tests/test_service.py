@@ -92,6 +92,18 @@ class TestService(TestCase):
         # been inserted capitalized (POST instead of post)
         self.assertEqual(("POST", view), (method, _view))
 
+    def test_error_handler(self):
+        error_handler = object()
+        service = Service("color", "/favorite-color",
+                          error_handler=error_handler)
+
+        @service.get()
+        def get_favorite_color(request):
+            return "blue, hmm, red, hmm, aaaaaaaah"
+
+        method, view, args = service.definitions[0]
+        self.assertIs(args['error_handler'], error_handler)
+
     def test_decorators(self):
         service = Service("color", "/favorite-color")
 
