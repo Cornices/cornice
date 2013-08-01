@@ -7,6 +7,7 @@ from cornice.ext.spore import generate_spore_description
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
+
 class TestSporeGeneration(TestCase):
 
     def _define_coffee_methods(self, service):
@@ -63,7 +64,7 @@ class TestSporeGeneration(TestCase):
             })
 
     def test_rxjson_spore(self):
-        rx = Rx.Factory({ "register_core_types": True })
+        rx = Rx.Factory({'register_core_types': True})
 
         coffees = Service(name='Coffees', path='/coffee')
         coffee = Service(name='coffee', path='/coffee/{bar}/{id}')
@@ -75,7 +76,7 @@ class TestSporeGeneration(TestCase):
         spore = generate_spore_description(
                 services, name="oh yeah",
                 base_url="http://localhost/", version="1.0")
-                
+
         with open(os.path.join(HERE, 'spore_validation.rx')) as f:
             spore_json_schema = json.loads(f.read())
             spore_schema = rx.make_schema(spore_json_schema)

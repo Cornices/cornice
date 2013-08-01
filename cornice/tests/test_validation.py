@@ -23,7 +23,8 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
 
         res = app.post('/service', params=json.dumps('buh'))
 
-        self.assertEqual(res.body, json.dumps({'body': '"buh"'}).encode('ascii'))
+        expected = json.dumps({'body': '"buh"'}).encode('ascii')
+        self.assertEqual(res.body, expected)
 
         app.get('/service?paid=yup')
 
@@ -73,60 +74,62 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         self.assertEqual(r.content_type, "application/json")
 
         # and requested preference order should be respected
-        r = app.get('/service2',
-                    headers={'Accept': 'application/json; q=1.0, text/plain; q=0.9'})
+        headers = {'Accept': 'application/json; q=1.0, text/plain; q=0.9'}
+        r = app.get('/service2', headers=headers)
         self.assertEqual(r.content_type, "application/json")
 
-        r = app.get('/service2',
-                    headers={'Accept': 'text/plain; q=0.9, application/json; q=1.0'})
-        self.assertEqual(r.content_type, "application/json")
+        headers = {'Accept': 'application/json; q=0.9, text/plain; q=1.0'}
+        r = app.get('/service2', headers=headers)
+        self.assertEqual(r.content_type, "text/plain")
 
         # test that using a callable to define what's accepted works as well
         res = app.get('/service3', headers={'Accept': 'audio/*'}, status=406)
         error_description = res.json['errors'][0]['description']
         self.assertTrue('text/json' in error_description)
 
-        res = app.get('/service3', headers={'Accept': 'text/*'}, status=200)
+        res = app.get('/service3', headers={'Accept': 'text/*'})
         self.assertEqual(res.content_type, "text/json")
 
         # if we are not asking for a particular content-type,
         # we should get one of the two types that the service supports.
-        r = app.get('/service2', status=200)
+        r = app.get('/service2')
         self.assertTrue(r.content_type in ("application/json", "text/plain"))
 
     def test_accept_issue_113_text_star(self):
         app = TestApp(main({}))
 
-        res = app.get('/service3', headers={'Accept': 'text/*'}, status=200)
+        res = app.get('/service3', headers={'Accept': 'text/*'})
         self.assertEqual(res.content_type, "text/json")
 
     def test_accept_issue_113_text_application_star(self):
         app = TestApp(main({}))
 
-        res = app.get('/service3', headers={'Accept': 'application/*'}, status=200)
+        res = app.get('/service3', headers={'Accept': 'application/*'})
         self.assertEqual(res.content_type, "application/json")
 
     def test_accept_issue_113_text_application_json(self):
         app = TestApp(main({}))
 
-        res = app.get('/service3', headers={'Accept': 'application/json'}, status=200)
+        res = app.get('/service3', headers={'Accept': 'application/json'})
         self.assertEqual(res.content_type, "application/json")
 
     def test_accept_issue_113_text_html_not_acceptable(self):
         app = TestApp(main({}))
 
-        # requesting an unsupported content type should return a HTTP 406 (Not Acceptable)
-        res = app.get('/service3', headers={'Accept': 'text/html'}, status=406)
+        # requesting an unsupported content type should return a HTTP 406 (Not
+        # Acceptable)
+        app.get('/service3', headers={'Accept': 'text/html'}, status=406)
 
     def test_accept_issue_113_audio_or_text(self):
         app = TestApp(main({}))
 
-        res = app.get('/service2', headers={'Accept': 'audio/mp4; q=0.9, text/plain; q=0.5'}, status=200)
+        res = app.get('/service2',
+                     headers={'Accept': 'audio/mp4; q=0.9, text/plain; q=0.5'})
         self.assertEqual(res.content_type, "text/plain")
 
         # if we are not asking for a particular content-type,
         # we should get one of the two types that the service supports.
-        r = app.get('/service2', status=200)
+        r = app.get('/service2')
         self.assertTrue(r.content_type in ("application/json", "text/plain"))
 
     def test_filters(self):
@@ -231,7 +234,7 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         # requesting with one of the allowed Content-Type headers should work,
         # even when having a charset parameter as suffix
         response = app.put('/service5',
-            headers={'Content-Type': 'text/plain; charset=utf-8'}, status=200)
+            headers={'Content-Type': 'text/plain; charset=utf-8'})
         self.assertEqual(response.json, "some response")
 
     def test_content_type_on_get(self):
@@ -244,12 +247,13 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
     def test_content_type_with_callable(self):
         # test that using a callable for content_type works as well
         app = TestApp(main({}))
-        res = app.post('/service6', headers={'Content-Type': 'audio/*'}, status=415)
+        res = app.post('/service6', headers={'Content-Type': 'audio/*'},
+                       status=415)
         error_description = res.json['errors'][0]['description']
         self.assertTrue('text/xml' in error_description)
         self.assertTrue('application/json' in error_description)
 
-        app.post('/service6', headers={'Content-Type': 'text/xml'}, status=200)
+        app.post('/service6', headers={'Content-Type': 'text/xml'})
 
     def test_accept_and_content_type(self):
         # tests that giving both Accept and Content-Type
@@ -260,7 +264,7 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         response = app.post('/service7',
             headers={
                 'Accept': 'text/xml, application/json',
-                'Content-Type': 'application/json; charset=utf-8'}, status=200)
+                'Content-Type': 'application/json; charset=utf-8'})
         self.assertEqual(response.json, "some response")
 
         response = app.post('/service7',
@@ -271,13 +275,14 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         response = app.post('/service7',
             headers={
                 'Accept': 'text/xml, application/json',
-                'Content-Type': 'application/x-www-form-urlencoded'}, status=415)
+                'Content-Type': 'application/x-www-form-urlencoded'},
+            status=415)
 
         # PUT endpoint has a list of accept and content_type definitions
         response = app.put('/service7',
             headers={
                 'Accept': 'text/xml, application/json',
-                'Content-Type': 'application/json; charset=utf-8'}, status=200)
+                'Content-Type': 'application/json; charset=utf-8'})
         self.assertEqual(response.json, "some response")
 
         response = app.put('/service7',
@@ -288,4 +293,5 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         response = app.put('/service7',
             headers={
                 'Accept': 'text/xml, application/json',
-                'Content-Type': 'application/x-www-form-urlencoded'}, status=415)
+                'Content-Type': 'application/x-www-form-urlencoded'},
+            status=415)

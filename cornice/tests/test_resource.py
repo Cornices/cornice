@@ -11,7 +11,7 @@ from cornice.resource import view
 from cornice.schemas import CorniceSchema
 from cornice.tests import validationapp
 from cornice.tests.support import TestCase, CatchErrors
-from cornice.tests.support import DummyContext, dummy_factory
+from cornice.tests.support import dummy_factory
 
 
 USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
@@ -82,15 +82,15 @@ class TestResource(TestCase):
         return self.app._gen_request('PATCH', *args, **kwargs)
 
     def test_head_and_patch(self):
-        self.app.head("/users", status=200)
-        self.app.head("/users/1", status=200)
+        self.app.head("/users")
+        self.app.head("/users/1")
 
         self.assertEqual(
-            self.patch("/users", status=200).json,
+            self.patch("/users").json,
             {'test': 'yeah'})
 
         self.assertEqual(
-            self.patch("/users/1", status=200).json,
+            self.patch("/users/1").json,
             {'test': 'yeah'})
 
     def test_context_factory(self):
@@ -102,7 +102,8 @@ class TestResource(TestCase):
 
     if validationapp.COLANDER:
         def test_schema_on_resource(self):
-            User.schema = CorniceSchema.from_colander(validationapp.FooBarSchema)
+            User.schema = CorniceSchema.from_colander(
+                    validationapp.FooBarSchema)
             result = self.patch("/users/1", status=400).json
             self.assertEquals(
                 [(e['name'], e['description']) for e in result['errors']], [

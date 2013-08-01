@@ -24,19 +24,19 @@ if COLANDER:
 
     @deferred
     def deferred_validator(node, kw):
-        """ This is a deferred validator that changes its own behavior based on 
-            request object being passed, thus allowing for validation of fields 
-            depending on other field values.
+        """
+        This is a deferred validator that changes its own behavior based on
+        request object being passed, thus allowing for validation of fields
+        depending on other field values.
 
-            This example shows how to validate a body field based on a 
-            dummy header value, using OneOf validator with different choices
+        This example shows how to validate a body field based on a dummy
+        header value, using OneOf validator with different choices
         """
         request = kw['request']
         if request['x-foo'] == 'version_a':
             return OneOf(['a', 'b'])
         else:
             return OneOf(['c', 'd'])
-
 
     class TestingSchema(MappingSchema):
         foo = SchemaNode(String(), type='str')
@@ -54,7 +54,6 @@ if COLANDER:
     class DropSchema(MappingSchema):
         foo = SchemaNode(String(), type='str', missing=drop)
         bar = SchemaNode(String(), type='str')
-
 
     imperative_schema = SchemaNode(Mapping())
     imperative_schema.add(SchemaNode(String(), name='foo', type='str'))
@@ -107,7 +106,8 @@ if COLANDER:
                               len(inherited_schema.get_attributes()))
 
             foo_filter = lambda x: x.name == "foo"
-            base_foo = list(filter(foo_filter, base_schema.get_attributes()))[0]
+            base_foo = list(filter(foo_filter,
+                                   base_schema.get_attributes()))[0]
             inherited_foo = list(filter(foo_filter,
                                         inherited_schema.get_attributes()))[0]
             self.assertTrue(base_foo.required)
@@ -117,13 +117,13 @@ if COLANDER:
             dummy_request = {'x-foo': 'version_a'}
             a_schema = CorniceSchema.from_colander(ToBoundSchema)
             field = a_schema.get_attributes(request=dummy_request)[3]
-            self.assertEqual(field.validator.choices, ['a','b'])
+            self.assertEqual(field.validator.choices, ['a', 'b'])
 
             other_dummy_request = {'x-foo': 'bazinga!'}
             b_schema = CorniceSchema.from_colander(ToBoundSchema)
             field = b_schema.get_attributes(request=other_dummy_request)[3]
-            self.assertEqual(field.validator.choices, ['c','d'])
-                       
+            self.assertEqual(field.validator.choices, ['c', 'd'])
+
         def test_imperative_colander_schema(self):
             # not specifying body should act the same way as specifying it
             schema = CorniceSchema.from_colander(imperative_schema)

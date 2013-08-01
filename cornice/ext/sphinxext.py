@@ -79,8 +79,10 @@ class ServiceDirective(Directive):
     def _render_service(self, service):
         service_id = "service-%d" % self.env.new_serialno('service')
         service_node = nodes.section(ids=[service_id])
-        service_node += nodes.title(text='%s service at %s' % (service.name.title(), service.path))
-        
+
+        title = '%s service at %s' % (service.name.title(), service.path)
+        service_node += nodes.title(text=title)
+
         if service.description is not None:
             service_node += rst2node(trim(service.description))
 

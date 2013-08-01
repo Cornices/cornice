@@ -73,7 +73,8 @@ def get_fallback_view(service):
 
             if 'content_type' in args:
                 supported_contenttypes.extend(
-                        service.get_contenttypes(method, filter_callables=True))
+                        service.get_contenttypes(method,
+                                                 filter_callables=True))
                 supported_contenttypes.extend(
                         request.info.get('supported_contenttypes', []))
                 supported_contenttypes = list(set(supported_contenttypes))
@@ -181,9 +182,7 @@ def register_service_views(config, service):
         if 'acl' in args:
             args["factory"] = make_route_factory(args.pop('acl'))
 
-
         # 1. register route
-
         route_args = {}
         if 'factory' in args:
             route_args['factory'] = args.pop('factory')
@@ -196,10 +195,9 @@ def register_service_views(config, service):
             registered_routes.append(service.path)
             config.commit()
 
-
         # 2. register view(s)
-
         # pop and compute predicates which get passed through to Pyramid 1:1
+
         predicate_definitions = _pop_complex_predicates(args)
 
         if predicate_definitions:
@@ -293,7 +291,7 @@ def _mungle_view_args(args, predicate_list):
                 predicates.append(predicate_checker)
                 args['custom_predicates'] = predicates
             else:
-                raise ValueError('No function defined for ' + \
+                raise ValueError('No function defined for ' +
                     'handling callables for field "{0}"'.format(kind))
         else:
             # otherwise argument value is just a scalar

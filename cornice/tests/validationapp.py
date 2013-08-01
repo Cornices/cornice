@@ -107,9 +107,10 @@ filtered_service = Service(name="filtered", path="/filtered", filters=_filter)
 def get4(request):
     return "unfiltered"  # should be overwritten on GET
 
-
 # test the "content_type" parameter (scalar)
 service5 = Service(name="service5", path="/service5")
+
+
 @service5.get()
 @service5.post(content_type='application/json')
 @service5.put(content_type=('text/plain', 'application/json'))
@@ -118,16 +119,23 @@ def post5(request):
 
 # test the "content_type" parameter (callable)
 service6 = Service(name="service6", path="/service6")
+
+
 def _content_type(request):
     return ('text/xml', 'application/json')
+
+
 @service6.post(content_type=_content_type)
 def post6(request):
     return {"body": "yay!"}
 
 # test a mix of "accept" and "content_type" parameters
 service7 = Service(name="service7", path="/service7")
+
+
 @service7.post(accept='text/xml', content_type='application/json')
-@service7.put(accept=('text/xml', 'text/plain'), content_type=('application/json', 'text/xml'))
+@service7.put(accept=('text/xml', 'text/plain'),
+              content_type=('application/json', 'text/xml'))
 def post7(request):
     return "some response"
 

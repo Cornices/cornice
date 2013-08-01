@@ -12,7 +12,7 @@ from webtest import TestApp
 
 from cornice import Service
 from cornice.tests.support import CatchErrors
-from cornice.tests.support import DummyContext, dummy_factory
+from cornice.tests.support import dummy_factory
 
 
 service = Service(name="service", path="/service")

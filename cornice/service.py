@@ -323,10 +323,11 @@ class Service(object):
         return result
 
     def get_acceptable(self, method, filter_callables=False):
-        """return a list of acceptable egress content-type headers that were defined
-        for this service.
+        """return a list of acceptable egress content-type headers that were
+        defined for this service.
 
-        :param method: the method to get the acceptable egress content-types for
+        :param method: the method to get the acceptable egress content-types
+                       for.
         :param filter_callables: it is possible to give acceptable
                                  content-types dynamically, with callables.
                                  This toggles filtering the callables (default:
@@ -335,16 +336,18 @@ class Service(object):
         return self.filter_argumentlist(method, 'accept', filter_callables)
 
     def get_contenttypes(self, method, filter_callables=False):
-        """return a list of supported ingress content-type headers that were defined
-        for this service.
+        """return a list of supported ingress content-type headers that were
+        defined for this service.
 
-        :param method: the method to get the supported ingress content-types for
+        :param method: the method to get the supported ingress content-types
+                       for.
         :param filter_callables: it is possible to give supported
                                  content-types dynamically, with callables.
                                  This toggles filtering the callables (default:
                                  False)
         """
-        return self.filter_argumentlist(method, 'content_type', filter_callables)
+        return self.filter_argumentlist(method, 'content_type',
+                                        filter_callables)
 
     def get_validators(self, method):
         """return a list of validators for the given method.
