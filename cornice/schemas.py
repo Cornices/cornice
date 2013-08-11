@@ -20,7 +20,7 @@ class CorniceSchema(object):
         else:
             self._attributes = schema.children
 
-    def get_attributes(self, location=("body", "header", "querystring"),
+    def get_attributes(self, location=("body", "header", "querystring", "post"),
                        required=(True, False),
                        request=None):
         """Return a list of attributes that match the given criteria.
@@ -109,9 +109,10 @@ def validate_colander_schema(schema, request):
                     if deserialized is not drop:
                         request.validated[attr.name] = deserialized
 
-    qs, headers, body, path = extract_request_data(request)
+    qs, post, headers, body, path = extract_request_data(request)
 
     _validate_fields('path', path)
     _validate_fields('header', headers)
     _validate_fields('body', body)
+    _validate_fields('post', post)
     _validate_fields('querystring', qs)

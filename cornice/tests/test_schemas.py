@@ -46,6 +46,9 @@ if COLANDER:
     class InheritedSchema(TestingSchema):
         foo = SchemaNode(Int(), missing=1)
 
+    class PostDataSchema(MappingSchema):
+        foo = SchemaNode(Int(), location="post")
+
     class ToBoundSchema(TestingSchema):
         foo = SchemaNode(Int(), missing=1)
         bazinga = SchemaNode(String(), type='str', location="body",
@@ -67,6 +70,7 @@ if COLANDER:
         bar = SchemaNode(String(), type='str', location="body")
         baz = SchemaNode(String(), type='str', location="querystring")
         qux = SchemaNode(String(), type='str', location="header")
+        pox = SchemaNode(String(), type='str', location="post")
 
     class TestSchemas(TestCase):
 
@@ -85,11 +89,13 @@ if COLANDER:
             body_fields = schema.get_attributes(location="body")
             qs_fields = schema.get_attributes(location="querystring")
             header_fields = schema.get_attributes(location="header")
+            post_fields = schema.get_attributes(location="post")
 
-            self.assertEqual(len(all_fields), 4)
+            self.assertEqual(len(all_fields), 5)
             self.assertEqual(len(body_fields), 2)
             self.assertEqual(len(qs_fields), 1)
             self.assertEqual(len(header_fields), 1)
+            self.assertEqual(len(post_fields), 1)
 
         def test_colander_inheritance(self):
             """
@@ -149,8 +155,48 @@ if COLANDER:
                     self.POST = {}
                     self.validated = {}
 
-            dummy_request = MockRequest('{"bar": "required_data"}')
+            dummy_request = MockRequest('')
             setattr(dummy_request, 'errors', Errors(dummy_request))
             validate_colander_schema(schema, dummy_request)
 
+            self.assertNotIn('foo', dummy_request.validated)
+
+        def test_post_data_validates_when_valid(self):
+            schema = CorniceSchema.from_colander(PostDataSchema)
+
+            class MockRequest(object):
+                def __init__(self, body):
+                    self.headers = {}
+                    self.matchdict = {}
+                    self.body = body
+                    self.GET = {}
+                    self.POST = {'foo' : 10}
+                    self.validated = {}
+
+            dummy_request = MockRequest('{"bar": "irrelevant data"}')
+            setattr(dummy_request, 'errors', Errors(dummy_request))
+            validate_colander_schema(schema, dummy_request)
+            missing_foo = filter(lambda x: x['name'] == 'foo', dummy_request.errors)
+
+            assert not missing_foo
+            self.assertIn('foo', dummy_request.validated)
+
+        def test_post_data_fails_validation_on_error(self):
+            schema = CorniceSchema.from_colander(PostDataSchema)
+
+            class MockRequest(object):
+                def __init__(self, body):
+                    self.headers = {}
+                    self.matchdict = {}
+                    self.body = body
+                    self.GET = {}
+                    self.POST = {'foo' : ''}
+                    self.validated = {}
+
+            dummy_request = MockRequest('{"bar": "irrelevant data"}')
+            setattr(dummy_request, 'errors', Errors(dummy_request))
+            validate_colander_schema(schema, dummy_request)
+            missing_foo = filter(lambda x: x['name'] == 'foo', dummy_request.errors)
+
+            assert missing_foo
             self.assertNotIn('foo', dummy_request.validated)
