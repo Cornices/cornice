@@ -98,7 +98,7 @@ def extract_request_data(request):
     else:
         body = {}
 
-    return request.GET, request.headers, body, request.matchdict
+    return request.GET, request.POST, request.headers, body, request.matchdict
 
 
 def content_type_matches(request, content_types):
