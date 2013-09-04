@@ -10,7 +10,7 @@ safe_json_re = re.compile(r'\s*[\{tfn\-0-9]'.encode('ascii'), re.MULTILINE)
 def filter_json_xsrf(response):
     """drops a warning if a service returns potentially exploitable json
     """
-    if response.content_type in ('application/json', 'text/json'):
+    if hasattr(response, 'content_type') and response.content_type in ('application/json', 'text/json'):
         if safe_json_re.match(response.body) is None:
             from cornice import logger
             logger.warn("returning a json string or array is a potential "
