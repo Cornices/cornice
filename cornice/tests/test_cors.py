@@ -15,6 +15,25 @@ eggs = Service(path='/eggs', name='egg', cors_origins=('*',),
 bacon = Service(path='/bacon/{type}', name='bacon', cors_origins=('*',))
 
 
+class Klass(object):
+    """
+    Class implementation of a service
+    """
+    def __init__(self, request):
+        self.request = request
+
+    def post(self):
+        return "moar squirels (take care)"
+
+cors_policy = {'origins': ('*',), 'enabled': True}
+
+cors_klass = Service(name='cors_klass',
+                     path='/cors_klass',
+                     klass=Klass,
+                     cors_policy=cors_policy)
+cors_klass.add_view('post', 'post')
+
+
 @squirel.get(cors_origins=('notmyidea.org',))
 def get_squirel(request):
     return "squirels"
@@ -73,6 +92,20 @@ class TestCORS(TestCase):
 
         def tearDown(self):
             testing.tearDown()
+
+    def test_preflight_cors_klass_post(self):
+        resp = self.app.options('/cors_klass',
+                                status=200,
+                                headers={
+                                    'Origin': 'lolnet.org',
+                                    'Access-Control-Request-Method': 'POST'})
+
+    def test_preflight_cors_klass_put(self):
+        resp = self.app.options('/cors_klass',
+                                status=400,
+                                headers={
+                                    'Origin': 'lolnet.org',
+                                    'Access-Control-Request-Method': 'PUT'})
 
     def test_preflight_missing_headers(self):
         # we should have an OPTION method defined.
