@@ -5,10 +5,6 @@ import sys
 
 import simplejson as json
 
-from pyramid import httpexceptions as exc
-from pyramid.response import Response
-
-
 __all__ = ['json_renderer', 'to_list', 'json_error', 'match_accept_header',
            'extract_request_data']
 
@@ -46,20 +42,31 @@ def to_list(obj):
     return obj
 
 
-class _JSONError(exc.HTTPError):
-    def __init__(self, errors, status=400):
-        body = {'status': 'error', 'errors': errors}
-        Response.__init__(self, json.dumps(body, use_decimal=True))
-        self.status = status
-        self.content_type = 'application/json'
+class ValidationError(Exception):
+
+    def __init__(self, errors):
+        Exception.__init__(self)
+        self.errors = errors
+        self.status = errors.status
+
+
+def validation_error_view(exc, request):
+    body = {'status': 'error', 'errors': exc.errors}
+    response = request.response
+    response.body = json.dumps(body, use_decimal=True)
+    response.status = exc.status
+    response.content_type = 'application/json'
+    return response
 
 
 def json_error(errors):
-    """Returns an HTTPError with the given status and message.
-
-    The HTTP error content type is "application/json"
     """
-    return _JSONError(errors, errors.status)
+    Raise ValidationError to allow pyramid views to be registerd for it.
+    The default view registered by cornice is validation_error_view.
+    Alternatively any Response can be returned by different error_handlers,
+    in which case no further view lookup is done.
+    """
+    raise ValidationError(errors)
 
 
 def match_accept_header(func, context, request):
