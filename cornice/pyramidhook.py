@@ -69,7 +69,7 @@ def get_fallback_view(service):
                             acceptable).encode('ascii'))
                     request.errors.status = HTTPNotAcceptable.code
                     error = service.error_handler(request.errors)
-                    raise error
+                    return error
 
             if 'content_type' in args:
                 supported_contenttypes.extend(
@@ -87,7 +87,7 @@ def get_fallback_view(service):
                             supported_contenttypes).encode('ascii'))
                     request.errors.status = HTTPUnsupportedMediaType.code
                     error = service.error_handler(request.errors)
-                    raise error
+                    return error
 
         # In the absence of further information about what went wrong,
         # let upstream deal with the mismatch.
