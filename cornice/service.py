@@ -470,7 +470,7 @@ def decorate_view(view, args, method):
         # location (if the view argument isn't a callable)
         ob = None
         view_ = view
-        if 'klass' in args:
+        if 'klass' in args and not callable(view):
             params = dict(request=request)
             if 'factory' in args and 'acl' not in args:
                 params['context'] = args['factory'](request)
