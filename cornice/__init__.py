@@ -43,4 +43,5 @@ def includeme(config):
     config.add_view(handle_exceptions, context=Exception)
     config.add_view(handle_exceptions, context=HTTPNotFound)
     config.add_view(handle_exceptions, context=HTTPForbidden)
+    config.add_view(util.validation_error_view, context=util.ValidationError)
     config.add_view_predicate('content_type', ContentTypePredicate)
