@@ -40,7 +40,10 @@ def includeme(config):
     config.add_subscriber(add_renderer_globals, BeforeRender)
     config.add_subscriber(wrap_request, NewRequest)
     config.add_renderer('simplejson', util.json_renderer)
-    config.add_view(handle_exceptions, context=Exception)
-    config.add_view(handle_exceptions, context=HTTPNotFound)
-    config.add_view(handle_exceptions, context=HTTPForbidden)
     config.add_view_predicate('content_type', ContentTypePredicate)
+
+    settings = config.get_settings()
+    if settings.get('handle_exceptions', True):
+        config.add_view(handle_exceptions, context=Exception)
+        config.add_view(handle_exceptions, context=HTTPNotFound)
+        config.add_view(handle_exceptions, context=HTTPForbidden)
