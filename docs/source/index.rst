@@ -99,6 +99,7 @@ Documentation content
    api
    internals
    spore
+   faq
 
 
 Contribution & Feedback

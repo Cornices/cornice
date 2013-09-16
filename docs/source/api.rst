@@ -3,7 +3,7 @@ Cornice API
 
 .. py:module:: cornice.service
 
-This document describe the methods proposed by cornice. This documentation is
-automatically generated from the source code of cornice.
+This document describes the methods proposed by cornice. It is
+automatically generated from the source code.
 
 .. autoclass:: cornice.service.Service
