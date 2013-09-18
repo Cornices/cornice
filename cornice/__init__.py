@@ -14,6 +14,7 @@ from cornice.pyramidhook import (
 from cornice.util import ContentTypePredicate
 
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
+from pyramid.security import NO_PERMISSION_REQUIRED
 
 logger = logging.getLogger('cornice')
 __version__ = 0.15
@@ -44,6 +45,9 @@ def includeme(config):
 
     settings = config.get_settings()
     if settings.get('handle_exceptions', True):
-        config.add_view(handle_exceptions, context=Exception)
-        config.add_view(handle_exceptions, context=HTTPNotFound)
-        config.add_view(handle_exceptions, context=HTTPForbidden)
+        config.add_view(handle_exceptions, context=Exception,
+                        permission=NO_PERMISSION_REQUIRED)
+        config.add_view(handle_exceptions, context=HTTPNotFound,
+                        permission=NO_PERMISSION_REQUIRED)
+        config.add_view(handle_exceptions, context=HTTPForbidden,
+                        permission=NO_PERMISSION_REQUIRED)
