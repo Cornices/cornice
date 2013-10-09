@@ -17,7 +17,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.security import NO_PERMISSION_REQUIRED
 
 logger = logging.getLogger('cornice')
-__version__ = 0.15
+__version__ = 0.16
 
 
 def add_renderer_globals(event):
