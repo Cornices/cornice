@@ -1,8 +1,15 @@
-0.15 - ????-??-??
+0.15 - 2013-10-09
 =================
 
-- add support for dynamic validation schemas for resources.
-- add support for context factory.
+- Add support for dynamic validation schemas for resources.
+- Add support for context factory.
+- Manually commit configuration changes.
+- Add support for Colander's drop object
+- Update sphinxext to not display HEAD.
+- Allow for explicitely named services created for resources.
+- Raise exceptions as-is if they are not subclasses of HTTPException.
+- Add a way to opt-out of the exception handling.
+
 
 0.14 - 2013-06-06
 =================
