@@ -10,7 +10,7 @@ except ImportError:
     VENUSIAN = False
 
 
-def resource(**kw):
+def resource(depth=1, **kw):
     """Class decorator to declare resources.
 
     All the methods of this class named by the name of HTTP resources
@@ -77,7 +77,7 @@ def resource(**kw):
                     config = context.config.with_package(info.module)
                     config.add_cornice_service(service)
 
-            info = venusian.attach(klass, callback, category='pyramid')
+            info = venusian.attach(klass, callback, category='pyramid', depth=depth)
         return klass
     return wrapper
 
