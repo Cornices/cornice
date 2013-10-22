@@ -142,12 +142,6 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
 
     def test_json_xsrf(self):
 
-        def json_response(string_value):
-            resp = Response(string_value)
-            resp.status = 200
-            resp.content_type = 'application/json'
-            filter_json_xsrf(resp)
-
         vulnerable_values = [
             '["value1", "value2"]',  # json array
             '  \n ["value1", "value2"] ',  # may include whitespace
