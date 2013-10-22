@@ -88,16 +88,19 @@ def extract_request_data(request):
     """extract the different parts of the data from the request, and return
     them as a tuple of (querystring, headers, body, path)
     """
-    # XXX In the body, we're only handling JSON for now.
-    if request.body:
-        try:
-            body = json.loads(request.body)
-        except ValueError as e:
-            request.errors.add('body', None,
-                               "Invalid JSON request body: %s" % (e.message))
-            body = {}
+    body = {}
+    if request.content_type == 'application/json':
+        if request.body:
+            try:
+                body = json.loads(request.body)
+            except ValueError as e:
+                request.errors.add('body', None,
+                              "Invalid JSON request body: %s" % (e.message))
+    elif request.content_type == 'application/x-www-form-urlencoded':
+        body = request.POST
     else:
-        body = {}
+        request.errors.add('body', None,
+                           'No understandable Content-Type to decode the body')
 
     return request.GET, request.headers, body, request.matchdict
 
