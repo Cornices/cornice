@@ -98,9 +98,8 @@ def extract_request_data(request):
                               "Invalid JSON request body: %s" % (e.message))
     elif request.content_type == 'application/x-www-form-urlencoded':
         body = request.POST
-    else:
-        request.errors.add('body', None,
-                           'No understandable Content-Type to decode the body')
+    # otherwise, don't block but it will be an empty body, decode
+    # on your own
 
     return request.GET, request.headers, body, request.matchdict
 
