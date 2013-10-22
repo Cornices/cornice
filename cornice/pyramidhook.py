@@ -11,8 +11,10 @@ from pyramid.exceptions import PredicateMismatch
 
 from cornice.service import decorate_view
 from cornice.errors import Errors
-from cornice.util import is_string, to_list, match_accept_header, \
-    match_content_type_header, content_type_matches
+from cornice.util import (
+    is_string, to_list, match_accept_header, match_content_type_header,
+    content_type_matches,
+)
 from cornice.cors import (
     get_cors_validator,
     get_cors_preflight_view,
@@ -174,7 +176,7 @@ def register_service_views(config, service):
         decorated_view = decorate_view(view, dict(args), method)
 
         for item in ('filters', 'validators', 'schema', 'klass',
-                     'error_handler') + CORS_PARAMETERS:
+                     'error_handler', 'deserializer') + CORS_PARAMETERS:
             if item in args:
                 del args[item]
 
@@ -296,3 +298,14 @@ def _mungle_view_args(args, predicate_list):
         else:
             # otherwise argument value is just a scalar
             args[kind] = value
+
+
+def add_deserializer(config, content_type, deserializer):
+    registry = config.registry
+
+    def callback():
+        if not hasattr(registry, 'cornice_deserializers'):
+            registry.cornice_deserializers = {}
+        registry.cornice_deserializers[content_type] = deserializer
+
+    config.action(content_type, callable=callback)

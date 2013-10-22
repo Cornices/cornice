@@ -4,6 +4,7 @@
 from cornice.errors import Errors
 from cornice.tests.support import TestCase
 from cornice.schemas import CorniceSchema, validate_colander_schema
+from cornice.util import extract_json_data
 
 try:
     from colander import (
@@ -148,6 +149,11 @@ if COLANDER:
                     self.GET = {}
                     self.POST = {}
                     self.validated = {}
+                    self.registry = {
+                        'cornice_deserializers': {
+                            'application/json': extract_json_data
+                        }
+                    }
 
             dummy_request = MockRequest('{"bar": "required_data"}')
             setattr(dummy_request, 'errors', Errors(dummy_request))

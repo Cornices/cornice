@@ -84,20 +84,38 @@ def match_content_type_header(func, context, request):
     return content_type_matches(request, supported_contenttypes)
 
 
-def extract_request_data(request):
-    """extract the different parts of the data from the request, and return
-    them as a tuple of (querystring, headers, body, path)
-    """
-    # XXX In the body, we're only handling JSON for now.
+def extract_json_data(request):
     if request.body:
         try:
             body = json.loads(request.body)
         except ValueError as e:
-            request.errors.add('body', None,
-                               "Invalid JSON request body: %s" % (e.message))
-            body = {}
+            request.errors.add(
+                'body', None,
+                "Invalid JSON request body: %s" % (e.message))
+        return body
     else:
-        body = {}
+        return {}
+
+
+def extract_form_urlencoded_data(request):
+    return request.POST
+
+
+def extract_request_data(request):
+    """extract the different parts of the data from the request, and return
+    them as a tuple of (querystring, headers, body, path)
+    """
+    body = {}
+    content_type = getattr(request, 'content_type', None)
+    registry = request.registry
+    if hasattr(request, 'deserializer'):
+        body = request.deserializer(request)
+    elif (hasattr(registry, 'cornice_deserializers')
+          and content_type in registry.cornice_deserializers):
+        deserializer = registry.cornice_deserializers[content_type]
+        body = deserializer(request)
+    # otherwise, don't block but it will be an empty body, decode
+    # on your own
 
     return request.GET, request.headers, body, request.matchdict
 

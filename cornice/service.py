@@ -478,6 +478,10 @@ def decorate_view(view, args, method):
             if is_string(view):
                 view_ = getattr(ob, view.lower())
 
+        # set data deserializer
+        if 'deserializer' in args:
+            request.deserializer = args['deserializer']
+
         # do schema validation
         if 'schema' in args:
             validate_colander_schema(args['schema'], request)
