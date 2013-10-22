@@ -183,8 +183,8 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
 
     def test_email_field(self):
         app = TestApp(main({}))
-        content = json.dumps({'email': 'alexis@notmyidea.org'})
-        app.post('/newsletter', params=content)
+        content = {'email': 'alexis@notmyidea.org'}
+        app.post_json('/newsletter', params=content)
 
     def test_content_type_missing(self):
         # test that a Content-Type request headers is present
