@@ -310,3 +310,15 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
                 'Accept': 'text/xml, application/json',
                 'Content-Type': 'application/x-www-form-urlencoded'
             }, status=415)
+
+
+class TestBodyDecoders(LoggingCatcher, TestCase):
+
+    def test_json_body_validation(self):
+        app = TestApp(main({}))
+        response = app.post_json('/foobar?yeah=test', {
+            'foo': 'hello',
+            'bar': 'open',
+            'yeah': 'man',
+        })
+        self.assertEqual(response.json['test'], 'succeeded')
