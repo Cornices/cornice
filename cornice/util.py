@@ -89,14 +89,16 @@ def extract_request_data(request):
     them as a tuple of (querystring, headers, body, path)
     """
     body = {}
-    if request.content_type == 'application/json':
+    content_type = getattr(request, 'content_type', None)
+    if content_type == 'application/json':
         if request.body:
             try:
                 body = json.loads(request.body)
             except ValueError as e:
-                request.errors.add('body', None,
-                              "Invalid JSON request body: %s" % (e.message))
-    elif request.content_type == 'application/x-www-form-urlencoded':
+                request.errors.add(
+                    'body', None,
+                    "Invalid JSON request body: %s" % (e.message))
+    elif content_type == 'application/x-www-form-urlencoded':
         body = request.POST
     # otherwise, don't block but it will be an empty body, decode
     # on your own
