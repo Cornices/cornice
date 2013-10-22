@@ -123,8 +123,9 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
     def test_accept_issue_113_audio_or_text(self):
         app = TestApp(main({}))
 
-        res = app.get('/service2',
-                     headers={'Accept': 'audio/mp4; q=0.9, text/plain; q=0.5'})
+        res = app.get('/service2', headers={
+            'Accept': 'audio/mp4; q=0.9, text/plain; q=0.5'
+        })
         self.assertEqual(res.content_type, "text/plain")
 
         # if we are not asking for a particular content-type,
@@ -147,25 +148,27 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
             resp.content_type = 'application/json'
             filter_json_xsrf(resp)
 
-        # a view returning a vulnerable json response should issue a warning
-        for value in [
+        vulnerable_values = [
             '["value1", "value2"]',  # json array
             '  \n ["value1", "value2"] ',  # may include whitespace
             '"value"',  # strings may contain nasty characters in UTF-7
-            ]:
+        ]
+        # a view returning a vulnerable json response should issue a warning
+        for value in vulnerable_values:
             resp = Response(value)
             resp.status = 200
             resp.content_type = 'application/json'
             filter_json_xsrf(resp)
             assert len(self.get_logs()) == 1, "Expected warning: %s" % value
 
-        # a view returning safe json response should not issue a warning
-        for value in [
+        safe_values = [
             '{"value1": "value2"}',  # json object
             '  \n {"value1": "value2"} ',  # may include whitespace
             'true', 'false', 'null',  # primitives
             '123', '-123', '0.123',  # numbers
-            ]:
+        ]
+        # a view returning safe json response should not issue a warning
+        for value in safe_values:
             resp = Response(value)
             resp.status = 200
             resp.content_type = 'application/json'
@@ -208,7 +211,8 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
 
         # requesting the wrong Content-Type header should return a 415 ...
         response = app.post('/service5',
-            headers={'Content-Type': 'text/plain'}, status=415)
+                            headers={'Content-Type': 'text/plain'},
+                            status=415)
 
         # ... with an appropriate json error structure
         error_description = response.json['errors'][0]['description']
@@ -220,7 +224,8 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
 
         # requesting the wrong Content-Type header should return a 415 ...
         response = app.put('/service5',
-            headers={'Content-Type': 'text/xml'}, status=415)
+                           headers={'Content-Type': 'text/xml'},
+                           status=415)
 
         # ... with an appropriate json error structure
         error_description = response.json['errors'][0]['description']
@@ -233,8 +238,9 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
 
         # requesting with one of the allowed Content-Type headers should work,
         # even when having a charset parameter as suffix
-        response = app.put('/service5',
-            headers={'Content-Type': 'text/plain; charset=utf-8'})
+        response = app.put('/service5', headers={
+            'Content-Type': 'text/plain; charset=utf-8'
+        })
         self.assertEqual(response.json, "some response")
 
     def test_content_type_on_get(self):
@@ -261,37 +267,46 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         app = TestApp(main({}))
 
         # POST endpoint just has one accept and content_type definition
-        response = app.post('/service7',
-            headers={
-                'Accept': 'text/xml, application/json',
-                'Content-Type': 'application/json; charset=utf-8'})
+        response = app.post('/service7', headers={
+            'Accept': 'text/xml, application/json',
+            'Content-Type': 'application/json; charset=utf-8'
+        })
         self.assertEqual(response.json, "some response")
 
-        response = app.post('/service7',
+        response = app.post(
+            '/service7',
             headers={
                 'Accept': 'text/plain, application/json',
-                'Content-Type': 'application/json; charset=utf-8'}, status=406)
+                'Content-Type': 'application/json; charset=utf-8'
+            },
+            status=406)
 
-        response = app.post('/service7',
+        response = app.post(
+            '/service7',
             headers={
                 'Accept': 'text/xml, application/json',
-                'Content-Type': 'application/x-www-form-urlencoded'},
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
             status=415)
 
         # PUT endpoint has a list of accept and content_type definitions
-        response = app.put('/service7',
-            headers={
-                'Accept': 'text/xml, application/json',
-                'Content-Type': 'application/json; charset=utf-8'})
+        response = app.put('/service7', headers={
+            'Accept': 'text/xml, application/json',
+            'Content-Type': 'application/json; charset=utf-8'
+        })
         self.assertEqual(response.json, "some response")
 
-        response = app.put('/service7',
+        response = app.put(
+            '/service7',
             headers={
                 'Accept': 'audio/*',
-                'Content-Type': 'application/json; charset=utf-8'}, status=406)
+                'Content-Type': 'application/json; charset=utf-8'
+            },
+            status=406)
 
-        response = app.put('/service7',
+        response = app.put(
+            '/service7',
             headers={
                 'Accept': 'text/xml, application/json',
-                'Content-Type': 'application/x-www-form-urlencoded'},
-            status=415)
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }, status=415)
