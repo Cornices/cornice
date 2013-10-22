@@ -322,3 +322,12 @@ class TestBodyDecoders(LoggingCatcher, TestCase):
             'yeah': 'man',
         })
         self.assertEqual(response.json['test'], 'succeeded')
+
+    def test_www_form_url_encoded(self):
+        app = TestApp(main({}))
+        response = app.post('/foobar?yeah=test', {
+            'foo': 'hello',
+            'bar': 'open',
+            'yeah': 'man',
+        })
+        self.assertEqual(response.json['test'], 'succeeded')
