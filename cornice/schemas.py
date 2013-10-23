@@ -12,13 +12,13 @@ class CorniceSchema(object):
 
     def bind_attributes(self, request=None):
         if callable(self._c_schema):
-            schema = self._c_schema()
+            self._schema_inst = self._c_schema()
         else:
-            schema = self._c_schema
+            self._schema_inst = self._c_schema
         if request:
-            self._attributes = schema.bind(request=request).children
+            self._attributes = self._schema_inst.bind(request=request).children
         else:
-            self._attributes = schema.children
+            self._attributes = self._schema_inst.children
 
     def get_attributes(self, location=("body", "header", "querystring"),
                        required=(True, False),
@@ -115,3 +115,21 @@ def validate_colander_schema(schema, request):
     _validate_fields('header', headers)
     _validate_fields('body', body)
     _validate_fields('querystring', qs)
+
+    # These taken from colander's _SchemaNode::deserialize
+    # to apply preparer/validator on the root node
+    from colander.compat import is_nonstr_iter
+    c_schema = schema._schema_inst
+    if c_schema.preparer is not None:
+        # if the preparer is a function, call a single preparer
+        if hasattr(c_schema.preparer, '__call__'):
+            request.validated = c_schema.preparer(request.validated)
+            # if the preparer is a list, call each separate preparer
+        elif is_nonstr_iter(c_schema.preparer):
+            for preparer in c_schema.preparer:
+                request.validated = preparer(request.validated)
+
+    from colander import deferred
+    if c_schema.validator is not None:
+        if not isinstance(c_schema.validator, deferred): # unbound
+            c_schema.validator(c_schema, request.validated)

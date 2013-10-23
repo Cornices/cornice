@@ -13,6 +13,7 @@ try:
         SchemaNode,
         String,
         Int,
+        Invalid,
         OneOf,
         drop
     )
@@ -67,6 +68,39 @@ if COLANDER:
         bar = SchemaNode(String(), type='str', location="body")
         baz = SchemaNode(String(), type='str', location="querystring")
         qux = SchemaNode(String(), type='str', location="header")
+
+    class WithPreparerSchema(MappingSchema):
+        def preparer(self, value):
+            value['bar'] = 'mama'
+            return value
+        bar = SchemaNode(String(), type='str')
+
+    class WithManyPreparerSchema(MappingSchema):
+        def _preparer1(value):
+            value['bar1'] = 'mama'
+            return value
+        def _preparer2(value):
+            value['bar2'] = 'papa'
+            return value
+        preparer = [_preparer1, _preparer2]
+
+        bar1 = SchemaNode(String(), type='str')
+        bar2 = SchemaNode(String(), type='str')
+
+    class WithValidatorSchema(MappingSchema):
+        def validator(self, node, value):
+            raise Invalid(node, 'Bubblicious')
+        bar = SchemaNode(String(), type='str')
+
+    class MockRequest(object):
+        def __init__(self, body):
+            self.headers = {}
+            self.matchdict = {}
+            self.body = body
+            self.GET = {}
+            self.POST = {}
+            self.content_type = 'application/json'
+            self.validated = {}
 
     class TestSchemas(TestCase):
 
@@ -154,3 +188,37 @@ if COLANDER:
             validate_colander_schema(schema, dummy_request)
 
             self.assertNotIn('foo', dummy_request.validated)
+
+        def test_colander_schema_with_root_preparer(self):
+            """
+            Test the preparer run on the root node
+            """
+            schema = CorniceSchema.from_colander(WithPreparerSchema)
+
+            dummy_request = MockRequest('{"bar": "not_mama"}')
+            validate_colander_schema(schema, dummy_request)
+
+            self.assertEqual('mama', dummy_request.validated['bar'])
+
+        def test_colander_schema_with_many_root_preparer(self):
+            """
+            Test the preparer run on the root node
+            """
+            schema = CorniceSchema.from_colander(WithManyPreparerSchema)
+
+            dummy_request = MockRequest('{"bar1": "not_mama", "bar2": "not_papa"}')
+            validate_colander_schema(schema, dummy_request)
+
+            self.assertEqual('mama', dummy_request.validated['bar1'])
+            self.assertEqual('papa', dummy_request.validated['bar2'])
+
+        def test_colander_schema_with_root_validator(self):
+            """
+            Test the preparer run on the root node
+            """
+            schema = CorniceSchema.from_colander(WithValidatorSchema)
+
+            dummy_request = MockRequest('{"bar": "heloo"}')
+            with self.assertRaises(Invalid) as e:
+                validate_colander_schema(schema, dummy_request)
+            self.assertEqual({'': 'Bubblicious'}, e.exception.asdict())
