@@ -1,9 +1,9 @@
-Built-in features
-#################
+Built-in validators & filters
+#############################
 
-Here is a list of all the cornice built-in features. Cornice wants to provide
-some tools so you don't mess up when making web services, so some of them are
-activated by default.
+Here is a list of all the cornice built-in validators / filters. Cornice wants
+to provide some tools so you don't mess up when making web services, so some of
+them are activated by default.
 
 If you need to add custom decorators to the list of default ones, or want to
 disable some of them, please refer to :doc:`validation`.

@@ -102,7 +102,7 @@ Let's open the file in messaging/views.py, it contains all the Services::
 
 
 Users management
-:::::::::::::::
+::::::::::::::::
 
 
 We're going to get rid of the Hello service, and change this file in order
@@ -260,7 +260,7 @@ Let's try our application so far with CURL::
 
 
 Messages management
-::::::::::::::::::
+:::::::::::::::::::
 
 Now that we have users, let's post and get messages. This is done via two very
 simple functions we're adding in the :file:`views.py` file::

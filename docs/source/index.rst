@@ -92,6 +92,7 @@ Documentation content
    tutorial
    resources
    validation
+   builtin_validation
    sphinx
    testing
    exhaustive_list
