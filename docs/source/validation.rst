@@ -136,6 +136,40 @@ If you want the schema to be dynamic, i.e. you want to chose which one to use pe
         schema = schema().bind(context=self.context, request=self.request)
         return CorniceSchema(schema.children)
 
+Cornice provides built-in support for JSON and HTML forms
+(``application/x-www-form-urlencoded``) input validation using Colander. If
+you need to validate other input formats, such as XML, you can provide callable
+objects taking a ``request`` argument and returning a Python data structure
+that Colander can understand::
+
+    def dummy_deserializer(request):
+        return parse_my_input_format(request.body)
+
+
+You can then instruct a specific view to use it with the ``deserializer``
+parameter::
+
+    @foobar.post(schema=FooBarSchema, deserializer=dummy_deserializer)
+    def foobar_post(request):
+        return {"test": "succeeded"}
+
+
+If you'd like to configure deserialization globally, you can use the
+``add_cornice_deserializer`` configuration directive in your app configuration
+code to tell Cornice which deserializer to use for a given content
+type::
+
+    config = Configurator(settings={})
+    # ...
+    config.add_cornice_deserializer('text/dummy', dummy_deserializer)
+
+With this configuration, when a request comes with a Content-Type header set to
+``text/dummy``, Cornice will call ``dummy_deserializer`` on the ``request``
+before passing the result to Colander.
+
+View-specific deserializers have priority over global content-type
+deserializers.
+
 
 Using formencode
 ~~~~~~~~~~~~~~~~
@@ -233,20 +267,6 @@ This means something like this::
     @service.get(klass=MyClass, validators=('validate_it',))
     def view(request):
         return "ok"
-
-
-Content validation
-==================
-
-There are two flavors of content validations cornice can apply to services:
-
-    - **Content-Type validation** will match the ``Content-Type`` header sent
-      by the client against a list of allowed content types.
-      When failing on that, it will croak with a ``415 Unsupported Media Type``.
-
-    - **Content negotiation** checks if cornice is able to respond with the
-      requested content type asked by the client sending an ``Accept`` header.
-      Otherwise it will croak with a ``406 Not Acceptable``.
 
 
 Content validation

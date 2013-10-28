@@ -180,6 +180,18 @@ if COLANDER:
     def foobar_post(request):
         return {"test": "succeeded"}
 
+    custom_deserializer_service = Service(name="custom_deserializer_service",
+                                          path="/custom_deserializer")
+
+    def dummy_deserializer(request):
+        values = request.body.decode().split(',')
+        return dict(zip(['foo', 'bar', 'yeah'], values))
+
+    @custom_deserializer_service.post(schema=FooBarSchema,
+                                      deserializer=dummy_deserializer)
+    def custom_deserializer_service_post(request):
+        return {"test": "succeeded"}
+
     class StringSequence(SequenceSchema):
         _ = SchemaNode(String())
 

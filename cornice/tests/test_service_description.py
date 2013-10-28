@@ -2,7 +2,6 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import json
 import warnings
 
 from pyramid import testing
@@ -107,8 +106,8 @@ if COLANDER:
             # and if we add the required values in the body of the post,
             # then we should be good
             data = {'foo': 'yeah', 'bar': 'open'}
-            resp = self.app.post('/foobar?yeah=test',
-                                 params=json.dumps(data), status=200)
+            resp = self.app.post_json('/foobar?yeah=test',
+                                      params=data, status=200)
 
             self.assertEqual(resp.json, {u'baz': None, "test": "succeeded"})
 
@@ -119,40 +118,41 @@ if COLANDER:
         def test_bar_validator(self):
             # test validator on bar attribute
             data = {'foo': 'yeah', 'bar': 'closed'}
-            resp = self.app.post('/foobar?yeah=test', params=json.dumps(data),
-                                 status=400)
+            resp = self.app.post_json('/foobar?yeah=test', params=data,
+                                      status=400)
 
             self.assertEqual(resp.json, {
                 u'errors': [{u'description': u'The bar is not open.',
-                u'location': u'body',
-                u'name': u'bar'}],
+                             u'location': u'body',
+                             u'name': u'bar'}],
                 u'status': u'error'})
 
         def test_foo_required(self):
             # test required attribute
             data = {'bar': 'open'}
-            resp = self.app.post('/foobar?yeah=test', params=json.dumps(data),
-                                 status=400)
+            resp = self.app.post_json('/foobar?yeah=test', params=data,
+                                      status=400)
 
             self.assertEqual(resp.json, {
                 u'errors': [{u'description': u'foo is missing',
-                u'location': u'body',
-                u'name': u'foo'}],
+                             u'location': u'body',
+                             u'name': u'foo'}],
                 u'status': u'error'})
 
         def test_default_baz_value(self):
             # test required attribute
             data = {'foo': 'yeah', 'bar': 'open'}
-            resp = self.app.post('/foobar?yeah=test', params=json.dumps(data),
-                                 status=200)
+            resp = self.app.post_json('/foobar?yeah=test', params=data,
+                                      status=200)
 
             self.assertEqual(resp.json, {u'baz': None, "test": "succeeded"})
 
         def test_ipsum_error_message(self):
             # test required attribute
             data = {'foo': 'yeah', 'bar': 'open', 'ipsum': 5}
-            resp = self.app.post('/foobar?yeah=test', params=json.dumps(data),
-                                 status=400)
+            resp = self.app.post_json('/foobar?yeah=test',
+                                      params=data,
+                                      status=400)
 
             self.assertEqual(resp.json, {
                 u'errors': [
@@ -165,8 +165,8 @@ if COLANDER:
             # test required attribute
             data = {'foo': 'yeah', 'bar': 'open', 'ipsum': 2,
                     'integers': ('a', '2')}
-            resp = self.app.post('/foobar?yeah=test', params=json.dumps(data),
-                                 status=400)
+            resp = self.app.post_json('/foobar?yeah=test', data,
+                                      status=400)
 
             self.assertEqual(resp.json, {
                 u'errors': [
@@ -179,8 +179,8 @@ if COLANDER:
             # test required attribute
             data = {'foo': 'yeah', 'bar': 'open', 'ipsum': 2,
                     'integers': ('1', '2')}
-            self.app.post('/foobar?yeah=test', params=json.dumps(data),
-                          status=200)
+            self.app.post_json('/foobar?yeah=test', params=data,
+                               status=200)
 
         def test_nested_schemas(self):
 
@@ -190,9 +190,9 @@ if COLANDER:
             nested_data = {"title": "Mushroom",
                            "fields": [{"schmil": "Blick"}]}
 
-            self.app.post('/nested', params=json.dumps(data), status=200)
-            self.app.post('/nested', params=json.dumps(nested_data),
-                          status=400)
+            self.app.post_json('/nested', params=data, status=200)
+            self.app.post_json('/nested', params=nested_data,
+                               status=400)
 
         def test_qux_header(self):
             resp = self.app.delete('/foobar', status=400)
@@ -204,4 +204,4 @@ if COLANDER:
                 u'status': u'error'})
 
             self.app.delete('/foobar', headers={'X-Qux': 'Hotzenplotz'},
-                          status=200)
+                            status=200)
