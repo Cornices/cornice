@@ -98,6 +98,10 @@ class Service(object):
         A callable which is used to render responses following validation
         failures.  Defaults to 'json_error'.
 
+    :param traverse:
+        A traversal pattern that will be passed on route declaration and that
+        will be used as the traversal path.
+
     There is also a number of parameters that are related to the support of
     CORS (Cross Origin Resource Sharing). You can read the CORS specification
     at http://www.w3.org/TR/cors/
