@@ -4,6 +4,7 @@
 - Add support for validation of input content other than JSON against Colander
   schemas: built-in support of form-urlencoded and configuration hooks for
   other content types
+- Add support for pyramid traversal.
 
 0.15 - 2013-10-09
 =================
