@@ -189,6 +189,9 @@ def register_service_views(config, service):
         if 'factory' in args:
             route_args['factory'] = args.pop('factory')
 
+        if 'traverse' in args:
+            route_args['traverse'] = args.pop('traverse')
+
         # register the route name with the path if it's not already done
         if service.path not in registered_routes:
             config.add_route(service.name, service.path, **route_args)

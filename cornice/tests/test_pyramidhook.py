@@ -14,6 +14,9 @@ from cornice import Service
 from cornice.tests.support import CatchErrors
 from cornice.tests.support import dummy_factory
 
+from cornice.pyramidhook import register_service_views
+
+from mock import MagicMock
 
 service = Service(name="service", path="/service")
 
@@ -117,3 +120,20 @@ class TestServiceWithWrapper(TestCase):
     def test_wrapped(self):
         result = self.app.get('/wrapperservice')
         self.assertEqual(result.json, 'FOO')
+
+
+test_service = Service(name="jardinet", path="/jardinet", traverse="/jardinet")
+test_service.add_view('GET', lambda _:_)
+
+
+class TestRouteWithTraverse(TestCase):
+
+    def test_route_construction(self):
+        config = MagicMock()
+        config.add_route = MagicMock()
+
+        register_service_views(config, test_service)
+        self.assertTrue(
+                ('traverse', '/jardinet'),
+                config.add_route.called_args,
+            )

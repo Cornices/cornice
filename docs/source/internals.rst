@@ -57,3 +57,8 @@ What's interesting here is that this mechanism is not really tied to pyramid.
 for instance, we are doing the same thing to do the sphinx automatic
 documentation generation: use the APIs that are exposed in the Service class
 and do something from it.
+
+To keep close to the flexibility of pyramid's routing system, a `traverse`
+argument can be provided on service creation. It will be passed to the route
+declaration. This way you can combine URL Dispatch and traversal to build an
+hybrid application.
