@@ -45,3 +45,11 @@ You also can register validators and filters that are defined in your
 
         def validate_req(self, request):
             # validate the request
+
+Registered routes
+=================
+
+Cornice uses a default convention for the names of the routes it registers.
+
+When defining resources, the pattern used is `collection_<service_name>` (it
+prepends ``collection_`` to the service name) for the collection service.
