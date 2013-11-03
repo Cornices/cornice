@@ -7,6 +7,7 @@ from pyramid import testing
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.response import Response
 from pyramid.security import Allow
+import colander
 
 from webtest import TestApp
 
@@ -126,6 +127,7 @@ test_service = Service(name="jardinet", path="/jardinet", traverse="/jardinet")
 test_service.add_view('GET', lambda _:_)
 
 
+
 class TestRouteWithTraverse(TestCase):
 
     def test_route_construction(self):
@@ -137,3 +139,19 @@ class TestRouteWithTraverse(TestCase):
                 ('traverse', '/jardinet'),
                 config.add_route.called_args,
             )
+
+class NonpickableSchema(colander.Schema):
+    # Compiled regexs are, apparently, non-pickleable
+    s = colander.SchemaNode(colander.String(), validator=colander.Regex('.'))
+
+class TestServiceWithNonpickleableSchema(TestCase):
+    def setUp(self):
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        testing.tearDown()
+
+    def test(self):
+        service = Service(name="test", path="/", schema=NonpickableSchema())
+        service.add_view('GET', lambda _:_)
+        register_service_views(self.config, service)

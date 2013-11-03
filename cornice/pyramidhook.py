@@ -165,9 +165,20 @@ def register_service_views(config, service):
     # messages to the user-agent
     cors_validator = get_cors_validator(service)
 
+    # Cornice-specific arguments that pyramid does not know about
+    cornice_parameters = ('filters', 'validators', 'schema', 'klass',
+                          'error_handler', 'deserializer') + CORS_PARAMETERS
+
     for method, view, args in service.definitions:
 
-        args = copy.deepcopy(args)  # make a copy of the dict to not modify it
+        args = copy.copy(args)  # make a copy of the dict to not modify it
+        # Deepcopy only the params we're possibly passing on to pyramid
+        # (Some of those in cornice_parameters, e.g. ``schema``, may contain
+        # unpickleable values.)
+        for item in args:
+            if item not in cornice_parameters:
+                args[item] = copy.deepcopy(args[item])
+
         args['request_method'] = method
 
         if service.cors_enabled:
@@ -175,8 +186,7 @@ def register_service_views(config, service):
 
         decorated_view = decorate_view(view, dict(args), method)
 
-        for item in ('filters', 'validators', 'schema', 'klass',
-                     'error_handler', 'deserializer') + CORS_PARAMETERS:
+        for item in cornice_parameters:
             if item in args:
                 del args[item]
 
