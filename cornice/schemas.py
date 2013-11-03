@@ -8,17 +8,15 @@ class CorniceSchema(object):
     """Defines a cornice schema"""
 
     def __init__(self, _colander_schema):
+        if callable(_colander_schema):
+            _colander_schema = _colander_schema()
         self._c_schema = _colander_schema
 
     def bind_attributes(self, request=None):
-        if callable(self._c_schema):
-            schema = self._c_schema()
-        else:
-            schema = self._c_schema
+        schema = self._c_schema
         if request:
-            self._attributes = schema.bind(request=request).children
-        else:
-            self._attributes = schema.children
+            schema = schema.bind(request=request)
+        return schema.children
 
     def get_attributes(self, location=("body", "header", "querystring"),
                        required=(True, False),
@@ -28,8 +26,7 @@ class CorniceSchema(object):
         By default, if nothing is specified, it will return all the attributes,
         without filtering anything.
         """
-        if not hasattr(self, '_attributes'):
-            self.bind_attributes(request)
+        attributes = self.bind_attributes(request)
 
         def _filter(attr):
             if not hasattr(attr, "location"):
@@ -38,7 +35,7 @@ class CorniceSchema(object):
                 valid_location = attr.location in to_list(location)
             return valid_location and attr.required in to_list(required)
 
-        return list(filter(_filter, self._attributes))
+        return list(filter(_filter, attributes))
 
     def as_dict(self):
         """returns a dict containing keys for the different attributes, and
@@ -56,10 +53,9 @@ class CorniceSchema(object):
              # ...
              }
         """
-        if not hasattr(self, '_attributes'):
-            self.bind_attributes()
+        attributes = self.bind_attributes()
         schema = {}
-        for attr in self._attributes:
+        for attr in attributes:
             schema[attr.name] = {
                 'type': getattr(attr, 'type', attr.typ),
                 'name': attr.name,
