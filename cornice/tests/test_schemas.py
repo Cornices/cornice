@@ -125,6 +125,16 @@ if COLANDER:
             field = b_schema.get_attributes(request=other_dummy_request)[3]
             self.assertEqual(field.validator.choices, ['c', 'd'])
 
+        def test_colander_bound_schema_rebinds_to_new_request(self):
+            dummy_request = {'x-foo': 'version_a'}
+            the_schema = CorniceSchema.from_colander(ToBoundSchema)
+            field = the_schema.get_attributes(request=dummy_request)[3]
+            self.assertEqual(field.validator.choices, ['a', 'b'])
+
+            other_dummy_request = {'x-foo': 'bazinga!'}
+            field = the_schema.get_attributes(request=other_dummy_request)[3]
+            self.assertEqual(field.validator.choices, ['c', 'd'])
+
         def test_imperative_colander_schema(self):
             # not specifying body should act the same way as specifying it
             schema = CorniceSchema.from_colander(imperative_schema)
