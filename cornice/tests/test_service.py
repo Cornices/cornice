@@ -440,3 +440,17 @@ class TestService(TestCase):
         foo = Service(name='foo', path='/foo', cors_origins=(),
                       cors_policy=policy)
         self.assertEqual(len(foo.cors_supported_origins), 0)
+
+    def test_can_specify_a_view_decorator(self):
+        def dummy_decorator(view):
+            return view
+        service = Service("coconuts", "/migrate", decorator=dummy_decorator)
+        args = service.get_arguments({})
+        self.assertEqual(args['decorator'], dummy_decorator)
+
+        # make sure Service.decorator() still works
+        @service.decorator('put')
+        def dummy_view(request):
+            return "data"
+        self.assertTrue(any(view is dummy_view
+                            for method, view, args in service.definitions))

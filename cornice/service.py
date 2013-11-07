@@ -181,7 +181,11 @@ class Service(object):
 
         self.arguments = self.get_arguments(kw)
         for key, value in self.arguments.items():
-            setattr(self, key, value)
+            # avoid squashing Service.decorator if ``decorator``
+            # argument is used to specify a default pyramid view
+            # decorator
+            if key != 'decorator':
+                setattr(self, key, value)
 
         if hasattr(self, 'factory') and hasattr(self, 'acl'):
             raise KeyError("Cannot specify both 'acl' and 'factory'")
