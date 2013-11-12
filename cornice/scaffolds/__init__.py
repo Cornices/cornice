@@ -1,3 +1,6 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
 try:  # pyramid 1.0.X
     # "pyramid.paster.paste_script..." doesn't exist past 1.0.X
     from pyramid.paster import paste_script_template_renderer

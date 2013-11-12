@@ -18,7 +18,7 @@ USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
 
 
 @resource(collection_path='/users', path='/users/{id}',
-        name='user_service', factory=dummy_factory)
+          name='user_service', factory=dummy_factory)
 class User(object):
 
     def __init__(self, request, context=None):
