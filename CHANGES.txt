@@ -1,3 +1,9 @@
+0.16.1 - 2013-11-12
+===================
+
+- Added the license in the distribution tarball
+- Updated the license headers of the files (to MPL v2.0)
+
 0.16 - 2013-11-12
 =================
 
