@@ -1,10 +1,13 @@
-0.16 - XXXX-XX-XX
+0.16 - 2013-11-12
 =================
 
+- Added venusion depth support to cornice.resource #187
 - Add support for validation of input content other than JSON against Colander
   schemas: built-in support of form-urlencoded and configuration hooks for
-  other content types
-- Add support for pyramid traversal.
+  other content types #192
+- Add support for pyramid traversal. #196
+- bugfix: schema was only being bound to the first request #197
+- bugfix: can now pass the `decorator` add_view parameter to the Service class #198
 
 0.15 - 2013-10-09
 =================
