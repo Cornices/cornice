@@ -1,7 +1,7 @@
 0.17 - XXXX-XX-XX
 =================
 
-- XXX
+- Use a string for the version number (cornice.__version__)
 
 0.16.1 - 2013-11-12
 ===================
