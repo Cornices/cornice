@@ -1,4 +1,4 @@
-0.16.1 - 2013-11-12
+0.16.2 - 2013-11-12
 ===================
 
 - Added the license in the distribution tarball
