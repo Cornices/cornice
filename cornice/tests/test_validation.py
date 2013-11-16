@@ -324,7 +324,7 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
         config.add_cornice_deserializer('text/dummy', deserializer)
         return TestApp(CatchErrors(config.make_wsgi_app()))
 
-    def test_json(self):
+    def test_valid_json(self):
         app = self.make_ordinary_app()
         response = app.post_json('/foobar?yeah=test', {
             'foo': 'hello',
@@ -332,6 +332,17 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
             'yeah': 'man',
         })
         self.assertEqual(response.json['test'], 'succeeded')
+
+    def test_invalid_json(self):
+        app = self.make_ordinary_app()
+        response = app.post('/foobar?yeah=test',
+                            "invalid json input",
+                            headers={'content-type': 'application/json'},
+                            status=400)
+        self.assertEqual(response.json['status'], 'error')
+        error_description = response.json['errors'][0]['description']
+        self.assertIn('Invalid JSON', error_description)
+
 
     def test_www_form_urlencoded(self):
         app = self.make_ordinary_app()
