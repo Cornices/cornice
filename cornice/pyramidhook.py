@@ -153,7 +153,6 @@ def register_service_views(config, service):
     services = config.registry.setdefault('cornice_services', {})
     prefix = config.route_prefix or ''
     services[prefix + service.path] = service
-    print prefix + service.path
 
     # keep track of the registered routes
     registered_routes = []
