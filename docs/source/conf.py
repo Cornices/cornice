@@ -13,8 +13,16 @@ templates_path = ['_templates']
 source_suffix = '.rst'
 master_doc = 'index'
 project = u'Cornice'
-copyright = u'2011-2014, Mozilla Services'
-version = release = '0.14'
+copyright = u'2011, Mozilla Services'
+
+# The version info for the project you're documenting, acts as replacement for
+# |version| and |release|, also used in various other places throughout the
+# built documents.
+#
+# The short X.Y version.
+version = '0.17'
+# The full version, including alpha/beta/rc tags.
+release = '0.17'
 
 exclude_patterns = []
 
