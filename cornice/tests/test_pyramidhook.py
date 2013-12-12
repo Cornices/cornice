@@ -127,7 +127,6 @@ test_service = Service(name="jardinet", path="/jardinet", traverse="/jardinet")
 test_service.add_view('GET', lambda _:_)
 
 
-
 class TestRouteWithTraverse(TestCase):
 
     def test_route_construction(self):
@@ -140,9 +139,21 @@ class TestRouteWithTraverse(TestCase):
                 config.add_route.called_args,
             )
 
+    def test_route_with_prefix(self):
+        config = testing.setUp(settings={})
+        config.add_route = MagicMock()
+        config.route_prefix = '/prefix'
+        config.add_directive('add_cornice_service', register_service_views)
+        config.scan("cornice.tests.test_pyramidhook")
+
+        services = config.registry.get('cornice_services', {})
+        self.assertTrue('/prefix/wrapperservice' in services)
+
+
 class NonpickableSchema(colander.Schema):
     # Compiled regexs are, apparently, non-pickleable
     s = colander.SchemaNode(colander.String(), validator=colander.Regex('.'))
+
 
 class TestServiceWithNonpickleableSchema(TestCase):
     def setUp(self):
