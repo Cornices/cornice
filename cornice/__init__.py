@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import logging
+from functools import partial
 
 from cornice import util
 from cornice.errors import Errors  # NOQA
@@ -14,7 +15,7 @@ from cornice.pyramidhook import (
     register_resource_views,
 )
 from cornice.util import ContentTypePredicate
-
+from pyramid.i18n import get_localizer
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.security import NO_PERMISSION_REQUIRED
 
@@ -31,6 +32,17 @@ def add_apidoc(config, pattern, func, service, **kwargs):
     info = apidocs.setdefault(pattern, kwargs)
     info['service'] = service
     info['func'] = func
+
+
+def set_localizer_for_languages(event, available_languages,
+                                default_locale_name):
+    request = event.request
+    if request.accept_language:
+        accepted = request.accept_language
+        locale = accepted.best_match(available_languages, default_locale_name)
+        request._LOCALE_ = locale
+    localizer = get_localizer(request)
+    request.localizer = localizer
 
 
 def includeme(config):
@@ -61,3 +73,12 @@ def includeme(config):
                         permission=NO_PERMISSION_REQUIRED)
         config.add_view(handle_exceptions, context=HTTPForbidden,
                         permission=NO_PERMISSION_REQUIRED)
+
+    if settings.get('available_languages'):
+        available_languages = settings['available_languages'].split()
+        default_locale_name = settings.get('pyramid.default_locale_name', 'en')
+        set_localizer = partial(set_localizer_for_languages,
+                                available_languages=available_languages,
+                                default_locale_name=default_locale_name)
+        config.add_subscriber(set_localizer, NewRequest)
+        config.add_translation_dirs('colander:locale/')

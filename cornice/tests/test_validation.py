@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -365,3 +366,49 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
                             "hello,open,yeah",
                             headers={'content-type': 'text/dummy'})
         self.assertEqual(response.json['test'], 'succeeded')
+
+
+class TestErrorMessageTranslation(TestCase):
+
+    def post(self, settings={}, headers={}):
+        app = TestApp(main({}, **settings))
+        return app.post_json('/foobar?yeah=test', {
+            'foo': 'hello',
+            'bar': 'open',
+            'yeah': 'man',
+            'ipsum': 10,
+        }, status=400, headers=headers)
+
+    def assertErrorDescription(self, response, message):
+        error_description = response.json['errors'][0]['description']
+        self.assertEqual(error_description, message)
+
+    def test_accept_language_header(self):
+        response = self.post(
+            settings={'available_languages': 'fr en'},
+            headers={'Accept-Language': 'fr'})
+        self.assertErrorDescription(
+            response,
+            u'10 est plus grand que la valeur maximum autorisée (3)')
+
+    def test_default_language(self):
+        response = self.post(settings={
+            'available_languages': 'fr ja',
+            'pyramid.default_locale_name': 'ja',
+        })
+        self.assertErrorDescription(
+            response,
+            u'10 は最大値 3 を超過しています')
+
+    def test_default_language_fallback(self):
+        """Should fallback to default language if requested language is not
+        available"""
+        response = self.post(
+            settings={
+                'available_languages': 'ja en',
+                'pyramid.default_locale_name': 'ja',
+            },
+            headers={'Accept-Language': 'ru'})
+        self.assertErrorDescription(
+            response,
+            u'10 は最大値 3 を超過しています')
