@@ -14,6 +14,7 @@ except ImportError:
 from webob.dec import wsgify
 from webob import exc
 from pyramid.httpexceptions import HTTPException
+from pyramid import testing
 
 
 logger = logging.getLogger('cornice')
@@ -23,6 +24,13 @@ class DummyContext(object):
 
     def __repr__(self):
         return 'context!'
+
+
+class DummyRequest(testing.DummyRequest):
+    errors = []
+    def __init__(self, *args, **kwargs):
+        super(DummyRequest, self).__init__(*args, **kwargs)
+        self.context = DummyContext()
 
 
 def dummy_factory(request):
