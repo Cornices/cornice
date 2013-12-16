@@ -1,13 +1,29 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-from cornice.service import Service, get_services, clear_services
+from cornice.service import (Service, get_services, clear_services,
+                             decorate_view)
 from cornice.tests import validationapp
-from cornice.tests.support import TestCase
+from cornice.tests.support import TestCase, DummyRequest, DummyContext
 
 _validator = lambda req: True
 _validator2 = lambda req: True
 _stub = lambda req: None
+
+
+from cornice.resource import resource
+
+
+@resource(collection_path='/pets', path='/pets/{id}')
+class DummyAPI(object):
+    last_request = None
+    last_context = None
+    def __init__(self, request, context=None):
+        DummyAPI.last_request = request
+        DummyAPI.last_context = context
+
+    def collection_get(self):
+        return ['douggy', 'rusty']
 
 
 class TestService(TestCase):
@@ -454,3 +470,27 @@ class TestService(TestCase):
             return "data"
         self.assertTrue(any(view is dummy_view
                             for method, view, args in service.definitions))
+
+    def test_decorate_view_factory(self):
+
+        args = {'factory': u'TheFactoryMethodCalledByPyramid',
+                'klass': DummyAPI}
+
+        decorated_view = decorate_view('collection_get', args, 'GET')
+        dummy_request = DummyRequest()
+        ret = decorated_view(dummy_request)
+        self.assertEqual(ret, ['douggy', 'rusty'])
+        self.assertEqual(dummy_request, DummyAPI.last_request)
+        self.assertEqual(dummy_request.context, DummyAPI.last_context)
+
+    def test_decorate_view_acl(self):
+
+        args = {'acl': 'dummy_permission',
+                'klass': DummyAPI}
+
+        decorated_view = decorate_view('collection_get', args, 'GET')
+        dummy_request = DummyRequest()
+        ret = decorated_view(dummy_request)
+        self.assertEqual(ret, ['douggy', 'rusty'])
+        self.assertEqual(dummy_request, DummyAPI.last_request)
+        self.assertIsNone(DummyAPI.last_context)

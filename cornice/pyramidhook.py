@@ -151,7 +151,8 @@ def register_service_views(config, service):
     :param service: the service object containing the definitions
     """
     services = config.registry.setdefault('cornice_services', {})
-    services[service.path] = service
+    prefix = config.route_prefix or ''
+    services[prefix + service.path] = service
 
     # keep track of the registered routes
     registered_routes = []

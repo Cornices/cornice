@@ -481,7 +481,7 @@ def decorate_view(view, args, method):
         if 'klass' in args and not callable(view):
             params = dict(request=request)
             if 'factory' in args and 'acl' not in args:
-                params['context'] = args['factory'](request)
+                params['context'] = request.context
             ob = args['klass'](**params)
             if is_string(view):
                 view_ = getattr(ob, view.lower())
