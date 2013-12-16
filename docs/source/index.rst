@@ -90,6 +90,7 @@ Documentation content
 
    quickstart
    tutorial
+   config
    resources
    validation
    builtin_validation
