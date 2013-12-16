@@ -194,6 +194,13 @@ class Service(object):
         # this service.
         self.defined_methods = []
         self.definitions = []
+        
+        # check if there is another service registered with the same name
+        for service in SERVICES:
+            if service.name == self.name:
+                msg = "There is already service registered with this name: %s"\
+                      % self.name
+                raise Exception(msg)
 
         # add this service to the list of available services
         SERVICES.append(self)
