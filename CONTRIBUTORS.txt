@@ -2,6 +2,7 @@ Here is a (alphabetically-ordered) list of the people who contributed to
 Cornice:
 
 * Alexis Metaireau <alexis@notmyidea.org>
+* Alex Marandon <contact@alexmarandon.com>
 * Andre Caron <andre.l.caron@gmail.com>
 * Andreas Motl <andreas.motl@ilo.de>
 * Anton D <anton@screwtop>

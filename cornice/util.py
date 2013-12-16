@@ -88,11 +88,12 @@ def extract_json_data(request):
     if request.body:
         try:
             body = json.loads(request.body)
+            return body
         except ValueError as e:
             request.errors.add(
                 'body', None,
-                "Invalid JSON request body: %s" % (e.message))
-        return body
+                "Invalid JSON request body: %s" % e)
+            return {}
     else:
         return {}
 

@@ -2,6 +2,7 @@
 =================
 
 - Use a string for the version number (cornice.__version__)
+- Fix handling of invalid JSON input
 
 0.16.1 - 2013-11-12
 ===================
