@@ -11,7 +11,7 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
 requires = ['pyramid',  'simplejson']
-test_requires = requires + ['colander', 'coverage', 'mock',
+test_requires = requires + ['colander>=1.0b1', 'coverage', 'mock',
                             'webtest', 'Sphinx', 'rxjson']
 
 if sys.version_info < (2, 7):
