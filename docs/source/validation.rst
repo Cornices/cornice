@@ -104,7 +104,7 @@ To describe a schema, using colander and cornice, here is how you can do::
 
     from cornice import Service
     from cornice.schemas import CorniceSchema
-    from colander import MappingSchema, SchemaNode, String
+    from colander import MappingSchema, SchemaNode, String, drop
 
 
     foobar = Service(name="foobar", path="/foobar")
@@ -115,7 +115,7 @@ To describe a schema, using colander and cornice, here is how you can do::
         # yeah is required, but in the querystring.
         foo = SchemaNode(String(), location="body", type='str')
         bar = SchemaNode(String(), location="body", type='str')
-        baz = SchemaNode(String(), location="body", type='str', required=False)
+        baz = SchemaNode(String(), location="body", type='str', missing=drop)
         yeah = SchemaNode(String(), location="querystring", type='str')
 
 
