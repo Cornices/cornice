@@ -10,7 +10,7 @@ Let's suppose you have this service definition::
     from pyramid.config import Configurator
 
     from cornice import Service
-    from cornice.tests import CatchErrors
+    from cornice.tests.support import CatchErrors
 
     service = Service(name="service", path="/service")
 
