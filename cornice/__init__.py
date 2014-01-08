@@ -15,6 +15,7 @@ from cornice.pyramidhook import (
     register_resource_views,
 )
 from cornice.util import ContentTypePredicate
+from pyramid.events import BeforeRender, NewRequest
 from pyramid.i18n import get_localizer
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.security import NO_PERMISSION_REQUIRED
@@ -55,11 +56,32 @@ def set_localizer_for_languages(event, available_languages,
     request.localizer = localizer
 
 
+def setup_localization(config):
+    """
+    Setup localization based on the available_languages and
+    pyramid.default_locale_name settings.
+
+    These settings are named after suggestions from the "Internationalization
+    and Localization" section of the Pyramid documentation.
+    """
+    try:
+        config.add_translation_dirs('colander:locale/')
+        settings = config.get_settings()
+        available_languages = settings['available_languages'].split()
+        default_locale_name = settings.get('pyramid.default_locale_name', 'en')
+        set_localizer = partial(set_localizer_for_languages,
+                                available_languages=available_languages,
+                                default_locale_name=default_locale_name)
+        config.add_subscriber(set_localizer, NewRequest)
+    except ImportError:
+        # add_translation_dirs raises an ImportError if colander is not
+        # installed
+        pass
+
+
 def includeme(config):
     """Include the Cornice definitions
     """
-    from pyramid.events import BeforeRender, NewRequest
-
     # attributes required to maintain services
     config.registry.cornice_services = {}
 
@@ -85,10 +107,4 @@ def includeme(config):
                         permission=NO_PERMISSION_REQUIRED)
 
     if settings.get('available_languages'):
-        available_languages = settings['available_languages'].split()
-        default_locale_name = settings.get('pyramid.default_locale_name', 'en')
-        set_localizer = partial(set_localizer_for_languages,
-                                available_languages=available_languages,
-                                default_locale_name=default_locale_name)
-        config.add_subscriber(set_localizer, NewRequest)
-        config.add_translation_dirs('colander:locale/')
+        setup_localization(config)
