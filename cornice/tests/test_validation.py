@@ -412,3 +412,9 @@ class TestErrorMessageTranslation(TestCase):
         self.assertErrorDescription(
             response,
             u'10 は最大値 3 を超過しています')
+
+    def test_no_language_settings(self):
+        response = self.post()
+        self.assertErrorDescription(
+            response,
+            u'10 is greater than maximum value 3')

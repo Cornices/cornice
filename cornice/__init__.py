@@ -36,6 +36,16 @@ def add_apidoc(config, pattern, func, service, **kwargs):
 
 def set_localizer_for_languages(event, available_languages,
                                 default_locale_name):
+    """
+    Sets the current locale based on the incoming Accept-Language header, if
+    present, and sets a localizer attribute on the request object based on
+    the current locale.
+
+    To be used as an event handler, this function needs to be partially applied
+    with the available_languages and default_locale_name arguments. The
+    resulting function will be an event handler which takes an event object as
+    its only argument.
+    """
     request = event.request
     if request.accept_language:
         accepted = request.accept_language
