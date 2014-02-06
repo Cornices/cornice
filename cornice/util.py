@@ -3,9 +3,11 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import sys
 
-import simplejson as json
+import json
+import simplejson
 
 from pyramid import httpexceptions as exc
+from pyramid.renderers import IRendererFactory
 from pyramid.response import Response
 
 
@@ -30,13 +32,42 @@ def json_renderer(helper):
 
 
 class _JsonRenderer(object):
+    """We implement JSON serialization using a combination of our own custom
+      Content-Type logic `[1]`_ and Pyramid's default JSON rendering machinery.
+      
+      This allows developers to config the JSON renderer using Pyramid's
+      configuration machinery `[2]`_.
+      
+      .. _`[1]`: http://bit.ly/1dq72kQ
+      .. _`[2]`: http://bit.ly/1fQ7uxd
+    """
+
     def __call__(self, data, context):
+        # Unpack the context.
+        request = context['request']
+        response = request.response
+        registry = request.registry
+        # Serialise the ``data`` object to a JSON string using the JSON renderer
+        # registered with Pyramid.
+        renderer_factory = registry.queryUtility(IRendererFactory, name='json')
+        # XXX Patched with ``simplejson.dumps(..., use-decimal=True)`` iff the
+        # renderer has been configured to serialise using just ``json.dumps(...)``.
+        # This maintains backwards compatibility with 
+        
+        if renderer_factory.serializer == json.dumps:
+            renderer_factory.serializer = simplejson.dumps
+        if 'use_decimal' not in renderer_factory.kw:
+            renderer_factory.kw['use_decimal'] = True
+        renderer = renderer_factory(None)
+        # XXX this call has the side effect of potentially setting the
+        # ``response.content_type``.
+        json_str = renderer(data, context)
+        # XXX so we (re)set it ourselves *after* the previous call.
         acceptable = ('application/json', 'text/json', 'text/plain')
-        response = context['request'].response
-        content_type = (context['request'].accept.best_match(acceptable)
-                        or acceptable[0])
+        content_type = (request.accept.best_match(acceptable) or acceptable[0])
         response.content_type = content_type
-        return json.dumps(data, use_decimal=True)
+        # And now return the serialized value.
+        return json_str
 
 
 def to_list(obj):
@@ -49,7 +80,7 @@ def to_list(obj):
 class _JSONError(exc.HTTPError):
     def __init__(self, errors, status=400):
         body = {'status': 'error', 'errors': errors}
-        Response.__init__(self, json.dumps(body, use_decimal=True))
+        Response.__init__(self, simplejson.dumps(body, use_decimal=True))
         self.status = status
         self.content_type = 'application/json'
 
@@ -87,7 +118,7 @@ def match_content_type_header(func, context, request):
 def extract_json_data(request):
     if request.body:
         try:
-            body = json.loads(request.body)
+            body = simplejson.loads(request.body)
             return body
         except ValueError as e:
             request.errors.add(
