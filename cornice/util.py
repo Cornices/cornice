@@ -52,21 +52,21 @@ class _JsonRenderer(object):
         renderer_factory = registry.queryUtility(IRendererFactory, name='json')
         # XXX Patched with ``simplejson.dumps(..., use-decimal=True)`` iff the
         # renderer has been configured to serialise using just ``json.dumps(...)``.
-        # This maintains backwards compatibility with 
-        
+        # This maintains backwards compatibility with the Cornice renderer,
+        # whilst allowing Pyramid renderer configuration via ``add_adapter``
+        # calls, at the price of rather fragile patching of instance properties.
         if renderer_factory.serializer == json.dumps:
             renderer_factory.serializer = simplejson.dumps
         if 'use_decimal' not in renderer_factory.kw:
             renderer_factory.kw['use_decimal'] = True
         renderer = renderer_factory(None)
-        # XXX this call has the side effect of potentially setting the
+        # XXX This call has the side effect of potentially setting the
         # ``response.content_type``.
         json_str = renderer(data, context)
-        # XXX so we (re)set it ourselves *after* the previous call.
+        # XXX So we (re)set it ourselves here, i.e.: *after* the previous call.
         acceptable = ('application/json', 'text/json', 'text/plain')
         content_type = (request.accept.best_match(acceptable) or acceptable[0])
         response.content_type = content_type
-        # And now return the serialized value.
         return json_str
 
 
