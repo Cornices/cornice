@@ -151,6 +151,12 @@ if COLANDER:
             """
             schema = CorniceSchema.from_colander(DropSchema)
 
+            class Registry(object):
+                def __init__(self):
+                    self.cornice_deserializers = {
+                        'application/json': extract_json_data
+                    }
+
             class MockRequest(object):
                 def __init__(self, body):
                     self.headers = {}
@@ -159,14 +165,12 @@ if COLANDER:
                     self.GET = {}
                     self.POST = {}
                     self.validated = {}
-                    self.registry = {
-                        'cornice_deserializers': {
-                            'application/json': extract_json_data
-                        }
-                    }
+                    self.registry = Registry()
 
             dummy_request = MockRequest('{"bar": "required_data"}')
             setattr(dummy_request, 'errors', Errors(dummy_request))
+            setattr(dummy_request, 'content_type', 'application/json')
             validate_colander_schema(schema, dummy_request)
 
             self.assertNotIn('foo', dummy_request.validated)
+            self.assertEqual(len(dummy_request.errors), 0)
