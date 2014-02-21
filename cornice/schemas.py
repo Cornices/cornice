@@ -72,19 +72,22 @@ class CorniceSchema(object):
 
 def validate_colander_schema(schema, request):
     """Validates that the request is conform to the given schema"""
-    from colander import Invalid, Sequence, drop
+    from colander import Invalid, Sequence, drop, null
 
     def _validate_fields(location, data):
         for attr in schema.get_attributes(location=location,
                                           request=request):
-            if attr.required and not attr.name in data:
-                # missing
+            if attr.required and attr.name not in data and attr.default == null:
+                # missing attribute with no default value
                 request.errors.add(location, attr.name,
                                    "%s is missing" % attr.name)
             else:
                 try:
                     if not attr.name in data:
-                        deserialized = attr.deserialize()
+                        if attr.default != null:
+                            deserialized = attr.deserialize(attr.serialize())
+                        else:
+                            deserialized = attr.deserialize()
                     else:
                         if (location == 'querystring' and
                                 isinstance(attr.typ, Sequence)):

@@ -56,6 +56,10 @@ if COLANDER:
         foo = SchemaNode(String(), type='str', missing=drop)
         bar = SchemaNode(String(), type='str')
 
+    class DefaultValueSchema(MappingSchema):
+        foo = SchemaNode(Int(), type="int")
+        bar = SchemaNode(Int(), type="int", default=10)
+
     imperative_schema = SchemaNode(Mapping())
     imperative_schema.add(SchemaNode(String(), name='foo', type='str'))
     imperative_schema.add(SchemaNode(String(), name='bar', type='str',
@@ -174,3 +178,36 @@ if COLANDER:
 
             self.assertNotIn('foo', dummy_request.validated)
             self.assertEqual(len(dummy_request.errors), 0)
+
+        def test_colander_schema_default_value(self):
+            """
+            apply default value to field if the input for them is missing
+            """
+            schema = CorniceSchema.from_colander(DefaultValueSchema)
+
+            class Registry(object):
+                def __init__(self):
+                    self.cornice_deserializers = {
+                        'application/json': extract_json_data
+                    }
+
+            class MockRequest(object):
+                def __init__(self, body):
+                    self.headers = {}
+                    self.matchdict = {}
+                    self.body = body
+                    self.GET = {}
+                    self.POST = {}
+                    self.validated = {}
+                    self.registry = Registry()
+                    self.content_type = 'application/json'
+
+            dummy_request = MockRequest('{"foo": 5}')
+            setattr(dummy_request, 'errors', Errors(dummy_request))
+            validate_colander_schema(schema, dummy_request)
+
+            self.assertIn('bar', dummy_request.validated)
+            self.assertEqual(len(dummy_request.errors), 0)
+            self.assertEqual(dummy_request.validated['foo'], 5)
+            # default value should be available
+            self.assertEqual(dummy_request.validated['bar'], 10)
