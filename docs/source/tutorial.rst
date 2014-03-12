@@ -277,7 +277,7 @@ simple functions we're adding in the :file:`views.py` file::
         return _MESSAGES[:5]
 
 
-    @messages.post(validator=(valid_token, valid_message))
+    @messages.post(validators=(valid_token, valid_message))
     def post_message(request):
         """Adds a message"""
         _MESSAGES.insert(0, request.validated['message'])
