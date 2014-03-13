@@ -39,6 +39,31 @@ if COLANDER:
         else:
             return OneOf(['c', 'd'])
 
+    def get_request(body):
+        """
+        Construct a dummy request with the given request body
+        """
+        class Registry(object):
+            def __init__(self):
+                self.cornice_deserializers = {
+                    'application/json': extract_json_data
+                }
+
+        class MockRequest(object):
+            def __init__(self, body):
+                self.headers = {}
+                self.matchdict = {}
+                self.body = body
+                self.GET = {}
+                self.POST = {}
+                self.validated = {}
+                self.registry = Registry()
+                self.content_type = 'application/json'
+
+        dummy_request = MockRequest(body)
+        setattr(dummy_request, 'errors', Errors(dummy_request))
+        return dummy_request
+
     class TestingSchema(MappingSchema):
         foo = SchemaNode(String(), type='str')
         bar = SchemaNode(String(), type='str', location="body")
@@ -154,26 +179,7 @@ if COLANDER:
             `drop` object.
             """
             schema = CorniceSchema.from_colander(DropSchema)
-
-            class Registry(object):
-                def __init__(self):
-                    self.cornice_deserializers = {
-                        'application/json': extract_json_data
-                    }
-
-            class MockRequest(object):
-                def __init__(self, body):
-                    self.headers = {}
-                    self.matchdict = {}
-                    self.body = body
-                    self.GET = {}
-                    self.POST = {}
-                    self.validated = {}
-                    self.registry = Registry()
-
-            dummy_request = MockRequest('{"bar": "required_data"}')
-            setattr(dummy_request, 'errors', Errors(dummy_request))
-            setattr(dummy_request, 'content_type', 'application/json')
+            dummy_request = get_request('{"bar": "required_data"}')
             validate_colander_schema(schema, dummy_request)
 
             self.assertNotIn('foo', dummy_request.validated)
@@ -184,26 +190,7 @@ if COLANDER:
             apply default value to field if the input for them is missing
             """
             schema = CorniceSchema.from_colander(DefaultValueSchema)
-
-            class Registry(object):
-                def __init__(self):
-                    self.cornice_deserializers = {
-                        'application/json': extract_json_data
-                    }
-
-            class MockRequest(object):
-                def __init__(self, body):
-                    self.headers = {}
-                    self.matchdict = {}
-                    self.body = body
-                    self.GET = {}
-                    self.POST = {}
-                    self.validated = {}
-                    self.registry = Registry()
-                    self.content_type = 'application/json'
-
-            dummy_request = MockRequest('{"foo": 5}')
-            setattr(dummy_request, 'errors', Errors(dummy_request))
+            dummy_request = get_request('{"foo": 5}')
             validate_colander_schema(schema, dummy_request)
 
             self.assertIn('bar', dummy_request.validated)
