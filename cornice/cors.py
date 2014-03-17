@@ -65,7 +65,7 @@ def get_cors_preflight_view(service):
         if max_age is not None:
             response.headers['Access-Control-Max-Age'] = str(max_age)
 
-        return 'ok'
+        return ''
     return _preflight_view
 
 
@@ -97,7 +97,10 @@ def ensure_origin(service, request, response=None):
                 request.errors.add('header', 'Origin',
                                    '%s not allowed' % origin)
             else:
-                response.headers['Access-Control-Allow-Origin'] = origin
+                if any([o == "*" for o in service.cors_origins_for(method)]):
+                    response.headers['Access-Control-Allow-Origin'] = '*'
+                else:
+                    response.headers['Access-Control-Allow-Origin'] = origin
         request.info['cors_checked'] = True
     return response
 
