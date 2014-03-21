@@ -146,7 +146,7 @@ class TestRouteWithTraverse(TestCase):
         config.add_directive('add_cornice_service', register_service_views)
         config.scan("cornice.tests.test_pyramidhook")
 
-        services = config.registry.get('cornice_services', {})
+        services = getattr(config.registry, 'cornice_services', {})
         self.assertTrue('/prefix/wrapperservice' in services)
 
 
