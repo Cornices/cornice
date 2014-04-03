@@ -143,10 +143,11 @@ class TestRouteWithTraverse(TestCase):
         config = testing.setUp(settings={})
         config.add_route = MagicMock()
         config.route_prefix = '/prefix'
+        config.registry.cornice_services = {}
         config.add_directive('add_cornice_service', register_service_views)
         config.scan("cornice.tests.test_pyramidhook")
 
-        services = config.registry.get('cornice_services', {})
+        services = config.registry.cornice_services
         self.assertTrue('/prefix/wrapperservice' in services)
 
 
@@ -158,6 +159,7 @@ class NonpickableSchema(colander.Schema):
 class TestServiceWithNonpickleableSchema(TestCase):
     def setUp(self):
         self.config = testing.setUp()
+        self.config.registry.cornice_services = {}
 
     def tearDown(self):
         testing.tearDown()

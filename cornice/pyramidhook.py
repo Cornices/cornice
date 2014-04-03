@@ -100,7 +100,7 @@ def get_fallback_view(service):
 def apply_filters(request, response):
     if request.matched_route is not None:
         # do some sanity checking on the response using filters
-        services = request.registry.get('cornice_services', {})
+        services = request.registry.cornice_services
         pattern = request.matched_route.pattern
         service = services.get(pattern, None)
         if service is not None:
@@ -150,7 +150,7 @@ def register_service_views(config, service):
     :param config: the pyramid configuration object that will be populated.
     :param service: the service object containing the definitions
     """
-    services = config.registry.setdefault('cornice_services', {})
+    services = config.registry.cornice_services
     prefix = config.route_prefix or ''
     services[prefix + service.path] = service
 
