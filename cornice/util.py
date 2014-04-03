@@ -34,22 +34,24 @@ def json_renderer(helper):
 class _JsonRenderer(object):
     """We implement JSON serialization using a combination of our own custom
       Content-Type logic `[1]`_ and Pyramid's default JSON rendering machinery.
-      
+
       This allows developers to config the JSON renderer using Pyramid's
       configuration machinery `[2]`_.
-      
-      .. _`[1]`: http://bit.ly/1dq72kQ
-      .. _`[2]`: http://bit.ly/1fQ7uxd
-    """
 
+      .. _`[1]`: https://github.com/mozilla-services/cornice/pull/116#issuecomment-14355865
+      .. _`[2]`: http://pyramid.readthedocs.org/en/latest/narr/renderers.html#serializing-custom-objects
+    """
     def __call__(self, data, context):
+        """Serialise the ``data`` with the Pyramid renderer."""
         # Unpack the context.
         request = context['request']
         response = request.response
         registry = request.registry
+
         # Serialise the ``data`` object to a JSON string using the JSON renderer
         # registered with Pyramid.
         renderer_factory = registry.queryUtility(IRendererFactory, name='json')
+
         # XXX Patched with ``simplejson.dumps(..., use-decimal=True)`` iff the
         # renderer has been configured to serialise using just ``json.dumps(...)``.
         # This maintains backwards compatibility with the Cornice renderer,
@@ -60,9 +62,11 @@ class _JsonRenderer(object):
         if 'use_decimal' not in renderer_factory.kw:
             renderer_factory.kw['use_decimal'] = True
         renderer = renderer_factory(None)
+
         # XXX This call has the side effect of potentially setting the
         # ``response.content_type``.
         json_str = renderer(data, context)
+
         # XXX So we (re)set it ourselves here, i.e.: *after* the previous call.
         acceptable = ('application/json', 'text/json', 'text/plain')
         content_type = (request.accept.best_match(acceptable) or acceptable[0])
