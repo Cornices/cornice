@@ -40,9 +40,7 @@ if COLANDER:
             return OneOf(['c', 'd'])
 
     def get_request(body):
-        """
-        Construct a dummy request with the given request body
-        """
+        # Construct a dummy request with the given request body
         class Registry(object):
             def __init__(self):
                 self.cornice_deserializers = {
@@ -174,10 +172,8 @@ if COLANDER:
             self.assertEqual(len(qs_fields), 1)
 
         def test_colander_schema_using_drop(self):
-            """
-            remove fields from validated data if they deserialize to colander's
-            `drop` object.
-            """
+            # remove fields from validated data if they deserialize to
+            # colander's
             schema = CorniceSchema.from_colander(DropSchema)
             dummy_request = get_request('{"bar": "required_data"}')
             validate_colander_schema(schema, dummy_request)
@@ -186,9 +182,8 @@ if COLANDER:
             self.assertEqual(len(dummy_request.errors), 0)
 
         def test_colander_schema_default_value(self):
-            """
-            apply default value to field if the input for them is missing
-            """
+            # apply default value to field if the input for them is
+            # missing
             schema = CorniceSchema.from_colander(DefaultValueSchema)
             dummy_request = get_request('{"foo": 5}')
             validate_colander_schema(schema, dummy_request)
