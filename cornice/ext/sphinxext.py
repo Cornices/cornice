@@ -9,7 +9,7 @@ import sys
 from importlib import import_module
 
 from cornice.util import to_list, is_string, PY3
-from cornice.service import get_services
+from cornice.service import get_services, clear_services
 
 import docutils
 from docutils import nodes, core
@@ -17,6 +17,7 @@ from docutils.parsers.rst import Directive, directives
 from docutils.writers.html4css1 import Writer, HTMLTranslator
 from sphinx.util.docfields import DocFieldTransformer
 
+MODULES = {}
 
 def convert_to_list(argument):
     """Convert a comma separated list into a list of python values"""
@@ -60,9 +61,15 @@ class ServiceDirective(Directive):
         self.env = self.state.document.settings.env
 
     def run(self):
+        # clear the SERVICES variable, which will allow to use this directive multiple times
+        clear_services()
+
         # import the modules, which will populate the SERVICES variable.
         for module in self.options.get('modules'):
-            import_module(module)
+            if MODULES.has_key(module):
+                reload(MODULES[module])
+            else:
+                MODULES[module] = import_module(module)
 
         names = self.options.get('services', [])
 
