@@ -1,6 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+from pyramid.path import DottedNameResolver
 from cornice.util import to_list, extract_request_data
 
 
@@ -8,12 +9,21 @@ class CorniceSchema(object):
     """Defines a cornice schema"""
 
     def __init__(self, _colander_schema):
-        if callable(_colander_schema):
-            _colander_schema = _colander_schema()
-        self._c_schema = _colander_schema
+        self._colander_schema = _colander_schema
+        self._colander_schema_runtime = None
+
+    @property
+    def colander_schema(self):
+        if not self._colander_schema_runtime:
+            schema = self._colander_schema
+            schema = DottedNameResolver(__name__).maybe_resolve(schema)
+            if callable(schema):
+                schema = schema()
+            self._colander_schema_runtime = schema
+        return self._colander_schema_runtime
 
     def bind_attributes(self, request=None):
-        schema = self._c_schema
+        schema = self.colander_schema
         if request:
             schema = schema.bind(request=request)
         return schema.children
@@ -111,3 +121,13 @@ def validate_colander_schema(schema, request):
     _validate_fields('header', headers)
     _validate_fields('body', body)
     _validate_fields('querystring', qs)
+
+    # validate unknown
+    if schema.colander_schema.typ.unknown == 'raise':
+        attrs = schema.get_attributes(location=('body', 'querystring'),
+                                      request=request)
+        params = list(qs.keys()) + list(body.keys())
+        msg = '%s is not allowed'
+        for param in set(params) - set([attr.name for attr in attrs]):
+            request.errors.add('body' if param in body else 'querystring',
+                               param, msg % param)
