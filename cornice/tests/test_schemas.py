@@ -153,20 +153,23 @@ if COLANDER:
 
             class MockRequest(object):
                 def __init__(self, body):
+                    self.content_type = 'application/json'
                     self.headers = {}
                     self.matchdict = {}
                     self.body = body
                     self.GET = {}
                     self.POST = {}
                     self.validated = {}
-                    self.registry = {
-                        'cornice_deserializers': {
-                            'application/json': extract_json_data
-                        }
-                    }
+
+                    class MockRegistry(object):
+                        def __init__(self):
+                            self.cornice_deserializers = {
+                                'application/json': extract_json_data}
+                    self.registry = MockRegistry()
 
             dummy_request = MockRequest('{"bar": "required_data"}')
             setattr(dummy_request, 'errors', Errors(dummy_request))
             validate_colander_schema(schema, dummy_request)
 
             self.assertNotIn('foo', dummy_request.validated)
+            self.assertIn('bar', dummy_request.validated)
