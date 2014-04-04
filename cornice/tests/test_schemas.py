@@ -56,6 +56,15 @@ if COLANDER:
         foo = SchemaNode(String(), type='str', missing=drop)
         bar = SchemaNode(String(), type='str')
 
+    class StrictMappingSchema(MappingSchema):
+        @staticmethod
+        def schema_type():
+            return MappingSchema.schema_type(unknown='raise')
+
+    class StrictSchema(StrictMappingSchema):
+        foo = SchemaNode(String(), type='str', location="body", missing=drop)
+        bar = SchemaNode(String(), type='str', location="body")
+
     imperative_schema = SchemaNode(Mapping())
     imperative_schema.add(SchemaNode(String(), name='foo', type='str'))
     imperative_schema.add(SchemaNode(String(), name='bar', type='str',
@@ -68,6 +77,21 @@ if COLANDER:
         bar = SchemaNode(String(), type='str', location="body")
         baz = SchemaNode(String(), type='str', location="querystring")
         qux = SchemaNode(String(), type='str', location="header")
+
+    class MockRequest(object):
+        def __init__(self, body):
+            self.content_type = 'application/json'
+            self.headers = {}
+            self.matchdict = {}
+            self.body = body
+            self.GET = {}
+            self.POST = {}
+            self.validated = {}
+            class MockRegistry(object):
+                def __init__(self):
+                    self.cornice_deserializers = {
+                        'application/json': extract_json_data}
+            self.registry = MockRegistry()
 
     class TestSchemas(TestCase):
 
@@ -151,25 +175,27 @@ if COLANDER:
             """
             schema = CorniceSchema.from_colander(DropSchema)
 
-            class MockRequest(object):
-                def __init__(self, body):
-                    self.content_type = 'application/json'
-                    self.headers = {}
-                    self.matchdict = {}
-                    self.body = body
-                    self.GET = {}
-                    self.POST = {}
-                    self.validated = {}
-
-                    class MockRegistry(object):
-                        def __init__(self):
-                            self.cornice_deserializers = {
-                                'application/json': extract_json_data}
-                    self.registry = MockRegistry()
-
             dummy_request = MockRequest('{"bar": "required_data"}')
             setattr(dummy_request, 'errors', Errors(dummy_request))
             validate_colander_schema(schema, dummy_request)
 
             self.assertNotIn('foo', dummy_request.validated)
+            self.assertIn('bar', dummy_request.validated)
+
+        def test_colander_strict_schema(self):
+            schema = CorniceSchema.from_colander(StrictSchema)
+
+            dummy_request = MockRequest('''{"bar": "required_data",
+                                            "foo": "optional_data",
+                                            "other": "not_wanted_data"}''')
+
+            setattr(dummy_request, 'errors', Errors(dummy_request))
+            validate_colander_schema(schema, dummy_request)
+
+            errors = dummy_request.errors
+            self.assertEqual(len(errors), 1)
+            self.assertEqual(errors[0], {'description': 'other is not allowed',
+                                         'location': 'body',
+                                         'name': 'other'})
+            self.assertIn('foo', dummy_request.validated)
             self.assertIn('bar', dummy_request.validated)

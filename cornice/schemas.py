@@ -12,6 +12,10 @@ class CorniceSchema(object):
             _colander_schema = _colander_schema()
         self._c_schema = _colander_schema
 
+    @property
+    def raise_unknown(self):
+        return self._c_schema.typ.unknown == 'raise'
+
     def bind_attributes(self, request=None):
         schema = self._c_schema
         if request:
@@ -111,3 +115,13 @@ def validate_colander_schema(schema, request):
     _validate_fields('header', headers)
     _validate_fields('body', body)
     _validate_fields('querystring', qs)
+
+    # validate unknown
+    if schema.raise_unknown:
+        attrs = schema.get_attributes(location=('body', 'querystring'),
+                                      request=request)
+        params = qs.keys() + body.keys()
+        msg = '%s is not allowed'
+        for param in set(params) - set([attr.name for attr in attrs]):
+            request.errors.add('body' if param in body else 'querystring',
+                               param, msg % param)
