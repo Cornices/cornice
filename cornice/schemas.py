@@ -120,7 +120,7 @@ def validate_colander_schema(schema, request):
     if schema.raise_unknown:
         attrs = schema.get_attributes(location=('body', 'querystring'),
                                       request=request)
-        params = qs.keys() + body.keys()
+        params = list(qs.keys()) + list(body.keys())
         msg = '%s is not allowed'
         for param in set(params) - set([attr.name for attr in attrs]):
             request.errors.add('body' if param in body else 'querystring',
