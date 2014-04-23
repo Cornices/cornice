@@ -111,3 +111,14 @@ def validate_colander_schema(schema, request):
     _validate_fields('header', headers)
     _validate_fields('body', body)
     _validate_fields('querystring', qs)
+
+    c_schema = schema._c_schema
+
+    from colander import deferred
+    if c_schema.validator is not None:
+        if not isinstance(c_schema.validator, deferred): # unbound
+            try:
+                c_schema.validator(c_schema, request.validated)
+            except Invalid as e:
+                # the struct is invalid
+                request.errors.add('', 'custom validators', e.asdict()[''])
