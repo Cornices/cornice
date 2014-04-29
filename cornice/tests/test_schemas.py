@@ -199,3 +199,17 @@ if COLANDER:
                                          'name': 'other'})
             self.assertIn('foo', dummy_request.validated)
             self.assertIn('bar', dummy_request.validated)
+
+        def test_colander_schema_using_dotted_names(self):
+            """
+            Schema could be passed as string in view
+            """
+            schema = CorniceSchema.from_colander(
+                'cornice.tests.schema.AccountSchema')
+
+            dummy_request = MockRequest('{"nickname": "john"}')
+            setattr(dummy_request, 'errors', Errors(dummy_request))
+            validate_colander_schema(schema, dummy_request)
+
+            self.assertIn('nickname', dummy_request.validated)
+            self.assertNotIn('city', dummy_request.validated)

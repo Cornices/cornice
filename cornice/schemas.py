@@ -1,6 +1,8 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+from pyramid.path import DottedNameResolver
+from pyramid.decorator import  reify
 from cornice.util import to_list, extract_request_data
 
 
@@ -8,9 +10,19 @@ class CorniceSchema(object):
     """Defines a cornice schema"""
 
     def __init__(self, _colander_schema):
-        if callable(_colander_schema):
-            _colander_schema = _colander_schema()
-        self._c_schema = _colander_schema
+        self._colander_schema = _colander_schema
+        self._colander_schema_runtime = None
+
+    @property
+    def _c_schema(self):
+
+        if not self._colander_schema_runtime:
+            schema = self._colander_schema
+            schema = DottedNameResolver(__name__).maybe_resolve(schema)
+            if callable(schema):
+                schema = schema()
+            self._colander_schema_runtime = schema
+        return self._colander_schema_runtime
 
     @property
     def raise_unknown(self):
