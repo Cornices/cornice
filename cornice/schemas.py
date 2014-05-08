@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 from pyramid.path import DottedNameResolver
+import webob.multidict
 from cornice.util import to_list, extract_request_data
 
 
@@ -75,6 +76,12 @@ class CorniceSchema(object):
 
         return schema
 
+    def unflatten(self, data):
+        return self.colander_schema.unflatten(data)
+
+    def flatten(self, data):
+        return self.colander_schema.flatten(data)
+
     @classmethod
     def from_colander(klass, colander_schema):
         return CorniceSchema(colander_schema)
@@ -85,6 +92,14 @@ def validate_colander_schema(schema, request):
     from colander import Invalid, Sequence, drop
 
     def _validate_fields(location, data):
+        if location == 'body':
+            try:
+                original = data
+                data = webob.multidict.MultiDict(schema.unflatten(data))
+                data.update(original)
+            except KeyError:
+                pass
+
         for attr in schema.get_attributes(location=location,
                                           request=request):
             if attr.required and not attr.name in data:
