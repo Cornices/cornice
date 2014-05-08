@@ -194,6 +194,14 @@ if COLANDER:
             self.app.post_json('/nested', params=nested_data,
                                status=400)
 
+        def test_nested_schemas_with_flattened_values(self):
+
+            data = {"title": "Mushroom",
+                    "fields.0.name": "genre",
+                    "fields.0.description": "Genre"}
+
+            resp = self.app.post('/nested', params=data, status=200)
+
         def test_qux_header(self):
             resp = self.app.delete('/foobar', status=400)
             self.assertEqual(resp.json, {
