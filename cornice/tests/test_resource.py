@@ -68,7 +68,7 @@ class TestResource(TestCase):
         self.assertEqual(self.app.get("/users/1").json, {'name': 'gawel'})
 
         resp = self.app.get("/users/1?callback=test")
-        self.assertEqual(resp.body, b'test({"name": "gawel"})', resp.body)
+        self.assertEqual(resp.body, b'test({"name": "gawel"});')
 
     def test_accept_headers(self):
         # the accept headers should work even in case they're specified in a
