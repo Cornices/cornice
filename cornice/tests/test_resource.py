@@ -63,7 +63,7 @@ class TestResource(TestCase):
 
     def test_basic_resource(self):
         from pkg_resources import parse_version, get_distribution
-        curver = parse_version(get_distribution('pyramid').version)
+        curver = parse_version(get_distribution('pyramid').current_version)
 
         self.assertEqual(self.app.get("/users").json, {'users': [1, 2]})
 
