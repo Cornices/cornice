@@ -70,6 +70,7 @@ class TestResource(TestCase):
         self.assertEqual(self.app.get("/users/1").json, {'name': 'gawel'})
 
         resp = self.app.get("/users/1?callback=test")
+
         if curver < parse_version('1.5a1'):
             self.assertEqual(resp.body, b'test({"name": "gawel"})', resp.body)
         else:
