@@ -63,7 +63,7 @@ class TestResource(TestCase):
 
     def test_basic_resource(self):
         from pkg_resources import parse_version, get_distribution
-        curver = parse_version(get_distribution('pyramid').current_version)
+        current_version = parse_version(get_distribution('pyramid').version)
 
         self.assertEqual(self.app.get("/users").json, {'users': [1, 2]})
 
@@ -71,7 +71,7 @@ class TestResource(TestCase):
 
         resp = self.app.get("/users/1?callback=test")
 
-        if curver < parse_version('1.5a1'):
+        if current_version < parse_version('1.5a4'):
             self.assertEqual(resp.body, b'test({"name": "gawel"})', resp.body)
         else:
             self.assertEqual(resp.body, b'test({"name": "gawel"});', resp.body)
