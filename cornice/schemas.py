@@ -14,7 +14,7 @@ class CorniceSchema(object):
         self._colander_schema_runtime = None
 
     @property
-    def _c_schema(self):
+    def colander_schema(self):
         if not self._colander_schema_runtime:
             schema = self._colander_schema
             schema = DottedNameResolver(__name__).maybe_resolve(schema)
@@ -23,12 +23,8 @@ class CorniceSchema(object):
             self._colander_schema_runtime = schema
         return self._colander_schema_runtime
 
-    @property
-    def raise_unknown(self):
-        return self._c_schema.typ.unknown == 'raise'
-
     def bind_attributes(self, request=None):
-        schema = self._c_schema
+        schema = self.colander_schema
         if request:
             schema = schema.bind(request=request)
         return schema.children
@@ -128,7 +124,7 @@ def validate_colander_schema(schema, request):
     _validate_fields('querystring', qs)
 
     # validate unknown
-    if schema.raise_unknown:
+    if schema.colander_schema.typ.unknown == 'raise':
         attrs = schema.get_attributes(location=('body', 'querystring'),
                                       request=request)
         params = list(qs.keys()) + list(body.keys())
