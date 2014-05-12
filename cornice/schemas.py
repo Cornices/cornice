@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 from pyramid.path import DottedNameResolver
-from pyramid.decorator import  reify
 from cornice.util import to_list, extract_request_data
 
 
