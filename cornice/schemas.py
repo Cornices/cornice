@@ -15,7 +15,6 @@ class CorniceSchema(object):
 
     @property
     def _c_schema(self):
-
         if not self._colander_schema_runtime:
             schema = self._colander_schema
             schema = DottedNameResolver(__name__).maybe_resolve(schema)
