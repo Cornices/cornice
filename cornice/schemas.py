@@ -133,6 +133,8 @@ def validate_colander_schema(schema, request):
                 else:
                     if deserialized is not drop:
                         request.validated[attr.name] = deserialized
+                    elif attr.default:
+                        request.validated[attr.name] = attr.default
 
     qs, headers, body, path = extract_request_data(request)
 
