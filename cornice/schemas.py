@@ -100,6 +100,10 @@ def validate_colander_schema(schema, request):
             except KeyError:
                 pass
 
+        if location == 'querystring':
+            original = data
+            data = schema.unflatten(original)
+
         for attr in schema.get_attributes(location=location,
                                           request=request):
             if attr.required and not attr.name in data:
@@ -113,7 +117,7 @@ def validate_colander_schema(schema, request):
                     else:
                         if (location == 'querystring' and
                                 isinstance(attr.typ, Sequence)):
-                            serialized = data.getall(attr.name)
+                            serialized = original.getall(attr.name)
                         else:
                             serialized = data[attr.name]
                         deserialized = attr.deserialize(serialized)
