@@ -69,6 +69,12 @@ if COLANDER:
         egg = StrictSchema(location='querystring')
         ham = StrictSchema(location='body')
 
+    class DefaultSchema(MappingSchema):
+        foo = SchemaNode(String(), type='str', location="querystring",
+                         missing=drop, default='foo')
+        bar = SchemaNode(String(), type='str', location="querystring",
+                         default='bar')
+
     imperative_schema = SchemaNode(Mapping())
     imperative_schema.add(SchemaNode(String(), name='foo', type='str'))
     imperative_schema.add(SchemaNode(String(), name='bar', type='str',
@@ -235,5 +241,40 @@ if COLANDER:
             expected = {'egg': {'bar': 'GET'},
                         'ham': {'bar': 'POST'},
                         }
+
+            self.assertEqual(expected, dummy_request.validated)
+
+        def test_colander_schema_using_defaults(self):
+            """
+            Schema could contains default values
+            """
+            schema = CorniceSchema.from_colander(DefaultSchema)
+
+            dummy_request = MockRequest('', {'bar': 'test'})
+            setattr(dummy_request, 'errors', Errors(dummy_request))
+            validate_colander_schema(schema, dummy_request)
+
+            qs_fields = schema.get_attributes(location="querystring")
+
+            errors = dummy_request.errors
+            self.assertEqual(len(errors), 0)
+            self.assertEqual(len(qs_fields), 2)
+
+            expected = {'foo': 'foo', 'bar': 'test'}
+
+            self.assertEqual(expected, dummy_request.validated)
+
+
+            dummy_request = MockRequest('', {'bar': 'test', 'foo': 'test'})
+            setattr(dummy_request, 'errors', Errors(dummy_request))
+            validate_colander_schema(schema, dummy_request)
+
+            qs_fields = schema.get_attributes(location="querystring")
+
+            errors = dummy_request.errors
+            self.assertEqual(len(errors), 0)
+            self.assertEqual(len(qs_fields), 2)
+
+            expected = {'foo': 'test', 'bar': 'test'}
 
             self.assertEqual(expected, dummy_request.validated)
