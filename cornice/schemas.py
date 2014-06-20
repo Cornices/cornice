@@ -101,8 +101,11 @@ def validate_colander_schema(schema, request):
                 pass
 
         if location == 'querystring':
-            original = data
-            data = schema.unflatten(original)
+            try:
+                original = data
+                data = schema.unflatten(original)
+            except KeyError:
+                pass
 
         for attr in schema.get_attributes(location=location,
                                           request=request):

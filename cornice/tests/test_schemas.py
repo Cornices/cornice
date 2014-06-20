@@ -75,6 +75,15 @@ if COLANDER:
         bar = SchemaNode(String(), type='str', location="querystring",
                          default='bar')
 
+    class QsSchema(MappingSchema):
+        foo = SchemaNode(String(), type='str', location="querystring",
+                         missing=drop)
+
+    class StrictQsSchema(StrictMappingSchema):
+        foo = SchemaNode(String(), type='str', location="querystring",
+                         missing=drop)
+
+
     imperative_schema = SchemaNode(Mapping())
     imperative_schema.add(SchemaNode(String(), name='foo', type='str'))
     imperative_schema.add(SchemaNode(String(), name='bar', type='str',
@@ -277,4 +286,31 @@ if COLANDER:
 
             expected = {'foo': 'test', 'bar': 'test'}
 
+            self.assertEqual(expected, dummy_request.validated)
+
+        def test_extra_params_qs(self):
+            schema = CorniceSchema.from_colander(QsSchema)
+            dummy_request = MockRequest('', {'foo': 'test', 'bar': 'test'})
+            setattr(dummy_request, 'errors', Errors(dummy_request))
+            validate_colander_schema(schema, dummy_request)
+
+            errors = dummy_request.errors
+            self.assertEqual(len(errors), 0)
+
+            expected = {'foo': 'test'}
+            self.assertEqual(expected, dummy_request.validated)
+
+        def test_extra_params_qs_strict(self):
+            schema = CorniceSchema.from_colander(StrictQsSchema)
+            dummy_request = MockRequest('', {'foo': 'test', 'bar': 'test'})
+            setattr(dummy_request, 'errors', Errors(dummy_request))
+            validate_colander_schema(schema, dummy_request)
+
+            errors = dummy_request.errors
+            self.assertEqual(len(errors), 1)
+            self.assertEqual(errors[0], {'description': 'bar is not allowed',
+                                         'location': 'querystring',
+                                         'name': 'bar'})
+
+            expected = {'foo': 'test'}
             self.assertEqual(expected, dummy_request.validated)
