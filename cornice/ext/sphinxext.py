@@ -66,7 +66,7 @@ class ServiceDirective(Directive):
 
         # import the modules, which will populate the SERVICES variable.
         for module in self.options.get('modules'):
-            if MODULES.has_key(module):
+            if module in MODULES:
                 reload(MODULES[module])
             else:
                 MODULES[module] = import_module(module)
