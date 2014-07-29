@@ -91,6 +91,9 @@ class Service(object):
         A callable defining the ACL (returns true or false, function of the
         given request). Exclusive with the 'factory' option.
 
+    :param permission:
+        As for :ref:`pyramid.config.Configurator.add_view`
+
     :param klass:
         The class to use when resolving views (if they are not callables)
 
@@ -214,10 +217,10 @@ class Service(object):
                                    depth=depth)
 
     def get_arguments(self, conf=None):
-        """Return a dictionnary of arguments. Takes arguments from the :param
+        """Return a dictionary of arguments. Takes arguments from the :param
         conf: param and merges it with the arguments passed in the constructor.
 
-        :param conf: the dictionnary to use.
+        :param conf: the dictionary to use.
         """
         if conf is None:
             conf = {}
@@ -230,7 +233,7 @@ class Service(object):
 
         for arg in self.list_arguments:
             # rather than overwriting, extend the defined lists if any.
-            # take care of re-creating the lists before appening items to them,
+            # take care of re-creating the lists before appending items to them,
             # to avoid modifications to the already existing ones
             value = list(getattr(self, arg, []))
             if arg in conf:
@@ -273,10 +276,11 @@ class Service(object):
         can be overwritten here. Additionally,
         :meth:`~cornice.service.Service.api` has following keyword params:
 
-        :param method: The request method. Should be one of GET, POST, PUT,
-                       DELETE, OPTIONS, TRACE or CONNECT.
+        :param method: The request method. Should be one of 'GET', 'POST', 'PUT',
+                       'DELETE', 'OPTIONS', 'TRACE', or 'CONNECT'.
         :param view: the view to hook to
-        :param **kwargs: additional configuration for this view
+        :param **kwargs: additional configuration for this view,
+                        including `permission`.
         """
         method = method.upper()
         if 'schema' in kwargs:

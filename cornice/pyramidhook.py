@@ -207,7 +207,8 @@ def register_service_views(config, service):
         if service.path not in registered_routes:
             config.add_route(service.name, service.path, **route_args)
             config.add_view(view=get_fallback_view(service),
-                            route_name=service.name)
+                            route_name=service.name,
+                            permission=args.get('permission'))
             registered_routes.append(service.path)
             config.commit()
 
