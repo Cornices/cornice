@@ -1,12 +1,13 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+import mock
 from cornice.tests.support import TestCase
 
 from pyramid import testing
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPNotFound, HTTPMethodNotAllowed
 from pyramid.response import Response
-from pyramid.security import Allow, Everyone
+from pyramid.security import Allow
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 
@@ -31,7 +32,7 @@ def return_404(request):
 
 
 def my_acl(request):
-    return [(Allow, Everyone, 'write')]
+    return [(Allow, 'bob', 'write')]
 
 
 @service.delete(acl=my_acl, permission='write')
@@ -69,11 +70,11 @@ class TestService(TestCase):
         self.config = testing.setUp()
         self.config.include("cornice")
 
-        authz_policy = ACLAuthorizationPolicy()
-        self.config.set_authorization_policy(authz_policy)
+        self.authz_policy = ACLAuthorizationPolicy()
+        self.config.set_authorization_policy(self.authz_policy)
 
-        authn_policy = AuthTktAuthenticationPolicy('$3kr1t')
-        self.config.set_authentication_policy(authn_policy)
+        self.authn_policy = AuthTktAuthenticationPolicy('$3kr1t')
+        self.config.set_authentication_policy(self.authn_policy)
 
         self.config.scan("cornice.tests.test_service")
         self.config.scan("cornice.tests.test_pyramidhook")
@@ -89,11 +90,15 @@ class TestService(TestCase):
 
     def test_405(self):
         # calling a unknown verb on an existing resource should return a 405
-        self.app.post("/service", status=405)
+        self.app.post("/service", status=HTTPMethodNotAllowed.code)
 
-    def test_acl_support(self):
-        result = self.app.delete('/service')
-        self.assertEqual("yay", result.json)
+    def test_acl_support_unauthenticated(self):
+        self.app.delete('/service', status=403)
+
+    def test_acl_support_authenticated(self):
+        with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='bob'):
+            result = self.app.delete('/service')
+            self.assertEqual("yay", result.json)
 
     def test_class_support(self):
         self.app.get('/fresh-air', status=400)
