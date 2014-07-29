@@ -1,7 +1,9 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+import logging
 import mock
+from pyramid.interfaces import IDebugLogger
 from cornice.tests.support import TestCase
 
 from pyramid import testing
@@ -68,7 +70,13 @@ tc.add_view("GET", "get_fresh_air", filters=('make_it_fresh',),
 class TestService(TestCase):
 
     def setUp(self):
-        self.config = testing.setUp()
+        self.config = testing.setUp(settings={'pyramid.debug_authorization': True})
+
+        # Set up debug_auth logging to console
+        logging.basicConfig(level=logging.DEBUG)
+        debug_logger = logging.getLogger()
+        self.config.registry.registerUtility(debug_logger, IDebugLogger)
+
         self.config.include("cornice")
 
         self.authz_policy = ACLAuthorizationPolicy()
