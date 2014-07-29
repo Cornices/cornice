@@ -72,7 +72,7 @@ class TestService(TestCase):
     def setUp(self):
         self.config = testing.setUp(settings={'pyramid.debug_authorization': True})
 
-        # Set up debug_auth logging to console
+        # Set up debug_authorization logging to console
         logging.basicConfig(level=logging.DEBUG)
         debug_logger = logging.getLogger()
         self.config.registry.registerUtility(debug_logger, IDebugLogger)
