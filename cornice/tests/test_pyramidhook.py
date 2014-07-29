@@ -6,7 +6,10 @@ from cornice.tests.support import TestCase
 from pyramid import testing
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.response import Response
-from pyramid.security import Allow
+from pyramid.security import Allow, Everyone
+from pyramid.authentication import AuthTktAuthenticationPolicy
+from pyramid.authorization import ACLAuthorizationPolicy
+
 import colander
 
 from webtest import TestApp
@@ -28,10 +31,10 @@ def return_404(request):
 
 
 def my_acl(request):
-    return [(Allow, 'bob', 'write')]
+    return [(Allow, Everyone, 'write')]
 
 
-@service.delete(acl=my_acl)
+@service.delete(acl=my_acl, permission='write')
 def return_yay(request):
     return "yay"
 
@@ -65,6 +68,13 @@ class TestService(TestCase):
     def setUp(self):
         self.config = testing.setUp()
         self.config.include("cornice")
+
+        authz_policy = ACLAuthorizationPolicy()
+        self.config.set_authorization_policy(authz_policy)
+
+        authn_policy = AuthTktAuthenticationPolicy('$3kr1t')
+        self.config.set_authentication_policy(authn_policy)
+
         self.config.scan("cornice.tests.test_service")
         self.config.scan("cornice.tests.test_pyramidhook")
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
@@ -73,7 +83,7 @@ class TestService(TestCase):
         testing.tearDown()
 
     def test_404(self):
-        # a get on a resource that explicitely return a 404 should return
+        # a get on a resource that explicitly return a 404 should return
         # 404
         self.app.get("/service", status=404)
 
@@ -82,7 +92,8 @@ class TestService(TestCase):
         self.app.post("/service", status=405)
 
     def test_acl_support(self):
-        self.app.delete('/service')
+        result = self.app.delete('/service')
+        self.assertEqual("yay", result.json)
 
     def test_class_support(self):
         self.app.get('/fresh-air', status=400)
