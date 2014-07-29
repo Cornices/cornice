@@ -5,7 +5,7 @@ import mock
 from cornice.tests.support import TestCase
 
 from pyramid import testing
-from pyramid.httpexceptions import HTTPNotFound, HTTPMethodNotAllowed
+from pyramid.httpexceptions import HTTPOk, HTTPForbidden, HTTPNotFound, HTTPMethodNotAllowed
 from pyramid.response import Response
 from pyramid.security import Allow
 from pyramid.authentication import AuthTktAuthenticationPolicy
@@ -32,7 +32,8 @@ def return_404(request):
 
 
 def my_acl(request):
-    return [(Allow, 'bob', 'write')]
+    return [(Allow, 'bob', 'write'),
+            (Allow, 'alice', 'read')]
 
 
 @service.delete(acl=my_acl, permission='write')
@@ -84,21 +85,29 @@ class TestService(TestCase):
         testing.tearDown()
 
     def test_404(self):
-        # a get on a resource that explicitly return a 404 should return
-        # 404
-        self.app.get("/service", status=404)
+        # a get on a resource that explicitly return a 404 should return 404
+        self.app.get("/service", status=HTTPNotFound.code)
 
     def test_405(self):
         # calling a unknown verb on an existing resource should return a 405
         self.app.post("/service", status=HTTPMethodNotAllowed.code)
 
     def test_acl_support_unauthenticated(self):
-        self.app.delete('/service', status=403)
+        # calling a view with permissions without an auth'd user => 403
+        self.app.delete('/service', status=HTTPForbidden.code)
 
-    def test_acl_support_authenticated(self):
+    def test_acl_support_authenticated_allowed(self):
         with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='bob'):
-            result = self.app.delete('/service')
+            result = self.app.delete('/service', status=HTTPOk.code)
             self.assertEqual("yay", result.json)
+
+    def test_acl_support_authenticated_valid_user_wrong_permission(self):
+        with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='alice'):
+            self.app.delete('/service', status=HTTPForbidden.code)
+
+    def test_acl_support_authenticated_invalid_user(self):
+        with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='mallory'):
+            self.app.delete('/service', status=HTTPForbidden.code)
 
     def test_class_support(self):
         self.app.get('/fresh-air', status=400)
