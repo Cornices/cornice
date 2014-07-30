@@ -11,6 +11,7 @@ from cornice.tests.support import TestCase, CatchErrors
 
 service1 = Service(name="service1", path="/service1")
 service2 = Service(name="service2", path="/service2")
+service3 = Service(name="service3", path="/service3")
 
 
 @service1.get()
@@ -26,6 +27,12 @@ def post1(request):
 @service2.get(accept="text/html")
 @service2.post(accept="audio/ogg")
 def get2_or_post2(request):
+    return {"test": "succeeded"}
+
+
+@service3.get(accept="application/json", renderer="json")
+@service3.get(accept="text/plain", renderer="string")
+def get3(request):
     return {"test": "succeeded"}
 
 
@@ -77,3 +84,20 @@ class TestServiceDefinition(TestCase):
 
         resp = self.app.post("/service2", headers={'Accept': 'audio/ogg'})
         self.assertEqual(resp.json, {'test': 'succeeded'})
+
+    def test_stacking_api_decorators_default(self):
+        # Stacking multiple @api calls on a single function should
+        # register it multiple times, just like @view_config does.
+        resp = self.app.get("/service3", headers={'Accept': 'text/plain'})
+        self.assertEqual(resp.headers["Content-Type"],
+                         "text/plain; charset=UTF-8")
+
+        # Should default to the Service renderer
+        resp = self.app.get("/service3")
+        self.assertEqual(resp.headers["Content-Type"],
+                         "application/json; charset=UTF-8")
+
+        resp = self.app.get("/service3",
+                            headers={'Accept': 'application/json'})
+        self.assertEqual(resp.headers["Content-Type"],
+                         "application/json; charset=UTF-8")
