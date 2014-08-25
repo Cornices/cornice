@@ -8,6 +8,7 @@ import itertools
 from pyramid.httpexceptions import (HTTPMethodNotAllowed, HTTPNotAcceptable,
                                     HTTPUnsupportedMediaType, HTTPException)
 from pyramid.exceptions import PredicateMismatch
+from pyramid.security import NO_PERMISSION_REQUIRED
 
 from cornice.service import decorate_view
 from cornice.errors import Errors
@@ -207,7 +208,8 @@ def register_service_views(config, service):
         if service.path not in registered_routes:
             config.add_route(service.name, service.path, **route_args)
             config.add_view(view=get_fallback_view(service),
-                            route_name=service.name)
+                            route_name=service.name,
+                            permission=NO_PERMISSION_REQUIRED)
             registered_routes.append(service.path)
             config.commit()
 
