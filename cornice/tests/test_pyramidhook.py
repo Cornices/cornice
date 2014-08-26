@@ -6,7 +6,7 @@ from cornice.tests.support import TestCase
 from pyramid import testing
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.response import Response
-from pyramid.security import Allow
+from pyramid.security import Allow, NO_PERMISSION_REQUIRED
 import colander
 
 from webtest import TestApp
@@ -168,3 +168,33 @@ class TestServiceWithNonpickleableSchema(TestCase):
         service = Service(name="test", path="/", schema=NonpickableSchema())
         service.add_view('GET', lambda _:_)
         register_service_views(self.config, service)
+
+
+
+class TestFallbackRegistration(TestCase):
+    def setUp(self):
+        self.config = testing.setUp()
+        self.config.registry.cornice_services = {}
+
+    def tearDown(self):
+        testing.tearDown()
+
+    def test_fallback_permission(self):
+        """
+        Fallback view should be registered with NO_PERMISSION_REQUIRED
+        Fixes: https://github.com/mozilla-services/cornice/issues/245
+        """
+        service = Service(name='fallback-test', path='/')
+        service.add_view('GET', lambda _:_)
+        register_service_views(self.config, service)
+
+        # This is a bit baroque
+        introspector = self.config.introspector
+        views = introspector.get_category('views')
+        fallback_views = [i for i in views
+                          if i['introspectable']['route_name']=='fallback-test']
+
+        for v in fallback_views:
+            if v['introspectable'].title == u'function cornice.pyramidhook._fallback_view':
+                permissions = [p['value'] for p in v['related'] if p.type_name == 'permission']
+                self.assertIn(NO_PERMISSION_REQUIRED, permissions)
