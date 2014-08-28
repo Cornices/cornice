@@ -7,6 +7,7 @@ import itertools
 
 from pyramid.httpexceptions import (HTTPMethodNotAllowed, HTTPNotAcceptable,
                                     HTTPUnsupportedMediaType, HTTPException)
+from pyramid.events import NewRequest
 from pyramid.exceptions import PredicateMismatch
 from pyramid.security import NO_PERMISSION_REQUIRED
 
@@ -59,9 +60,9 @@ def get_fallback_view(service):
 
             if 'accept' in args:
                 acceptable.extend(
-                        service.get_acceptable(method, filter_callables=True))
+                    service.get_acceptable(method, filter_callables=True))
                 acceptable.extend(
-                        request.info.get('acceptable', []))
+                    request.info.get('acceptable', []))
                 acceptable = list(set(acceptable))
 
                 # Now check if that was actually the source of the problem.
@@ -76,10 +77,10 @@ def get_fallback_view(service):
 
             if 'content_type' in args:
                 supported_contenttypes.extend(
-                        service.get_contenttypes(method,
-                                                 filter_callables=True))
+                    service.get_contenttypes(method,
+                                             filter_callables=True))
                 supported_contenttypes.extend(
-                        request.info.get('supported_contenttypes', []))
+                    request.info.get('supported_contenttypes', []))
                 supported_contenttypes = list(set(supported_contenttypes))
 
                 # Now check if that was actually the source of the problem.
@@ -228,13 +229,18 @@ def register_service_views(config, service):
                 # We register the same view multiple times with different
                 # accept / content_type / custom_predicates arguments
                 config.add_view(view=decorated_view, route_name=service.name,
-                            **args)
-
+                                **args)
         else:
             # it is a simple view, we don't need to loop on the definitions
             # and just add it one time.
             config.add_view(view=decorated_view, route_name=service.name,
                             **args)
+
+        # Default accept to json
+        def add_default_accept(event):
+            if "Accept" not in event.request.headers:
+                event.request.headers["Accept"] = "application/json"
+        config.add_subscriber(add_default_accept, NewRequest)
 
         config.commit()
 
