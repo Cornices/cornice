@@ -1,8 +1,14 @@
-0.17 - XXXX-XX-XX
+0.17 - 2014-08-28
 =================
 
-- Use a string for the version number (cornice.__version__)
-- Fix handling of invalid JSON input
+- Use a string for the version number (cornice.__version__);
+- Fix handling of invalid JSON input;
+- Fix pyramid configurator route_prefix;
+- Fix CORS behavior when using "*";
+- Support strict validation of querystring and body;
+- Add support for unflatted in querystring;
+- If colander defines a default value, put it in request.validated;
+- Do not require a permission for the fallback view.
 
 0.16.1 - 2013-11-12
 ===================
