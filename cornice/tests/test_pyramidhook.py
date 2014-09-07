@@ -9,7 +9,7 @@ from cornice.tests.support import TestCase
 from pyramid import testing
 from pyramid.httpexceptions import HTTPOk, HTTPForbidden, HTTPNotFound, HTTPMethodNotAllowed
 from pyramid.response import Response
-from pyramid.security import Allow, NO_PERMISSION_REQUIRED
+from pyramid.security import Allow, Deny, NO_PERMISSION_REQUIRED
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 
@@ -34,8 +34,9 @@ def return_404(request):
 
 
 def my_acl(request):
-    return [(Allow, 'bob', 'write'),
-            (Allow, 'alice', 'read')]
+    return [(Allow, 'alice', 'read'),
+            (Allow, 'bob', 'write'),
+            (Deny, 'carol', 'write')]
 
 
 @service.delete(acl=my_acl, permission='write')
@@ -111,6 +112,10 @@ class TestService(TestCase):
 
     def test_acl_support_authenticated_valid_user_wrong_permission(self):
         with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='alice'):
+            self.app.delete('/service', status=HTTPForbidden.code)
+
+    def test_acl_support_authenticated_valid_user_permission_denied(self):
+        with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='carol'):
             self.app.delete('/service', status=HTTPForbidden.code)
 
     def test_acl_support_authenticated_invalid_user(self):
