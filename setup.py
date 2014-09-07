@@ -36,7 +36,7 @@ package_data = {
         "cornice/+package+/*.*"]}
 
 setup(name='cornice',
-      version='0.18',
+      version='0.18.1',
       description='Define Web Services in Pyramid.',
       long_description=README + '\n\n' + CHANGES,
       license='MPLv2.0',
