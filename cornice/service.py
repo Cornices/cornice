@@ -43,7 +43,7 @@ class Service(object):
     A service is composed of a path and many potential methods, associated
     with context.
 
-    All the class attributes defined in this class or in childs are considered
+    All the class attributes defined in this class or in children are considered
     default values.
 
     :param name:
@@ -92,7 +92,9 @@ class Service(object):
         given request). Exclusive with the 'factory' option.
 
     :param permission:
-        As for :ref:`pyramid.config.Configurator.add_view`
+        As for :ref:`pyramid.config.Configurator.add_view`.
+        Note: `acl` and `permission` can also be applied
+        to instance method decorators such as :meth:`~get` and :meth:`~put`.
 
     :param klass:
         The class to use when resolving views (if they are not callables)
@@ -105,7 +107,7 @@ class Service(object):
         A traversal pattern that will be passed on route declaration and that
         will be used as the traversal path.
 
-    There is also a number of parameters that are related to the support of
+    There are also a number of parameters that are related to the support of
     CORS (Cross Origin Resource Sharing). You can read the CORS specification
     at http://www.w3.org/TR/cors/
 
@@ -130,7 +132,7 @@ class Service(object):
     :param cors_expose_all_headers:
         If set to True, all the headers will be exposed and considered valid
         ones (Default: True). If set to False, all the headers need be
-        explicitely mentionned with the cors_headers parameter.
+        explicitly mentioned with the cors_headers parameter.
 
     :param cors_policy:
         It may be easier to have an external object containing all the policy
@@ -175,7 +177,7 @@ class Service(object):
                 kw.setdefault('cors_' + key, value)
 
         for key in self.list_arguments:
-            # default_{validators,filters} and {filters,validators} doesn't
+            # default_{validators,filters} and {filters,validators} don't
             # have to be mutables, so we need to create a new list from them
             extra = to_list(kw.get(key, []))
             kw[key] = []
@@ -193,7 +195,7 @@ class Service(object):
         if hasattr(self, 'factory') and hasattr(self, 'acl'):
             raise KeyError("Cannot specify both 'acl' and 'factory'")
 
-        # instanciate some variables we use to keep track of what's defined for
+        # instantiate some variables we use to keep track of what's defined for
         # this service.
         self.defined_methods = []
         self.definitions = []
