@@ -151,6 +151,7 @@ def register_service_views(config, service):
     :param config: the pyramid configuration object that will be populated.
     :param service: the service object containing the definitions
     """
+    route_name = service.name
     services = config.registry.cornice_services
     prefix = config.route_prefix or ''
     services[prefix + service.path] = service
@@ -201,11 +202,7 @@ def register_service_views(config, service):
         if 'traverse' in args:
             route_args['traverse'] = args.pop('traverse')
 
-        config.add_route(service.name, service.path, **route_args)
-        config.add_view(view=get_fallback_view(service),
-                        route_name=service.name,
-                        permission=args.get('permission', NO_PERMISSION_REQUIRED))
-        config.commit()
+        config.add_route(route_name, service.path, **route_args)
 
         # 2. register view(s)
         # pop and compute predicates which get passed through to Pyramid 1:1
@@ -221,15 +218,22 @@ def register_service_views(config, service):
 
                 # We register the same view multiple times with different
                 # accept / content_type / custom_predicates arguments
-                config.add_view(view=decorated_view, route_name=service.name,
+                config.add_view(view=decorated_view, route_name=route_name,
                                 **args)
 
         else:
             # it is a simple view, we don't need to loop on the definitions
             # and just add it one time.
-            config.add_view(view=decorated_view, route_name=service.name,
+            config.add_view(view=decorated_view, route_name=route_name,
                             **args)
 
+        config.commit()
+
+    if service.definitions:
+        # Add the fallback view last
+        config.add_view(view=get_fallback_view(service),
+                        route_name=route_name,
+                        permission=NO_PERMISSION_REQUIRED)
         config.commit()
 
 
