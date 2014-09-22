@@ -9,7 +9,7 @@ from cornice.validators import (
     DEFAULT_FILTERS,
 )
 from cornice.schemas import CorniceSchema, validate_colander_schema
-from cornice.util import is_string, to_list, json_error
+from cornice.util import is_string, to_list, json_error, func_name
 
 try:
     import venusian
@@ -536,4 +536,8 @@ def decorate_view(view, args, method):
 
     # return the wrapper, not the function, keep the same signature
     functools.wraps(wrapper)
+
+    # Set the wrapper name to something useful
+    wrapper.__name__ = "{0}__{1}".format(func_name(view), method)
+
     return wrapper

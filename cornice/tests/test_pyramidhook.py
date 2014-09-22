@@ -22,6 +22,7 @@ from cornice.tests.support import CatchErrors
 from cornice.tests.support import dummy_factory
 
 from cornice.pyramidhook import register_service_views
+from cornice.util import func_name
 
 from mock import MagicMock
 
@@ -159,6 +160,18 @@ class TestServiceWithWrapper(TestCase):
     def test_wrapped(self):
         result = self.app.get('/wrapperservice')
         self.assertEqual(result.json, 'FOO')
+
+    def test_func_name_undecorated_function(self):
+        self.assertEqual("my_acl", func_name(my_acl))
+
+    def test_func_name_decorated_function(self):
+        self.assertEqual("return_foo", func_name(return_foo))
+
+    def test_func_name_string(self):
+        self.assertEqual("some_string", func_name("some_string"))
+
+    def test_func_name_class_method(self):
+        self.assertEqual("TestServiceWithWrapper.test_wrapped", func_name(TestServiceWithWrapper.test_wrapped))
 
 
 test_service = Service(name="jardinet", path="/jardinet", traverse="/jardinet")
