@@ -75,6 +75,11 @@ if COLANDER:
         bar = SchemaNode(String(), type='str', location="querystring",
                          default='bar')
 
+    class DefaultValueSchema(MappingSchema):
+        foo = SchemaNode(Int(), type="int")
+        bar = SchemaNode(Int(), type="int", default=10)
+
+
     class QsSchema(MappingSchema):
         foo = SchemaNode(String(), type='str', location="querystring",
                          missing=drop)
@@ -97,20 +102,28 @@ if COLANDER:
         baz = SchemaNode(String(), type='str', location="querystring")
         qux = SchemaNode(String(), type='str', location="header")
 
-    class MockRequest(object):
-        def __init__(self, body, get=None):
-            self.content_type = 'application/json'
-            self.headers = {}
-            self.matchdict = {}
-            self.body = body
-            self.GET = get or {}
-            self.POST = {}
-            self.validated = {}
-            class MockRegistry(object):
-                def __init__(self):
-                    self.cornice_deserializers = {
-                        'application/json': extract_json_data}
-            self.registry = MockRegistry()
+    def get_mock_request(body, get=None):
+        # Construct a mock request with the given request body
+        class MockRegistry(object):
+            def __init__(self):
+                self.cornice_deserializers = {
+                    'application/json': extract_json_data
+                }
+
+        class MockRequest(object):
+            def __init__(self, body, get):
+                self.headers = {}
+                self.matchdict = {}
+                self.body = body
+                self.GET = get or {}
+                self.POST = {}
+                self.validated = {}
+                self.registry = MockRegistry()
+                self.content_type = 'application/json'
+
+        dummy_request = MockRequest(body, get)
+        setattr(dummy_request, 'errors', Errors(dummy_request))
+        return dummy_request
 
     class TestSchemas(TestCase):
 
@@ -194,21 +207,21 @@ if COLANDER:
             """
             schema = CorniceSchema.from_colander(DropSchema)
 
-            dummy_request = MockRequest('{"bar": "required_data"}')
-            setattr(dummy_request, 'errors', Errors(dummy_request))
+            dummy_request = get_mock_request('{"bar": "required_data"}')
             validate_colander_schema(schema, dummy_request)
 
             self.assertNotIn('foo', dummy_request.validated)
             self.assertIn('bar', dummy_request.validated)
+            self.assertEqual(len(dummy_request.errors), 0)
 
         def test_colander_strict_schema(self):
             schema = CorniceSchema.from_colander(StrictSchema)
 
-            dummy_request = MockRequest('''{"bar": "required_data",
-                                            "foo": "optional_data",
-                                            "other": "not_wanted_data"}''')
-
-            setattr(dummy_request, 'errors', Errors(dummy_request))
+            dummy_request = get_mock_request(
+                '''
+                {"bar": "required_data", "foo": "optional_data",
+                "other": "not_wanted_data"}
+                ''')
             validate_colander_schema(schema, dummy_request)
 
             errors = dummy_request.errors
@@ -226,8 +239,7 @@ if COLANDER:
             schema = CorniceSchema.from_colander(
                 'cornice.tests.schema.AccountSchema')
 
-            dummy_request = MockRequest('{"nickname": "john"}')
-            setattr(dummy_request, 'errors', Errors(dummy_request))
+            dummy_request = get_mock_request('{"nickname": "john"}')
             validate_colander_schema(schema, dummy_request)
 
             self.assertIn('nickname', dummy_request.validated)
@@ -236,9 +248,8 @@ if COLANDER:
         def test_colander_nested_schema(self):
             schema = CorniceSchema.from_colander(NestedSchema)
 
-            dummy_request = MockRequest('{"ham": {"bar": "POST"}}',
-                                        {'egg.bar': 'GET'})
-            setattr(dummy_request, 'errors', Errors(dummy_request))
+            dummy_request = get_mock_request('{"ham": {"bar": "POST"}}',
+                                             {'egg.bar': 'GET'})
             validate_colander_schema(schema, dummy_request)
 
             qs_fields = schema.get_attributes(location="querystring")
@@ -259,8 +270,7 @@ if COLANDER:
             """
             schema = CorniceSchema.from_colander(DefaultSchema)
 
-            dummy_request = MockRequest('', {'bar': 'test'})
-            setattr(dummy_request, 'errors', Errors(dummy_request))
+            dummy_request = get_mock_request('', {'bar': 'test'})
             validate_colander_schema(schema, dummy_request)
 
             qs_fields = schema.get_attributes(location="querystring")
@@ -273,9 +283,7 @@ if COLANDER:
 
             self.assertEqual(expected, dummy_request.validated)
 
-
-            dummy_request = MockRequest('', {'bar': 'test', 'foo': 'test'})
-            setattr(dummy_request, 'errors', Errors(dummy_request))
+            dummy_request = get_mock_request('', {'bar': 'test', 'foo': 'test'})
             validate_colander_schema(schema, dummy_request)
 
             qs_fields = schema.get_attributes(location="querystring")
@@ -288,10 +296,22 @@ if COLANDER:
 
             self.assertEqual(expected, dummy_request.validated)
 
+        def test_colander_schema_default_value(self):
+            # apply default value to field if the input for them is
+            # missing
+            schema = CorniceSchema.from_colander(DefaultValueSchema)
+            dummy_request = get_mock_request('{"foo": 5}')
+            validate_colander_schema(schema, dummy_request)
+
+            self.assertIn('bar', dummy_request.validated)
+            self.assertEqual(len(dummy_request.errors), 0)
+            self.assertEqual(dummy_request.validated['foo'], 5)
+            # default value should be available
+            self.assertEqual(dummy_request.validated['bar'], 10)
+
         def test_extra_params_qs(self):
             schema = CorniceSchema.from_colander(QsSchema)
-            dummy_request = MockRequest('', {'foo': 'test', 'bar': 'test'})
-            setattr(dummy_request, 'errors', Errors(dummy_request))
+            dummy_request = get_mock_request('', {'foo': 'test', 'bar': 'test'})
             validate_colander_schema(schema, dummy_request)
 
             errors = dummy_request.errors
@@ -302,8 +322,7 @@ if COLANDER:
 
         def test_extra_params_qs_strict(self):
             schema = CorniceSchema.from_colander(StrictQsSchema)
-            dummy_request = MockRequest('', {'foo': 'test', 'bar': 'test'})
-            setattr(dummy_request, 'errors', Errors(dummy_request))
+            dummy_request = get_mock_request('', {'foo': 'test', 'bar': 'test'})
             validate_colander_schema(schema, dummy_request)
 
             errors = dummy_request.errors
