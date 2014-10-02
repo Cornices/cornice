@@ -68,7 +68,7 @@ class _JsonRenderer(object):
         json_str = renderer(data, context)
 
         # XXX So we (re)set it ourselves here, i.e.: *after* the previous call.
-        acceptable = ('application/json', 'text/json', 'text/plain')
+        acceptable = ('application/json', 'text/json', 'text/plain', 'text/html')
         content_type = (request.accept.best_match(acceptable) or acceptable[0])
         response.content_type = content_type
         return json_str
