@@ -37,8 +37,14 @@ def return_404(request):
 def my_acl(request):
     return [(Allow, 'alice', 'read'),
             (Allow, 'bob', 'write'),
-            (Deny, 'carol', 'write')]
+            (Deny, 'carol', 'write'),
+            (Allow, 'dan', ('write', 'update')),
+        ]
 
+
+@service.put(acl=my_acl, permission='update')
+def update_view(request):
+    return "updated_view"
 
 @service.delete(acl=my_acl, permission='write')
 def return_yay(request):
@@ -90,6 +96,7 @@ class TestService(TestCase):
         self.config.scan("cornice.tests.test_service")
         self.config.scan("cornice.tests.test_pyramidhook")
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
+        register_service_views(self.config, service)
 
     def tearDown(self):
         testing.tearDown()
@@ -102,26 +109,47 @@ class TestService(TestCase):
         # calling a unknown verb on an existing resource should return a 405
         self.app.post("/service", status=HTTPMethodNotAllowed.code)
 
-    def test_acl_support_unauthenticated(self):
+    def test_acl_support_unauthenticated_service_delete(self):
         # calling a view with permissions without an auth'd user => 403
         self.app.delete('/service', status=HTTPForbidden.code)
 
-    def test_acl_support_authenticated_allowed(self):
+    def test_acl_support_authenticated_allowed_service_delete(self):
         with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='bob'):
             result = self.app.delete('/service', status=HTTPOk.code)
             self.assertEqual("yay", result.json)
+        # The other user with 'write' permission
+        with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='dan'):
+            result = self.app.delete('/service', status=HTTPOk.code)
+            self.assertEqual("yay", result.json)
 
-    def test_acl_support_authenticated_valid_user_wrong_permission(self):
+    def test_acl_support_authenticated_valid_user_wrong_permission_service_delete(self):
         with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='alice'):
             self.app.delete('/service', status=HTTPForbidden.code)
 
-    def test_acl_support_authenticated_valid_user_permission_denied(self):
+    def test_acl_support_authenticated_valid_user_permission_denied_service_delete(self):
         with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='carol'):
             self.app.delete('/service', status=HTTPForbidden.code)
 
-    def test_acl_support_authenticated_invalid_user(self):
+    def test_acl_support_authenticated_invalid_user_service_delete(self):
         with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='mallory'):
             self.app.delete('/service', status=HTTPForbidden.code)
+
+    def test_acl_support_authenticated_allowed_service_put(self):
+        with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='dan'):
+            result = self.app.put('/service', status=HTTPOk.code)
+            self.assertEqual("updated_view", result.json)
+
+    def test_acl_support_authenticated_valid_user_wrong_permission_service_put(self):
+        with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='bob'):
+            self.app.put('/service', status=HTTPForbidden.code)
+
+    def test_acl_support_authenticated_valid_user_permission_denied_service_put(self):
+        with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='carol'):
+            self.app.put('/service', status=HTTPForbidden.code)
+
+    def test_acl_support_authenticated_invalid_user_service_put(self):
+        with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='mallory'):
+            self.app.put('/service', status=HTTPForbidden.code)
 
     def test_class_support(self):
         self.app.get('/fresh-air', status=400)
