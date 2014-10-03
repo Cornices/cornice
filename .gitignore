@@ -1,6 +1,6 @@
 .tox
 .hg*
-*.py[cod]
+*.pyc
 *.mako.py
 lib
 include
@@ -18,7 +18,4 @@ test
 nosetests.xml
 man
 .channel
-.DS_Store
-.idea/
-atlassian-ide-plugin.xml
 dist/
