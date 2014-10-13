@@ -12,7 +12,7 @@ Here is how you can let cornice describe your web service for you::
     from cornice.service import Service, get_services
 
     spore = Service('spore', path='/spore', renderer='jsonp')
-    @spore.get
+    @spore.get()
     def get_spore(request):
         services = get_services()
         return generate_spore_description(services, 'Service name', request.application_url, '1.0')
