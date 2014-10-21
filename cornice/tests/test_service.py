@@ -2,9 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 from cornice.service import (Service, get_services, clear_services,
-                             decorate_view)
+                             decorate_view, _UnboundView)
 from cornice.tests import validationapp
 from cornice.tests.support import TestCase, DummyRequest, DummyContext
+from cornice.util import func_name
 
 _validator = lambda req: True
 _validator2 = lambda req: True
@@ -494,3 +495,23 @@ class TestService(TestCase):
         self.assertEqual(ret, ['douggy', 'rusty'])
         self.assertEqual(dummy_request, DummyAPI.last_request)
         self.assertIsNone(DummyAPI.last_context)
+
+    def test_decorate_view(self):
+        def myfunction():
+            pass
+
+        meth = 'POST'
+        decorated = decorate_view(myfunction, {}, meth)
+        self.assertEqual(decorated.__name__, "{0}__{1}".format(func_name(myfunction), meth))
+
+    def test_decorate_resource_view(self):
+        class MyResource(object):
+            def __init__(self, **kwargs):
+                pass
+
+            def myview(self):
+                pass
+
+        meth = 'POST'
+        decorated = decorate_view(_UnboundView(MyResource, 'myview'), {}, meth)
+        self.assertEqual(decorated.__name__, "{0}__{1}".format(func_name(MyResource.myview), meth))
