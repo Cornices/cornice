@@ -65,7 +65,7 @@ def get_cors_preflight_view(service):
         if max_age is not None:
             response.headers['Access-Control-Max-Age'] = str(max_age)
 
-        return ''
+        return {}
     return _preflight_view
 
 
