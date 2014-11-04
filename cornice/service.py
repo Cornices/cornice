@@ -4,6 +4,8 @@
 import functools
 import warnings
 
+from pyramid.response import Response
+
 from cornice.validators import (
     DEFAULT_VALIDATORS,
     DEFAULT_FILTERS,
@@ -496,6 +498,7 @@ def decorate_view(view, args, method):
         elif hasattr(ob, 'schema'):
             validate_colander_schema(ob.schema, request)
 
+
         # the validators can either be a list of callables or contain some
         # non-callable values. In which case we want to resolve them using the
         # object if any
@@ -505,13 +508,19 @@ def decorate_view(view, args, method):
                 validator = getattr(ob, validator)
             validator(request)
 
+
         # only call the view if we don't have validation errors
         if len(request.errors) == 0:
-            # if we have an object, the request had already been passed to it
-            if ob:
-                response = view_()
-            else:
-                response = view_(request)
+            try:
+                # if we have an object, the request had already been passed to it
+                if ob:
+                    response = view_()
+                else:
+                    response = view_(request)
+            except:
+                # cors headers need to be set if an exception was raised
+                request.info['cors_checked'] = False
+                raise
 
         # check for errors and return them if any
         if len(request.errors) > 0:
@@ -519,6 +528,10 @@ def decorate_view(view, args, method):
             # again, we want to do that again before returning the response.
             request.info['cors_checked'] = False
             return args['error_handler'](request.errors)
+
+        # if the view returns its own response, cors headers need to be set
+        if isinstance(response, Response):
+            request.info['cors_checked'] = False
 
         # We can't apply filters at this level, since "response" may not have
         # been rendered into a proper Response object yet.  Instead, give the
