@@ -41,6 +41,8 @@ class _JsonRenderer(object):
       .. _`[1]`: https://github.com/mozilla-services/cornice/pull/116#issuecomment-14355865
       .. _`[2]`: http://pyramid.readthedocs.org/en/latest/narr/renderers.html#serializing-custom-objects
     """
+    acceptable = ('application/json', 'text/json', 'text/plain')
+
     def __call__(self, data, context):
         """Serialise the ``data`` with the Pyramid renderer."""
         # Unpack the context.
@@ -68,8 +70,7 @@ class _JsonRenderer(object):
         json_str = renderer(data, context)
 
         # XXX So we (re)set it ourselves here, i.e.: *after* the previous call.
-        acceptable = ('application/json', 'text/json', 'text/plain')
-        content_type = (request.accept.best_match(acceptable) or acceptable[0])
+        content_type = (request.accept.best_match(self.acceptable) or self.acceptable[0])
         response.content_type = content_type
         return json_str
 
