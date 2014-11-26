@@ -184,3 +184,15 @@ class ContentTypePredicate(object):
 
     def __call__(self, context, request):
         return request.content_type == self.val
+
+
+def func_name(f):
+    """Return the name of a function or class method."""
+    if isinstance(f, string_types):
+        return f
+    elif hasattr(f, '__qualname__'):  # Python 3
+        return f.__qualname__
+    elif hasattr(f, 'im_class'):  # Python 2
+        return '{0}.{1}'.format(f.im_class.__name__, f.__name__)
+    else:
+        return f.__name__

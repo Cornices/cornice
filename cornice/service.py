@@ -9,7 +9,7 @@ from cornice.validators import (
     DEFAULT_FILTERS,
 )
 from cornice.schemas import CorniceSchema, validate_colander_schema
-from cornice.util import is_string, to_list, json_error
+from cornice.util import is_string, to_list, json_error, func_name
 
 try:
     import venusian
@@ -43,7 +43,7 @@ class Service(object):
     A service is composed of a path and many potential methods, associated
     with context.
 
-    All the class attributes defined in this class or in childs are considered
+    All the class attributes defined in this class or in children are considered
     default values.
 
     :param name:
@@ -91,6 +91,11 @@ class Service(object):
         A callable defining the ACL (returns true or false, function of the
         given request). Exclusive with the 'factory' option.
 
+    :param permission:
+        As for :ref:`pyramid.config.Configurator.add_view`.
+        Note: `acl` and `permission` can also be applied
+        to instance method decorators such as :meth:`~get` and :meth:`~put`.
+
     :param klass:
         The class to use when resolving views (if they are not callables)
 
@@ -102,7 +107,7 @@ class Service(object):
         A traversal pattern that will be passed on route declaration and that
         will be used as the traversal path.
 
-    There is also a number of parameters that are related to the support of
+    There are also a number of parameters that are related to the support of
     CORS (Cross Origin Resource Sharing). You can read the CORS specification
     at http://www.w3.org/TR/cors/
 
@@ -127,7 +132,7 @@ class Service(object):
     :param cors_expose_all_headers:
         If set to True, all the headers will be exposed and considered valid
         ones (Default: True). If set to False, all the headers need be
-        explicitely mentionned with the cors_headers parameter.
+        explicitly mentioned with the cors_headers parameter.
 
     :param cors_policy:
         It may be easier to have an external object containing all the policy
@@ -172,7 +177,7 @@ class Service(object):
                 kw.setdefault('cors_' + key, value)
 
         for key in self.list_arguments:
-            # default_{validators,filters} and {filters,validators} doesn't
+            # default_{validators,filters} and {filters,validators} don't
             # have to be mutables, so we need to create a new list from them
             extra = to_list(kw.get(key, []))
             kw[key] = []
@@ -190,7 +195,7 @@ class Service(object):
         if hasattr(self, 'factory') and hasattr(self, 'acl'):
             raise KeyError("Cannot specify both 'acl' and 'factory'")
 
-        # instanciate some variables we use to keep track of what's defined for
+        # instantiate some variables we use to keep track of what's defined for
         # this service.
         self.defined_methods = []
         self.definitions = []
@@ -214,10 +219,10 @@ class Service(object):
                                    depth=depth)
 
     def get_arguments(self, conf=None):
-        """Return a dictionnary of arguments. Takes arguments from the :param
+        """Return a dictionary of arguments. Takes arguments from the :param
         conf: param and merges it with the arguments passed in the constructor.
 
-        :param conf: the dictionnary to use.
+        :param conf: the dictionary to use.
         """
         if conf is None:
             conf = {}
@@ -230,7 +235,7 @@ class Service(object):
 
         for arg in self.list_arguments:
             # rather than overwriting, extend the defined lists if any.
-            # take care of re-creating the lists before appening items to them,
+            # take care of re-creating the lists before appending items to them,
             # to avoid modifications to the already existing ones
             value = list(getattr(self, arg, []))
             if arg in conf:
@@ -273,10 +278,11 @@ class Service(object):
         can be overwritten here. Additionally,
         :meth:`~cornice.service.Service.api` has following keyword params:
 
-        :param method: The request method. Should be one of GET, POST, PUT,
-                       DELETE, OPTIONS, TRACE or CONNECT.
+        :param method: The request method. Should be one of 'GET', 'POST', 'PUT',
+                       'DELETE', 'OPTIONS', 'TRACE', or 'CONNECT'.
         :param view: the view to hook to
-        :param **kwargs: additional configuration for this view
+        :param **kwargs: additional configuration for this view,
+                        including `permission`.
         """
         method = method.upper()
         if 'schema' in kwargs:
@@ -530,4 +536,8 @@ def decorate_view(view, args, method):
 
     # return the wrapper, not the function, keep the same signature
     functools.wraps(wrapper)
+
+    # Set the wrapper name to something useful
+    wrapper.__name__ = "{0}__{1}".format(func_name(view), method)
+
     return wrapper
