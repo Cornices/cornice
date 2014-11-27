@@ -292,6 +292,9 @@ class Service(object):
             # use it.
             self._schemas[method] = kwargs['schema']
 
+        if 'klass' in kwargs and not callable(view):
+            view = _UnboundView(kwargs['klass'], view)
+
         args = self.get_arguments(kwargs)
         if hasattr(self, 'get_view_wrapper'):
             view = self.get_view_wrapper(kwargs)(view)
@@ -491,6 +494,8 @@ def decorate_view(view, args, method):
             ob = args['klass'](**params)
             if is_string(view):
                 view_ = getattr(ob, view.lower())
+            elif isinstance(view, _UnboundView):
+                view_ = view.make_bound_view(ob)
 
         # set data deserializer
         if 'deserializer' in args:
@@ -535,9 +540,19 @@ def decorate_view(view, args, method):
         return response
 
     # return the wrapper, not the function, keep the same signature
-    functools.wraps(wrapper)
+    if not is_string(view):
+        functools.update_wrapper(wrapper, view)
 
     # Set the wrapper name to something useful
     wrapper.__name__ = "{0}__{1}".format(func_name(view), method)
-
     return wrapper
+
+
+class _UnboundView(object):
+    def __init__(self, klass, view):
+        self.unbound_view = getattr(klass, view.lower())
+        functools.update_wrapper(self, self.unbound_view)
+        self.__name__ = func_name(self.unbound_view)
+
+    def make_bound_view(self, ob):
+        return functools.partial(self.unbound_view, ob)
