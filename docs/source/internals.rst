@@ -33,7 +33,7 @@ the arguments that are registered with this definition. It doesn't look this
 important, but this last argument is actually the most important one. It is a
 python dict containing the filters, validators, content types etc.
 
-There is one thing I didn't talked about yet: how we are getting the arguments
+There is one thing I didn't talk about yet: how we are getting the arguments
 from the service class. There is a handy `get_arguments` method, which returns
 the arguments from another list of given arguments. The goal is to fallback on
 instance-level arguments or class-level arguments if no arguments are provided
