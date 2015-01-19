@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 from pyramid import testing
-from pyramid.exceptions import NotFound
+from pyramid.exceptions import NotFound, HTTPBadRequest
 from pyramid.response import Response
 
 from webtest import TestApp
@@ -74,6 +74,14 @@ def get_some_bacon(request):
     if request.matchdict['type'] != 'good':
         raise NotFound(detail='Not. Found.')
     return "yay"
+
+@bacon.post()
+def post_some_bacon(request):
+    return Response()
+
+@bacon.put()
+def put_some_bacon(request):
+    raise HTTPBadRequest()
 
 from pyramid.view import view_config
 
@@ -272,6 +280,16 @@ class TestCORS(TestCase):
 
     def test_404_returns_CORS_headers(self):
         resp = self.app.get('/bacon/notgood', status=404,
+                            headers={'Origin': 'notmyidea.org'})
+        self.assertIn('Access-Control-Allow-Origin', resp.headers)
+
+    def test_response_returns_CORS_headers(self):
+        resp = self.app.post('/bacon/response', status=200,
+                            headers={'Origin': 'notmyidea.org'})
+        self.assertIn('Access-Control-Allow-Origin', resp.headers)
+
+    def test_raise_returns_CORS_headers(self):
+        resp = self.app.put('/bacon/raise', status=400,
                             headers={'Origin': 'notmyidea.org'})
         self.assertIn('Access-Control-Allow-Origin', resp.headers)
 

@@ -498,7 +498,6 @@ def decorate_view(view, args, method):
         elif hasattr(ob, 'schema'):
             validate_colander_schema(ob.schema, request)
 
-
         # the validators can either be a list of callables or contain some
         # non-callable values. In which case we want to resolve them using the
         # object if any
@@ -507,7 +506,6 @@ def decorate_view(view, args, method):
             if is_string(validator) and ob is not None:
                 validator = getattr(ob, validator)
             validator(request)
-
 
         # only call the view if we don't have validation errors
         if len(request.errors) == 0:
