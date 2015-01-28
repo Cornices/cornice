@@ -79,7 +79,6 @@ if COLANDER:
         foo = SchemaNode(Int(), type="int")
         bar = SchemaNode(Int(), type="int", default=10)
 
-
     class QsSchema(MappingSchema):
         foo = SchemaNode(String(), type='str', location="querystring",
                          missing=drop)
@@ -87,7 +86,6 @@ if COLANDER:
     class StrictQsSchema(StrictMappingSchema):
         foo = SchemaNode(String(), type='str', location="querystring",
                          missing=drop)
-
 
     imperative_schema = SchemaNode(Mapping())
     imperative_schema.add(SchemaNode(String(), name='foo', type='str'))
@@ -160,7 +158,7 @@ if COLANDER:
             inherited_schema = CorniceSchema.from_colander(InheritedSchema)
 
             self.assertEqual(len(base_schema.get_attributes()),
-                              len(inherited_schema.get_attributes()))
+                             len(inherited_schema.get_attributes()))
 
             foo_filter = lambda x: x.name == "foo"
             base_foo = list(filter(foo_filter,
@@ -283,7 +281,8 @@ if COLANDER:
 
             self.assertEqual(expected, dummy_request.validated)
 
-            dummy_request = get_mock_request('', {'bar': 'test', 'foo': 'test'})
+            dummy_request = get_mock_request('', {'bar': 'test',
+                                                  'foo': 'test'})
             validate_colander_schema(schema, dummy_request)
 
             qs_fields = schema.get_attributes(location="querystring")
@@ -311,7 +310,8 @@ if COLANDER:
 
         def test_extra_params_qs(self):
             schema = CorniceSchema.from_colander(QsSchema)
-            dummy_request = get_mock_request('', {'foo': 'test', 'bar': 'test'})
+            dummy_request = get_mock_request('', {'foo': 'test',
+                                                  'bar': 'test'})
             validate_colander_schema(schema, dummy_request)
 
             errors = dummy_request.errors
@@ -322,7 +322,8 @@ if COLANDER:
 
         def test_extra_params_qs_strict(self):
             schema = CorniceSchema.from_colander(StrictQsSchema)
-            dummy_request = get_mock_request('', {'foo': 'test', 'bar': 'test'})
+            dummy_request = get_mock_request('', {'foo': 'test',
+                                                  'bar': 'test'})
             validate_colander_schema(schema, dummy_request)
 
             errors = dummy_request.errors

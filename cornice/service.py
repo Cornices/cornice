@@ -43,8 +43,8 @@ class Service(object):
     A service is composed of a path and many potential methods, associated
     with context.
 
-    All the class attributes defined in this class or in children are considered
-    default values.
+    All the class attributes defined in this class or in children are
+    considered default values.
 
     :param name:
         The name of the service. Should be unique among all the services.
@@ -234,9 +234,10 @@ class Service(object):
             arguments[arg] = conf.pop(arg, getattr(self, arg, None))
 
         for arg in self.list_arguments:
-            # rather than overwriting, extend the defined lists if any.
-            # take care of re-creating the lists before appending items to them,
-            # to avoid modifications to the already existing ones
+            # rather than overwriting, extend the defined lists if
+            # any. take care of re-creating the lists before appending
+            # items to them, to avoid modifications to the already
+            # existing ones
             value = list(getattr(self, arg, []))
             if arg in conf:
                 value.extend(to_list(conf.pop(arg)))
@@ -278,8 +279,8 @@ class Service(object):
         can be overwritten here. Additionally,
         :meth:`~cornice.service.Service.api` has following keyword params:
 
-        :param method: The request method. Should be one of 'GET', 'POST', 'PUT',
-                       'DELETE', 'OPTIONS', 'TRACE', or 'CONNECT'.
+        :param method: The request method. Should be one of 'GET', 'POST',
+                       'PUT', 'DELETE', 'OPTIONS', 'TRACE', or 'CONNECT'.
         :param view: the view to hook to
         :param **kwargs: additional configuration for this view,
                         including `permission`.

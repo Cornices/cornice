@@ -11,17 +11,6 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
 requires = ['pyramid',  'simplejson']
-test_requires = requires + ['colander>=1.0b1', 'coverage', 'mock',
-                            'webtest', 'Sphinx', 'rxjson']
-
-if sys.version_info < (2, 7):
-    test_requires.append('unittest2')
-
-try:
-    import importlib  # NOQA
-except ImportError:
-    test_requires.append('importlib')
-
 
 entry_points = """\
 [paste.paster_create_template]
@@ -57,7 +46,4 @@ setup(name='cornice',
       include_package_data=True,
       zip_safe=False,
       install_requires=requires,
-      tests_require=test_requires,
-      extras_require={'test': test_requires},
-      test_suite="cornice.tests",
       paster_plugins=['pyramid'])

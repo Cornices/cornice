@@ -38,8 +38,10 @@ class _JsonRenderer(object):
       This allows developers to config the JSON renderer using Pyramid's
       configuration machinery `[2]`_.
 
-      .. _`[1]`: https://github.com/mozilla-services/cornice/pull/116#issuecomment-14355865
-      .. _`[2]`: http://pyramid.readthedocs.org/en/latest/narr/renderers.html#serializing-custom-objects
+      .. _`[1]`: https://github.com/mozilla-services/cornice/pull/116 \
+                 #issuecomment-14355865
+      .. _`[2]`: http://pyramid.readthedocs.org/en/latest/narr/renderers.html \
+                 #serializing-custom-objects
     """
     acceptable = ('application/json', 'text/json', 'text/plain')
 
@@ -50,15 +52,16 @@ class _JsonRenderer(object):
         response = request.response
         registry = request.registry
 
-        # Serialise the ``data`` object to a JSON string using the JSON renderer
-        # registered with Pyramid.
+        # Serialise the ``data`` object to a JSON string using the
+        # JSON renderer registered with Pyramid.
         renderer_factory = registry.queryUtility(IRendererFactory, name='json')
 
-        # XXX Patched with ``simplejson.dumps(..., use-decimal=True)`` iff the
-        # renderer has been configured to serialise using just ``json.dumps(...)``.
-        # This maintains backwards compatibility with the Cornice renderer,
-        # whilst allowing Pyramid renderer configuration via ``add_adapter``
-        # calls, at the price of rather fragile patching of instance properties.
+        # XXX Patched with ``simplejson.dumps(..., use-decimal=True)``
+        # if the renderer has been configured to serialise using just
+        # ``json.dumps(...)``.  This maintains backwards compatibility
+        # with the Cornice renderer, whilst allowing Pyramid renderer
+        # configuration via ``add_adapter`` calls, at the price of
+        # rather fragile patching of instance properties.
         if renderer_factory.serializer == json.dumps:
             renderer_factory.serializer = simplejson.dumps
         if 'use_decimal' not in renderer_factory.kw:
@@ -70,7 +73,8 @@ class _JsonRenderer(object):
         json_str = renderer(data, context)
 
         # XXX So we (re)set it ourselves here, i.e.: *after* the previous call.
-        content_type = (request.accept.best_match(self.acceptable) or self.acceptable[0])
+        content_type = (request.accept.best_match(self.acceptable) or
+                        self.acceptable[0])
         response.content_type = content_type
         return json_str
 
@@ -171,8 +175,8 @@ class ContentTypePredicate(object):
     Should live in ``pyramid.config.predicates``.
 
     .. seealso::
-
-        http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/hooks.html#view-and-route-predicates
+      http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/hooks.html
+      #view-and-route-predicates
     """
     def __init__(self, val, config):
         self.val = val

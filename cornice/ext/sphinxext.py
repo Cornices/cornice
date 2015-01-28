@@ -19,6 +19,7 @@ from sphinx.util.docfields import DocFieldTransformer
 
 MODULES = {}
 
+
 def convert_to_list(argument):
     """Convert a comma separated list into a list of python values"""
     if argument is None:
@@ -61,7 +62,8 @@ class ServiceDirective(Directive):
         self.env = self.state.document.settings.env
 
     def run(self):
-        # clear the SERVICES variable, which will allow to use this directive multiple times
+        # clear the SERVICES variable, which will allow to use this
+        # directive multiple times
         clear_services()
 
         # import the modules, which will populate the SERVICES variable.
@@ -95,7 +97,7 @@ class ServiceDirective(Directive):
 
         for method, view, args in service.definitions:
             if method == 'HEAD':
-                #Skip head - this is essentially duplicating the get docs.
+                # Skip head - this is essentially duplicating the get docs.
                 continue
             method_id = '%s-%s' % (service_id, method)
             method_node = nodes.section(ids=[method_id])
@@ -117,7 +119,7 @@ class ServiceDirective(Directive):
                     attributes = schema.get_attributes(location=location)
                     if attributes:
                         attrs_node += nodes.inline(
-                                text='values in the %s' % location)
+                            text='values in the %s' % location)
                         location_attrs = nodes.bullet_list()
 
                         for attr in attributes:

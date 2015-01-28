@@ -59,9 +59,9 @@ def get_fallback_view(service):
 
             if 'accept' in args:
                 acceptable.extend(
-                        service.get_acceptable(method, filter_callables=True))
+                    service.get_acceptable(method, filter_callables=True))
                 acceptable.extend(
-                        request.info.get('acceptable', []))
+                    request.info.get('acceptable', []))
                 acceptable = list(set(acceptable))
 
                 # Now check if that was actually the source of the problem.
@@ -76,10 +76,10 @@ def get_fallback_view(service):
 
             if 'content_type' in args:
                 supported_contenttypes.extend(
-                        service.get_contenttypes(method,
-                                                 filter_callables=True))
+                    service.get_contenttypes(method,
+                                             filter_callables=True))
                 supported_contenttypes.extend(
-                        request.info.get('supported_contenttypes', []))
+                    request.info.get('supported_contenttypes', []))
                 supported_contenttypes = list(set(supported_contenttypes))
 
                 # Now check if that was actually the source of the problem.
@@ -256,7 +256,8 @@ def _pop_complex_predicates(args):
     product_input = filter(None, [accept_list, content_type_list])
 
     # In Python 3, the filter() function returns an iterator, not a list.
-    # http://getpython3.com/diveintopython3/porting-code-to-python-3-with-2to3.html#filter
+    # http://getpython3.com/diveintopython3/ \
+    # porting-code-to-python-3-with-2to3.html#filter
     predicate_product = list(filter(None, itertools.product(*product_input)))
 
     return predicate_product
@@ -270,7 +271,8 @@ def _pop_predicate_definition(args, kind):
     values = to_list(args.pop(kind, ()))
     # In much the same way as filter(), the map() function [in Python 3] now
     # returns an iterator. (In Python 2, it returned a list.)
-    # http://getpython3.com/diveintopython3/porting-code-to-python-3-with-2to3.html#map
+    # http://getpython3.com/diveintopython3/ \
+    # porting-code-to-python-3-with-2to3.html#map
     values = list(map(lambda value: {'kind': kind, 'value': value}, values))
     return values
 
@@ -307,7 +309,8 @@ def _mungle_view_args(args, predicate_list):
                 predicates.append(predicate_checker)
                 args['custom_predicates'] = predicates
             else:
-                raise ValueError('No function defined for ' +
+                raise ValueError(
+                    'No function defined for ' +
                     'handling callables for field "{0}"'.format(kind))
         else:
             # otherwise argument value is just a scalar

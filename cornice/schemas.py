@@ -52,7 +52,7 @@ class CorniceSchema(object):
         """returns a dict containing keys for the different attributes, and
         for each of them, a dict containing information about them::
 
-            >>> schema.as_dict()
+            >>> schema.as_dict()  # NOQA
             {'foo': {'type': 'string',
                      'location': 'body',
                      'description': 'yeah',
@@ -109,13 +109,14 @@ def validate_colander_schema(schema, request):
 
         for attr in schema.get_attributes(location=location,
                                           request=request):
-            if attr.required and not attr.name in data and attr.default == null:
+            if attr.required and attr.name not in data and \
+               attr.default == null:
                 # missing
                 request.errors.add(location, attr.name,
                                    "%s is missing" % attr.name)
             else:
                 try:
-                    if not attr.name in data:
+                    if attr.name not in data:
                         if attr.default != null:
                             deserialized = attr.deserialize(attr.serialize())
                         else:

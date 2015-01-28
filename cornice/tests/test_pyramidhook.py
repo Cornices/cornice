@@ -1,3 +1,4 @@
+# flake8: noqa
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -7,7 +8,9 @@ from pyramid.interfaces import IDebugLogger
 from cornice.tests.support import TestCase
 
 from pyramid import testing
-from pyramid.httpexceptions import HTTPOk, HTTPForbidden, HTTPNotFound, HTTPMethodNotAllowed
+from pyramid.httpexceptions import (
+    HTTPOk, HTTPForbidden, HTTPNotFound, HTTPMethodNotAllowed
+)
 from pyramid.response import Response
 from pyramid.security import Allow, Deny, NO_PERMISSION_REQUIRED
 from pyramid.authentication import AuthTktAuthenticationPolicy
@@ -46,6 +49,7 @@ def my_acl(request):
 def update_view(request):
     return "updated_view"
 
+
 @service.delete(acl=my_acl, permission='write')
 def return_yay(request):
     return "yay"
@@ -78,7 +82,8 @@ tc.add_view("GET", "get_fresh_air", filters=('make_it_fresh',),
 class TestService(TestCase):
 
     def setUp(self):
-        self.config = testing.setUp(settings={'pyramid.debug_authorization': True})
+        self.config = testing.setUp(
+            settings={'pyramid.debug_authorization': True})
 
         # Set up debug_authorization logging to console
         logging.basicConfig(level=logging.DEBUG)
@@ -114,11 +119,13 @@ class TestService(TestCase):
         self.app.delete('/service', status=HTTPForbidden.code)
 
     def test_acl_support_authenticated_allowed_service_delete(self):
-        with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='bob'):
+        with mock.patch.object(self.authn_policy, 'unauthenticated_userid',
+                               return_value='bob'):
             result = self.app.delete('/service', status=HTTPOk.code)
             self.assertEqual("yay", result.json)
         # The other user with 'write' permission
-        with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='dan'):
+        with mock.patch.object(self.authn_policy, 'unauthenticated_userid',
+                               return_value='dan'):
             result = self.app.delete('/service', status=HTTPOk.code)
             self.assertEqual("yay", result.json)
 

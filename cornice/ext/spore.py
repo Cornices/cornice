@@ -47,7 +47,7 @@ def generate_spore_description(services, name, base_url, version, **kwargs):
             # we have the values, but we need to merge this with
             # possible previous values for this method.
             method_name = '{method}_{service}'.format(
-                    method=method.lower(), service=service.name.lower())
+                method=method.lower(), service=service.name.lower())
             spore_doc['methods'][method_name] = view_info
 
     return spore_doc
