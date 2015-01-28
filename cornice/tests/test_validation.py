@@ -10,7 +10,6 @@ from pyramid.response import Response
 from cornice.errors import Errors
 from cornice.tests.validationapp import main, includeme, dummy_deserializer
 from cornice.tests.support import LoggingCatcher, TestCase, CatchErrors
-from cornice.validators import filter_json_xsrf
 
 
 class TestServiceDefinition(LoggingCatcher, TestCase):
@@ -159,35 +158,6 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         # filters can be applied to all the methods of a service
         self.assertTrue(b"filtered response" in app.get('/filtered').body)
         self.assertTrue(b"unfiltered" in app.post('/filtered').body)
-
-    def test_json_xsrf_vulnerable_values_warning(self):
-        vulnerable_values = [
-            '["value1", "value2"]',  # json array
-            '  \n ["value1", "value2"] ',  # may include whitespace
-            '"value"',  # strings may contain nasty characters in UTF-7
-        ]
-        # a view returning a vulnerable json response should issue a warning
-        for value in vulnerable_values:
-            response = Response(value)
-            response.status = 200
-            response.content_type = 'application/json'
-            filter_json_xsrf(response)
-            assert len(self.get_logs()) == 1, "Expected warning: %s" % value
-
-    def test_json_xsrf_safe_values_no_warning(self):
-        safe_values = [
-            '{"value1": "value2"}',  # json object
-            '  \n {"value1": "value2"} ',  # may include whitespace
-            'true', 'false', 'null',  # primitives
-            '123', '-123', '0.123',  # numbers
-        ]
-        # a view returning safe json response should not issue a warning
-        for value in safe_values:
-            response = Response(value)
-            response.status = 200
-            response.content_type = 'application/json'
-            filter_json_xsrf(response)
-            assert len(self.get_logs()) == 0, "Unexpected warning: %s" % value
 
     def test_multiple_querystrings(self):
         app = TestApp(main({}))
