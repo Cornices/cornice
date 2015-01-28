@@ -4,7 +4,7 @@
 from cornice.service import (Service, get_services, clear_services,
                              decorate_view, _UnboundView)
 from cornice.tests import validationapp
-from cornice.tests.support import TestCase, DummyRequest, DummyContext
+from cornice.tests.support import TestCase, DummyRequest
 from cornice.util import func_name
 
 _validator = lambda req: True
@@ -19,6 +19,7 @@ from cornice.resource import resource
 class DummyAPI(object):
     last_request = None
     last_context = None
+
     def __init__(self, request, context=None):
         DummyAPI.last_request = request
         DummyAPI.last_context = context
@@ -159,16 +160,16 @@ class TestService(TestCase):
 
         service.add_view("GET", lambda x: "blue", accept="application/json")
         self.assertEqual(service.get_acceptable("GET"),
-                          ['text/plain', 'application/json'])
+                         ['text/plain', 'application/json'])
 
         # adding a view for the POST method should not break everything :-)
         service.add_view("POST", lambda x: "ok", accept=('foo/bar'))
         self.assertEqual(service.get_acceptable("GET"),
-                          ['text/plain', 'application/json'])
+                         ['text/plain', 'application/json'])
         # and of course the list of accepted egress content-types should be
         # available for the "POST" as well.
         self.assertEqual(service.get_acceptable("POST"),
-                          ['foo/bar'])
+                         ['foo/bar'])
 
         # it is possible to give acceptable egress content-types dynamically at
         # run-time. You don't always want to have the callables when retrieving
@@ -223,7 +224,7 @@ class TestService(TestCase):
                          validators=(validator, validator))
         service.add_view('GET', lambda x: 'ok', validators=(validator2))
         self.assertEqual(service.get_validators('GET'),
-                          [validator, validator2])
+                         [validator, validator2])
 
     if validationapp.COLANDER:
         def test_schemas_for(self):
@@ -262,7 +263,7 @@ class TestService(TestCase):
         self.assertEqual([barbaz, ], get_services(exclude=['Foobar', ]))
         self.assertEqual([foobar, ], get_services(names=['Foobar', ]))
         self.assertEqual([foobar, barbaz],
-                          get_services(names=['Foobar', 'Barbaz']))
+                         get_services(names=['Foobar', 'Barbaz']))
 
     def test_default_validators(self):
 
@@ -502,7 +503,8 @@ class TestService(TestCase):
 
         meth = 'POST'
         decorated = decorate_view(myfunction, {}, meth)
-        self.assertEqual(decorated.__name__, "{0}__{1}".format(func_name(myfunction), meth))
+        self.assertEqual(decorated.__name__, "{0}__{1}".format(
+            func_name(myfunction), meth))
 
     def test_decorate_resource_view(self):
         class MyResource(object):
@@ -514,4 +516,5 @@ class TestService(TestCase):
 
         meth = 'POST'
         decorated = decorate_view(_UnboundView(MyResource, 'myview'), {}, meth)
-        self.assertEqual(decorated.__name__, "{0}__{1}".format(func_name(MyResource.myview), meth))
+        self.assertEqual(decorated.__name__, "{0}__{1}".format(
+            func_name(MyResource.myview), meth))

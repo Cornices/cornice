@@ -33,8 +33,8 @@ class TestSporeGeneration(TestCase):
 
         services = get_services(names=('coffee', 'Coffees'))
         spore = generate_spore_description(
-                services, name="oh yeah",
-                base_url="http://localhost/", version="1.0")
+            services, name="oh yeah",
+            base_url="http://localhost/", version="1.0")
 
         # basic fields
         self.assertEqual(spore['name'], "oh yeah")
@@ -77,8 +77,8 @@ class TestSporeGeneration(TestCase):
 
         services = get_services(names=('coffee', 'Coffees'))
         spore = generate_spore_description(
-                services, name="oh yeah",
-                base_url="http://localhost/", version="1.0")
+            services, name="oh yeah",
+            base_url="http://localhost/", version="1.0")
 
         with open(os.path.join(HERE, 'spore_validation.rx')) as f:
             spore_json_schema = json.loads(f.read())

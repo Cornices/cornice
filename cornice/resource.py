@@ -62,7 +62,7 @@ def resource(depth=1, **kw):
                     if views:
                         for view_args in views:
                             service.add_view(verb, view_attr, klass=klass,
-                                              **view_args)
+                                             **view_args)
                     else:
                         service.add_view(verb, view_attr, klass=klass)
 
@@ -77,7 +77,8 @@ def resource(depth=1, **kw):
                     config = context.config.with_package(info.module)
                     config.add_cornice_service(service)
 
-            info = venusian.attach(klass, callback, category='pyramid', depth=depth)
+            info = venusian.attach(klass, callback, category='pyramid',
+                                   depth=depth)
         return klass
     return wrapper
 

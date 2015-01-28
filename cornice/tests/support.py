@@ -28,6 +28,7 @@ class DummyContext(object):
 
 class DummyRequest(testing.DummyRequest):
     errors = []
+
     def __init__(self, *args, **kwargs):
         super(DummyRequest, self).__init__(*args, **kwargs)
         self.context = DummyContext()

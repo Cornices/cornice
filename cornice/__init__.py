@@ -40,7 +40,7 @@ def includeme(config):
     # attributes required to maintain services
     config.registry.cornice_services = {}
 
-    #config.add_directive('add_apidoc', add_apidoc)
+    # config.add_directive('add_apidoc', add_apidoc)
     config.add_directive('add_cornice_service', register_service_views)
     config.add_directive('add_cornice_deserializer', add_deserializer)
     config.add_subscriber(add_renderer_globals, BeforeRender)

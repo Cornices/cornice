@@ -5,7 +5,6 @@ from pyramid.config import Configurator
 import simplejson as json
 
 from webtest import TestApp
-from pyramid.response import Response
 
 from cornice.errors import Errors
 from cornice.tests.validationapp import main, includeme, dummy_deserializer
@@ -325,7 +324,6 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
         self.assertEqual(response.json['status'], 'error')
         error_description = response.json['errors'][0]['description']
         self.assertIn('Invalid JSON', error_description)
-
 
     def test_www_form_urlencoded(self):
         app = self.make_ordinary_app()

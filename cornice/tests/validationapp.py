@@ -13,7 +13,7 @@ service = Service(name="service", path="/service")
 
 
 def has_payed(request):
-    if not 'paid' in request.GET:
+    if 'paid' not in request.GET:
         request.errors.add('body', 'paid', 'You must pay!')
 
 

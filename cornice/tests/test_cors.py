@@ -102,14 +102,15 @@ class TestCORS(TestCase):
                                 headers={
                                     'Origin': 'lolnet.org',
                                     'Access-Control-Request-Method': 'POST'})
-        self.assertEqual('POST,OPTIONS', dict(resp.headers)['Access-Control-Allow-Methods'])
+        self.assertEqual('POST,OPTIONS',
+                         dict(resp.headers)['Access-Control-Allow-Methods'])
 
     def test_preflight_cors_klass_put(self):
-        resp = self.app.options('/cors_klass',
-                                status=400,
-                                headers={
-                                    'Origin': 'lolnet.org',
-                                    'Access-Control-Request-Method': 'PUT'})
+        self.app.options('/cors_klass',
+                         status=400,
+                         headers={
+                             'Origin': 'lolnet.org',
+                             'Access-Control-Request-Method': 'PUT'})
 
     def test_preflight_missing_headers(self):
         # we should have an OPTION method defined.
@@ -170,36 +171,35 @@ class TestCORS(TestCase):
 
     def test_preflight_deactivated_method(self):
         self.app.options('/squirel',
-            headers={'Origin': 'notmyidea.org',
-                     'Access-Control-Request-Method': 'POST'},
-            status=400)
+                         headers={'Origin': 'notmyidea.org',
+                                  'Access-Control-Request-Method': 'POST'},
+                         status=400)
 
     def test_preflight_origin_not_allowed_for_method(self):
         self.app.options('/squirel',
-            headers={'Origin': 'notmyidea.org',
-                     'Access-Control-Request-Method': 'PUT'},
-            status=400)
+                         headers={'Origin': 'notmyidea.org',
+                                  'Access-Control-Request-Method': 'PUT'},
+                         status=400)
 
     def test_preflight_credentials_are_supported(self):
-        resp = self.app.options('/spam',
-            headers={'Origin': 'notmyidea.org',
-                     'Access-Control-Request-Method': 'GET'})
-
+        resp = self.app.options(
+            '/spam', headers={'Origin': 'notmyidea.org',
+                              'Access-Control-Request-Method': 'GET'})
         self.assertIn('Access-Control-Allow-Credentials', resp.headers)
         self.assertEqual(resp.headers['Access-Control-Allow-Credentials'],
-                          'true')
+                         'true')
 
     def test_preflight_credentials_header_not_included_when_not_needed(self):
-        resp = self.app.options('/spam',
-            headers={'Origin': 'notmyidea.org',
-                     'Access-Control-Request-Method': 'POST'})
+        resp = self.app.options(
+            '/spam', headers={'Origin': 'notmyidea.org',
+                              'Access-Control-Request-Method': 'POST'})
 
         self.assertNotIn('Access-Control-Allow-Credentials', resp.headers)
 
     def test_preflight_contains_max_age(self):
-        resp = self.app.options('/spam',
-                headers={'Origin': 'notmyidea.org',
-                         'Access-Control-Request-Method': 'GET'})
+        resp = self.app.options(
+            '/spam', headers={'Origin': 'notmyidea.org',
+                              'Access-Control-Request-Method': 'GET'})
 
         self.assertIn('Access-Control-Max-Age', resp.headers)
         self.assertEqual(resp.headers['Access-Control-Max-Age'], '42')
@@ -227,19 +227,20 @@ class TestCORS(TestCase):
                 'Access-Control-Request-Method': 'POST',
                 'Access-Control-Allow-Credentials': 'true'
             })
-        self.assertEqual(resp.headers['Access-Control-Allow-Origin'], 'lolnet.org')
+        self.assertEqual(resp.headers['Access-Control-Allow-Origin'],
+                         'lolnet.org')
 
     def test_responses_include_an_allow_origin_header(self):
         resp = self.app.get('/squirel', headers={'Origin': 'notmyidea.org'})
         self.assertIn('Access-Control-Allow-Origin', resp.headers)
         self.assertEqual(resp.headers['Access-Control-Allow-Origin'],
-                          'notmyidea.org')
+                         'notmyidea.org')
 
     def test_credentials_are_included(self):
         resp = self.app.get('/spam', headers={'Origin': 'notmyidea.org'})
         self.assertIn('Access-Control-Allow-Credentials', resp.headers)
         self.assertEqual(resp.headers['Access-Control-Allow-Credentials'],
-                          'true')
+                         'true')
 
     def test_headers_are_exposed(self):
         resp = self.app.get('/squirel', headers={'Origin': 'notmyidea.org'})
@@ -249,10 +250,11 @@ class TestCORS(TestCase):
         self.assertIn('X-My-Header', headers)
 
     def test_preflight_request_headers_are_included(self):
-        resp = self.app.options('/squirel',
-            headers={'Origin': 'notmyidea.org',
-                     'Access-Control-Request-Method': 'GET',
-                     'Access-Control-Request-Headers': 'foo,    bar,baz  '})
+        resp = self.app.options(
+            '/squirel', headers={
+                'Origin': 'notmyidea.org',
+                'Access-Control-Request-Method': 'GET',
+                'Access-Control-Request-Headers': 'foo,    bar,baz  '})
         # The specification says we can have any number of LWS (Linear white
         # spaces) in the values and that it should be removed.
 
@@ -264,10 +266,11 @@ class TestCORS(TestCase):
         self.assertIn('baz', headers)
 
     def test_preflight_request_headers_isnt_too_permissive(self):
-        self.app.options('/eggs',
-            headers={'Origin': 'notmyidea.org',
-                     'Access-Control-Request-Method': 'GET',
-                     'Access-Control-Request-Headers': 'foo,bar,baz'},
+        self.app.options(
+            '/eggs', headers={
+                'Origin': 'notmyidea.org',
+                'Access-Control-Request-Method': 'GET',
+                'Access-Control-Request-Headers': 'foo,bar,baz'},
             status=400)
 
     def test_preflight_headers_arent_case_sensitive(self):
