@@ -128,7 +128,13 @@ def extract_json_data(request):
     if request.body:
         try:
             body = simplejson.loads(request.body)
-            return body
+            if isinstance(body, dict):
+                return body
+            request.errors.add(
+                'body', None,
+                "Invalid JSON: Should be a JSON object, got %s" % body
+            )
+            return {}
         except ValueError as e:
             request.errors.add(
                 'body', None,
