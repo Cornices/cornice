@@ -124,22 +124,25 @@ class ServiceDirective(Directive):
 
                         for attr in attributes:
                             temp = nodes.list_item()
-                            desc = "%s : " % attr.name
 
                             # Get attribute data-type
                             if hasattr(attr, 'type'):
                                 attr_type = attr.type
                             elif hasattr(attr, 'typ'):
                                 attr_type = attr.typ.__class__.__name__
-
-                            desc += " %s, " % attr_type
-
-                            if attr.required:
-                                desc += "required "
                             else:
-                                desc += "optional "
+                                attr_type = None
 
-                            temp += nodes.inline(text=desc)
+                            temp += nodes.strong(text=attr.name)
+                            if attr_type is not None:
+                                temp += nodes.inline(text=' (%s)' % attr_type)
+                            if not attr.required or attr.description:
+                                temp += nodes.inline(text=' - ')
+                                if not attr.required:
+                                    temp += nodes.inline(text='(optional) ')
+                                if attr.description:
+                                    temp += nodes.inline(text=attr.description)
+
                             location_attrs += temp
 
                         attrs_node += location_attrs
