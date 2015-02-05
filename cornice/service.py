@@ -522,7 +522,7 @@ def decorate_view(view, args, method):
         # only call the view if we don't have validation errors
         if len(request.errors) == 0:
             try:
-                # if we have an object, the request had already been passed to it
+                # If we have an object, it already has the request.
                 if ob:
                     response = view_()
                 else:

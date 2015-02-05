@@ -75,9 +75,11 @@ def get_some_bacon(request):
         raise NotFound(detail='Not. Found.')
     return "yay"
 
+
 @bacon.post()
 def post_some_bacon(request):
     return Response()
+
 
 @bacon.put()
 def put_some_bacon(request):
@@ -299,7 +301,7 @@ class TestCORS(TestCase):
 
     def test_response_returns_CORS_headers(self):
         resp = self.app.post('/bacon/response', status=200,
-                            headers={'Origin': 'notmyidea.org'})
+                             headers={'Origin': 'notmyidea.org'})
         self.assertIn('Access-Control-Allow-Origin', resp.headers)
 
     def test_raise_returns_CORS_headers(self):
