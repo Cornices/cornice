@@ -48,7 +48,7 @@ class TestSporeGeneration(TestCase):
             'path': '/coffee',
             'method': 'GET',
             'formats': ['json'],
-            })
+        })
 
         self.assertIn('post_coffees', methods)
         self.assertDictEqual(methods['post_coffees'], {
@@ -56,7 +56,7 @@ class TestSporeGeneration(TestCase):
             'method': 'POST',
             'formats': ['json'],
             'description': post_coffees.__doc__
-            })
+        })
 
         self.assertIn('get_coffee', methods)
         self.assertDictEqual(methods['get_coffee'], {
@@ -64,7 +64,7 @@ class TestSporeGeneration(TestCase):
             'method': 'GET',
             'formats': ['json'],
             'required_params': ['bar', 'id']
-            })
+        })
 
     def test_rxjson_spore(self):
         rx = Rx.Factory({'register_core_types': True})
