@@ -4,6 +4,7 @@
 from pyramid.path import DottedNameResolver
 import webob.multidict
 from cornice.util import to_list, extract_request_data
+import colander
 
 
 class CorniceSchema(object):
@@ -90,6 +91,8 @@ class CorniceSchema(object):
 def validate_colander_schema(schema, request):
     """Validates that the request is conform to the given schema"""
     from colander import Invalid, Sequence, drop, null
+
+    assert isinstance(schema, CorniceSchema), 'schema is not a Mapping: %s' % type(schema)
 
     def _validate_fields(location, data):
         if location == 'body':
