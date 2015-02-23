@@ -358,7 +358,8 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
         self.assertEqual(response.json['test'], 'succeeded')
 
     def test_view_config_has_priority_over_global_config(self):
-        low_priority_deserializer = lambda request: "we don't want this"
+        def low_priority_deserializer(request):
+            return "we don't want this"
         app = self.make_app_with_deserializer(low_priority_deserializer)
         response = app.post('/custom_deserializer?yeah=test',
                             "hello,open,yeah",

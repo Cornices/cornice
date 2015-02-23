@@ -4,6 +4,7 @@
 from pyramid import testing
 from pyramid.exceptions import NotFound, HTTPBadRequest
 from pyramid.response import Response
+from pyramid.view import view_config
 
 from webtest import TestApp
 
@@ -84,8 +85,6 @@ def post_some_bacon(request):
 @bacon.put()
 def put_some_bacon(request):
     raise HTTPBadRequest()
-
-from pyramid.view import view_config
 
 
 @view_config(route_name='noservice')

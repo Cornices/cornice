@@ -1,18 +1,24 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+from cornice.resource import resource
 from cornice.service import (Service, get_services, clear_services,
                              decorate_view, _UnboundView)
 from cornice.tests import validationapp
 from cornice.tests.support import TestCase, DummyRequest
 from cornice.util import func_name
 
-_validator = lambda req: True
-_validator2 = lambda req: True
-_stub = lambda req: None
+
+def _validator(req):
+    return True
 
 
-from cornice.resource import resource
+def _validator2(req):
+    return True
+
+
+def _stub(req):
+    return None
 
 
 @resource(collection_path='/pets', path='/pets/{id}')

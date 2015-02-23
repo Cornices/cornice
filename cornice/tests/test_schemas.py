@@ -160,7 +160,9 @@ if COLANDER:
             self.assertEqual(len(base_schema.get_attributes()),
                              len(inherited_schema.get_attributes()))
 
-            foo_filter = lambda x: x.name == "foo"
+            def foo_filter(obj):
+                return obj.name == "foo"
+
             base_foo = list(filter(foo_filter,
                                    base_schema.get_attributes()))[0]
             inherited_foo = list(filter(foo_filter,
