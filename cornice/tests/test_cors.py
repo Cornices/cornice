@@ -2,9 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 from pyramid import testing
+from pyramid.authentication import BasicAuthAuthenticationPolicy
 from pyramid.exceptions import NotFound, HTTPBadRequest
+from pyramid.interfaces import IAuthorizationPolicy
 from pyramid.response import Response
 from pyramid.view import view_config
+from zope.interface import implementer
 
 from webtest import TestApp
 
@@ -59,7 +62,7 @@ def gimme_some_spam_please(request):
     return 'spam'
 
 
-@spam.post()
+@spam.post(permission='read-only')
 def moar_spam(request):
     return 'moar spam'
 
@@ -96,14 +99,13 @@ class TestCORS(TestCase):
 
     def setUp(self):
         self.config = testing.setUp()
-        self.config.include("cornice")
+        self.config.include('cornice')
         self.config.add_route('noservice', '/noservice')
-
-        self.config.scan("cornice.tests.test_cors")
+        self.config.scan('cornice.tests.test_cors')
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
 
-        def tearDown(self):
-            testing.tearDown()
+    def tearDown(self):
+        testing.tearDown()
 
     def test_preflight_cors_klass_post(self):
         resp = self.app.options('/cors_klass',
@@ -312,3 +314,36 @@ class TestCORS(TestCase):
         resp = self.app.get('/noservice', status=200,
                             headers={'Origin': 'notmyidea.org'})
         self.assertEqual(resp.body, b'No Service here.')
+
+
+class TestAuthenticatedCORS(TestCase):
+    def setUp(self):
+
+        def check_cred(username, *args, **kwargs):
+            return [username]
+
+        @implementer(IAuthorizationPolicy)
+        class AuthorizationPolicy(object):
+            def permits(self, context, principals, permission):
+                return permission in principals
+
+        self.config = testing.setUp()
+        self.config.include('cornice')
+        self.config.add_route('noservice', '/noservice')
+        self.config.set_authorization_policy(AuthorizationPolicy())
+        self.config.set_authentication_policy(BasicAuthAuthenticationPolicy(
+            check_cred))
+        self.config.set_default_permission('readwrite')
+        self.config.scan('cornice.tests.test_cors')
+        self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
+
+    def tearDown(self):
+        testing.tearDown()
+
+    def test_post_on_spam_should_be_forbidden(self):
+        self.app.post('/spam', status=403)
+
+    def test_preflight_does_not_need_authentication(self):
+        self.app.options('/spam', status=200,
+                         headers={'Origin': 'notmyidea.org',
+                                  'Access-Control-Request-Method': 'POST'})

@@ -159,7 +159,8 @@ def register_service_views(config, service):
     # before doing anything else, register a view for the OPTIONS method
     # if we need to
     if service.cors_enabled and 'OPTIONS' not in service.defined_methods:
-        service.add_view('options', view=get_cors_preflight_view(service))
+        service.add_view('options', view=get_cors_preflight_view(service),
+                         permission=NO_PERMISSION_REQUIRED)
 
     # register the fallback view, which takes care of returning good error
     # messages to the user-agent
