@@ -62,7 +62,7 @@ def gimme_some_spam_please(request):
     return 'spam'
 
 
-@spam.post(permission="read-only")
+@spam.post(permission='read-only')
 def moar_spam(request):
     return 'moar spam'
 
@@ -99,9 +99,9 @@ class TestCORS(TestCase):
 
     def setUp(self):
         self.config = testing.setUp()
-        self.config.include("cornice")
+        self.config.include('cornice')
         self.config.add_route('noservice', '/noservice')
-        self.config.scan("cornice.tests.test_cors")
+        self.config.scan('cornice.tests.test_cors')
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
 
     def tearDown(self):
@@ -316,7 +316,7 @@ class TestCORS(TestCase):
         self.assertEqual(resp.body, b'No Service here.')
 
 
-class TestAuthenticatedCors(TestCase):
+class TestAuthenticatedCORS(TestCase):
     def setUp(self):
 
         def check_cred(username, *args, **kwargs):
@@ -328,13 +328,13 @@ class TestAuthenticatedCors(TestCase):
                 return permission in principals
 
         self.config = testing.setUp()
-        self.config.include("cornice")
+        self.config.include('cornice')
         self.config.add_route('noservice', '/noservice')
         self.config.set_authorization_policy(AuthorizationPolicy())
         self.config.set_authentication_policy(BasicAuthAuthenticationPolicy(
             check_cred))
         self.config.set_default_permission('readwrite')
-        self.config.scan("cornice.tests.test_cors")
+        self.config.scan('cornice.tests.test_cors')
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
 
     def tearDown(self):
