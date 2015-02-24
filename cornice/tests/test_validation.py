@@ -325,6 +325,16 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
         error_description = response.json['errors'][0]['description']
         self.assertIn('Invalid JSON', error_description)
 
+    def test_json_text(self):
+        app = self.make_ordinary_app()
+        response = app.post('/foobar?yeah=test',
+                            '"invalid json input"',
+                            headers={'content-type': 'application/json'},
+                            status=400)
+        self.assertEqual(response.json['status'], 'error')
+        error_description = response.json['errors'][0]['description']
+        self.assertIn('Should be a JSON object', error_description)
+
     def test_www_form_urlencoded(self):
         app = self.make_ordinary_app()
         response = app.post('/foobar?yeah=test', {
@@ -348,7 +358,8 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
         self.assertEqual(response.json['test'], 'succeeded')
 
     def test_view_config_has_priority_over_global_config(self):
-        low_priority_deserializer = lambda request: "we don't want this"
+        def low_priority_deserializer(request):
+            return "we don't want this"
         app = self.make_app_with_deserializer(low_priority_deserializer)
         response = app.post('/custom_deserializer?yeah=test',
                             "hello,open,yeah",

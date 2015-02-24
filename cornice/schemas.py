@@ -1,9 +1,15 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-from pyramid.path import DottedNameResolver
+import colander
 import webob.multidict
+
+from pyramid.path import DottedNameResolver
 from cornice.util import to_list, extract_request_data
+
+
+class SchemaError(Exception):
+    pass
 
 
 class CorniceSchema(object):
@@ -90,6 +96,10 @@ class CorniceSchema(object):
 def validate_colander_schema(schema, request):
     """Validates that the request is conform to the given schema"""
     from colander import Invalid, Sequence, drop, null
+
+    if not isinstance(schema.colander_schema, colander.MappingSchema):
+        raise SchemaError('schema is not a MappingSchema: %s' %
+                          type(schema.colander_schema))
 
     def _validate_fields(location, data):
         if location == 'body':

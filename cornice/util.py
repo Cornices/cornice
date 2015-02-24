@@ -128,7 +128,13 @@ def extract_json_data(request):
     if request.body:
         try:
             body = simplejson.loads(request.body)
-            return body
+            if isinstance(body, dict):
+                return body
+            request.errors.add(
+                'body', None,
+                "Invalid JSON: Should be a JSON object, got %s" % body
+            )
+            return {}
         except ValueError as e:
             request.errors.add(
                 'body', None,
@@ -151,8 +157,8 @@ def extract_request_data(request):
     registry = request.registry
     if hasattr(request, 'deserializer'):
         body = request.deserializer(request)
-    elif (hasattr(registry, 'cornice_deserializers')
-          and content_type in registry.cornice_deserializers):
+    elif (hasattr(registry, 'cornice_deserializers') and
+          content_type in registry.cornice_deserializers):
         deserializer = registry.cornice_deserializers[content_type]
         body = deserializer(request)
     # otherwise, don't block but it will be an empty body, decode

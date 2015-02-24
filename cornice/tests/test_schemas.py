@@ -3,7 +3,9 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 from cornice.errors import Errors
 from cornice.tests.support import TestCase
-from cornice.schemas import CorniceSchema, validate_colander_schema
+from cornice.schemas import (
+    CorniceSchema, validate_colander_schema, SchemaError
+)
 from cornice.util import extract_json_data
 
 try:
@@ -11,6 +13,7 @@ try:
         deferred,
         Mapping,
         MappingSchema,
+        SequenceSchema,
         SchemaNode,
         String,
         Int,
@@ -43,6 +46,9 @@ if COLANDER:
         foo = SchemaNode(String(), type='str')
         bar = SchemaNode(String(), type='str', location="body")
         baz = SchemaNode(String(), type='str', location="querystring")
+
+    class WrongSchema(SequenceSchema):
+        items = TestingSchema()
 
     class InheritedSchema(TestingSchema):
         foo = SchemaNode(Int(), missing=1)
@@ -160,7 +166,9 @@ if COLANDER:
             self.assertEqual(len(base_schema.get_attributes()),
                              len(inherited_schema.get_attributes()))
 
-            foo_filter = lambda x: x.name == "foo"
+            def foo_filter(obj):
+                return obj.name == "foo"
+
             base_foo = list(filter(foo_filter,
                                    base_schema.get_attributes()))[0]
             inherited_foo = list(filter(foo_filter,
@@ -307,6 +315,13 @@ if COLANDER:
             self.assertEqual(dummy_request.validated['foo'], 5)
             # default value should be available
             self.assertEqual(dummy_request.validated['bar'], 10)
+
+        def test_only_mapping_is_accepted(self):
+            schema = CorniceSchema.from_colander(WrongSchema)
+            dummy_request = get_mock_request('', {'foo': 'test',
+                                                  'bar': 'test'})
+            self.assertRaises(SchemaError,
+                              validate_colander_schema, schema, dummy_request)
 
         def test_extra_params_qs(self):
             schema = CorniceSchema.from_colander(QsSchema)
