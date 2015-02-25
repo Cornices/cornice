@@ -1,7 +1,6 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import colander
 import webob.multidict
 
 from pyramid.path import DottedNameResolver
@@ -95,9 +94,9 @@ class CorniceSchema(object):
 
 def validate_colander_schema(schema, request):
     """Validates that the request is conform to the given schema"""
-    from colander import Invalid, Sequence, drop, null
+    from colander import Invalid, Sequence, drop, null, MappingSchema
 
-    if not isinstance(schema.colander_schema, colander.MappingSchema):
+    if not isinstance(schema.colander_schema, MappingSchema):
         raise SchemaError('schema is not a MappingSchema: %s' %
                           type(schema.colander_schema))
 
