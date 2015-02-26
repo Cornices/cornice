@@ -125,7 +125,7 @@ def apply_cors_post_request(service, request, response):
             'Access-Control-Allow-Credentials' not in response.headers):
         response.headers['Access-Control-Allow-Credentials'] = 'true'
 
-    if request.method is not 'OPTIONS':
+    if request.method != 'OPTIONS':
         # Which headers are exposed?
         supported_headers = service.cors_supported_headers
         if supported_headers:

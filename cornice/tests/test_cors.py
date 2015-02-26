@@ -139,6 +139,14 @@ class TestCORS(TestCase):
             status=400)
         self.assertEqual(len(resp.json['errors']), 1)
 
+    def test_preflight_does_not_expose_headers(self):
+        resp = self.app.options(
+            '/squirel',
+            headers={'Access-Control-Request-Method': 'GET',
+                     'Origin': 'notmyidea.org'},
+            status=200)
+        self.assertNotIn('Access-Control-Expose-Headers', resp.headers)
+
     def test_preflight_missing_request_method(self):
 
         resp = self.app.options(
