@@ -1,7 +1,8 @@
-0.19 (unreleased)
-=================
+0.18.1 (2015-02-26)
+===================
 
-- Nothing changed yet.
+- Fix CORS protocol that was sometimes returning
+  Access-Control-Expose-Headers on preflight request.
 
 
 0.18 - 2015-02-24
