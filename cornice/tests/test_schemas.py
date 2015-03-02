@@ -113,7 +113,6 @@ if COLANDER:
         def schema_type(self, **kw):
             return Mapping(unknown='preserve')
 
-
     def get_mock_request(body, get=None):
         # Construct a mock request with the given request body
         class MockRegistry(object):
