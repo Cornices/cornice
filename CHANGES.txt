@@ -1,7 +1,7 @@
 0.19 (unreleased)
 =================
 
-- Nothing changed yet.
+- Keep fields when colander schema set "unknown=preserve"
 
 
 0.18.1 (2015-02-26)
