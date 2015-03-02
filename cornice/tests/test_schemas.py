@@ -7,6 +7,7 @@ from cornice.schemas import (
     CorniceSchema, validate_colander_schema, SchemaError
 )
 from cornice.util import extract_json_data
+import json
 
 try:
     from colander import (
@@ -105,6 +106,12 @@ if COLANDER:
         bar = SchemaNode(String(), type='str', location="body")
         baz = SchemaNode(String(), type='str', location="querystring")
         qux = SchemaNode(String(), type='str', location="header")
+
+    class PreserveUnkownSchema(MappingSchema):
+        bar = SchemaNode(String(), type='str')
+
+        def schema_type(self, **kw):
+            return Mapping(unknown='preserve')
 
     def get_mock_request(body, get=None):
         # Construct a mock request with the given request body
@@ -349,3 +356,16 @@ if COLANDER:
 
             expected = {'foo': 'test'}
             self.assertEqual(expected, dummy_request.validated)
+
+        def test_validate_colander_schema_can_preserve_unknown_fields(self):
+            schema = CorniceSchema.from_colander(PreserveUnkownSchema)
+
+            data = json.dumps({"bar": "required_data", "optional": "true"})
+            dummy_request = get_mock_request(data)
+            validate_colander_schema(schema, dummy_request)
+
+            self.assertDictEqual(dummy_request.validated, {
+                "bar": "required_data",
+                "optional": "true"
+            })
+            self.assertEqual(len(dummy_request.errors), 0)

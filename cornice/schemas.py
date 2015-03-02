@@ -96,6 +96,9 @@ def validate_colander_schema(schema, request):
     """Validates that the request is conform to the given schema"""
     from colander import Invalid, Sequence, drop, null, MappingSchema
 
+    schema_type = schema.colander_schema.schema_type()
+    unknown = getattr(schema_type, 'unknown', None)
+
     if not isinstance(schema.colander_schema, MappingSchema):
         raise SchemaError('schema is not a MappingSchema: %s' %
                           type(schema.colander_schema))
@@ -149,6 +152,11 @@ def validate_colander_schema(schema, request):
                 else:
                     if deserialized is not drop:
                         request.validated[attr.name] = deserialized
+
+        if location == "body" and unknown == 'preserve':
+            for field, value in data.items():
+                if field not in request.validated:
+                    request.validated[field] = value
 
     qs, headers, body, path = extract_request_data(request)
 
