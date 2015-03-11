@@ -460,7 +460,7 @@ class Service(object):
             The method to check the credentials support for
         """
         for meth, view, args in self.definitions:
-            if meth.upper() == method.upper():
+            if method and meth.upper() == method.upper():
                 return args.get('cors_credentials', False)
 
         if getattr(self, 'cors_credentials', False):
@@ -469,7 +469,7 @@ class Service(object):
 
     def cors_max_age_for(self, method=None):
         for meth, view, args in self.definitions:
-            if meth.upper() == method.upper():
+            if method and meth.upper() == method.upper():
                 return args.get('cors_max_age', False)
 
         return getattr(self, 'cors_max_age', None)
