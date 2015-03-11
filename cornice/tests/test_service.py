@@ -347,29 +347,29 @@ class TestService(TestCase):
         # it is possible to list all the headers supported by a service.
         service = Service('coconuts', '/migrate',
                           cors_headers=('X-Header-Coconut'))
-        self.assertNotIn('X-Header-Coconut', service.cors_supported_headers)
+        self.assertNotIn('X-Header-Coconut', service.cors_supported_headers())
 
         service.add_view('POST', _stub)
-        self.assertIn('X-Header-Coconut', service.cors_supported_headers)
+        self.assertIn('X-Header-Coconut', service.cors_supported_headers())
 
     def test_cors_headers_for_view_definition(self):
         # defining headers in the view should work.
         service = Service('coconuts', '/migrate')
         service.add_view('POST', _stub, cors_headers=('X-Header-Foobar'))
-        self.assertIn('X-Header-Foobar', service.cors_supported_headers)
+        self.assertIn('X-Header-Foobar', service.cors_supported_headers())
 
     def test_cors_headers_extension(self):
         # definining headers in the service and in the view
         service = Service('coconuts', '/migrate',
                           cors_headers=('X-Header-Foobar'))
         service.add_view('POST', _stub, cors_headers=('X-Header-Barbaz'))
-        self.assertIn('X-Header-Foobar', service.cors_supported_headers)
-        self.assertIn('X-Header-Barbaz', service.cors_supported_headers)
+        self.assertIn('X-Header-Foobar', service.cors_supported_headers())
+        self.assertIn('X-Header-Barbaz', service.cors_supported_headers())
 
         # check that adding the same header twice doesn't make bad things
         # happen
         service.add_view('POST', _stub, cors_headers=('X-Header-Foobar'),)
-        self.assertEqual(len(service.cors_supported_headers), 2)
+        self.assertEqual(len(service.cors_supported_headers()), 2)
 
         # check that adding a header on a cors disabled method doesn't
         # change anything
@@ -377,7 +377,15 @@ class TestService(TestCase):
                          cors_headers=('X-Another-Header',),
                          cors_enabled=False)
 
-        self.assertFalse('X-Another-Header' in service.cors_supported_headers)
+        self.assertNotIn('X-Another-Header', service.cors_supported_headers())
+
+    def test_cors_headers_for_method(self):
+        # defining headers in the view should work.
+        service = Service('coconuts', '/migrate')
+        service.add_view('GET', _stub, cors_headers=('X-Header-Foobar'))
+        service.add_view('POST', _stub, cors_headers=('X-Header-Barbaz'))
+        get_headers = service.cors_supported_headers(method='GET')
+        self.assertNotIn('X-Header-Barbaz', get_headers)
 
     def test_cors_supported_methods(self):
         foo = Service(name='foo', path='/foo', cors_enabled=True)
