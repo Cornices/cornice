@@ -431,24 +431,24 @@ class TestService(TestCase):
     def test_credential_support_can_be_enabled(self):
         foo = Service(name='foo', path='/foo', cors_credentials=True)
         foo.add_view('POST', _stub)
-        self.assertTrue(foo.cors_support_credentials())
+        self.assertTrue(foo.cors_support_credentials_for())
 
     def test_credential_support_is_disabled_by_default(self):
         foo = Service(name='foo', path='/foo')
         foo.add_view('POST', _stub)
-        self.assertFalse(foo.cors_support_credentials())
+        self.assertFalse(foo.cors_support_credentials_for())
 
     def test_per_method_credential_support(self):
         foo = Service(name='foo', path='/foo')
         foo.add_view('GET', _stub, cors_credentials=True)
         foo.add_view('POST', _stub)
-        self.assertTrue(foo.cors_support_credentials('GET'))
-        self.assertFalse(foo.cors_support_credentials('POST'))
+        self.assertTrue(foo.cors_support_credentials_for('GET'))
+        self.assertFalse(foo.cors_support_credentials_for('POST'))
 
     def test_method_takes_precendence_for_credential_support(self):
         foo = Service(name='foo', path='/foo', cors_credentials=True)
         foo.add_view('GET', _stub, cors_credentials=False)
-        self.assertFalse(foo.cors_support_credentials('GET'))
+        self.assertFalse(foo.cors_support_credentials_for('GET'))
 
     def test_max_age_can_be_defined(self):
         foo = Service(name='foo', path='/foo', cors_max_age=42)

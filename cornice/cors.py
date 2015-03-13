@@ -121,7 +121,7 @@ def apply_cors_post_request(service, request, response):
     response = ensure_origin(service, request, response)
     method = _get_method(request)
 
-    if (service.cors_support_credentials(method) and
+    if (service.cors_support_credentials_for(method) and
             'Access-Control-Allow-Credentials' not in response.headers):
         response.headers['Access-Control-Allow-Credentials'] = 'true'
 

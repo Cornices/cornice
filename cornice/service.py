@@ -469,6 +469,16 @@ class Service(object):
         return origins
 
     def cors_support_credentials(self, method=None):
+        """Backward compatibility for ``cors_support_credentials_for``."""
+        raise DeprecationWarning(
+            'The {0} property is deprecated. Please start using {1}() '
+            'instead.'.format(
+                'cors_support_credentials',
+                'cors_support_credentials_for')
+        )
+        return self.cors_supported_headers_for()
+
+    def cors_support_credentials_for(self, method=None):
         """Returns if the given method support credentials.
 
         :param method:
