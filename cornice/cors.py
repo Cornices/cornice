@@ -21,7 +21,7 @@ def get_cors_preflight_view(service):
     def _preflight_view(request):
         response = request.response
         origin = request.headers.get('Origin')
-        supported_headers = service.cors_supported_headers()
+        supported_headers = service.cors_supported_headers_for()
 
         if not origin:
             request.errors.add('header', 'Origin',
@@ -127,7 +127,7 @@ def apply_cors_post_request(service, request, response):
 
     if request.method != 'OPTIONS':
         # Which headers are exposed?
-        supported_headers = service.cors_supported_headers(request.method)
+        supported_headers = service.cors_supported_headers_for(request.method)
         if supported_headers:
             response.headers['Access-Control-Expose-Headers'] = (
                 ', '.join(supported_headers))

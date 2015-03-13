@@ -413,7 +413,18 @@ class Service(object):
     def cors_enabled(self, value):
         self._cors_enabled = value
 
-    def cors_supported_headers(self, method=None):
+    @property
+    def cors_supported_headers(self):
+        """Backward compatibility for ``cors_supported_headers_for``."""
+        raise DeprecationWarning(
+            'The {0} property is deprecated. Please start using {1}() '
+            'instead.'.format(
+                'cors_supported_headers',
+                'cors_supported_headers_for')
+        )
+        return self.cors_supported_headers_for()
+
+    def cors_supported_headers_for(self, method=None):
         """Return an iterable of supported headers for this service.
 
         The supported headers are defined by the :param headers: argument
