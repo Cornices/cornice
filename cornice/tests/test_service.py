@@ -420,10 +420,12 @@ class TestService(TestCase):
 
     def test_credential_support_can_be_enabled(self):
         foo = Service(name='foo', path='/foo', cors_credentials=True)
+        foo.add_view('POST', _stub)
         self.assertTrue(foo.cors_support_credentials())
 
     def test_credential_support_is_disabled_by_default(self):
         foo = Service(name='foo', path='/foo')
+        foo.add_view('POST', _stub)
         self.assertFalse(foo.cors_support_credentials())
 
     def test_per_method_credential_support(self):
@@ -440,6 +442,7 @@ class TestService(TestCase):
 
     def test_max_age_can_be_defined(self):
         foo = Service(name='foo', path='/foo', cors_max_age=42)
+        foo.add_view('POST', _stub)
         self.assertEqual(foo.cors_max_age_for(), 42)
 
     def test_max_age_can_be_different_dependeing_methods(self):
