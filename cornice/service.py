@@ -416,12 +416,10 @@ class Service(object):
     @property
     def cors_supported_headers(self):
         """Backward compatibility for ``cors_supported_headers_for``."""
-        raise DeprecationWarning(
-            'The {0} property is deprecated. Please start using {1}() '
-            'instead.'.format(
-                'cors_supported_headers',
-                'cors_supported_headers_for')
-        )
+        msg = "The '{0}' property is deprecated. Please start using '{1}' "\
+              "instead.".format('cors_supported_headers',
+                                'cors_supported_headers_for()')
+        warnings.warn(msg, DeprecationWarning)
         return self.cors_supported_headers_for()
 
     def cors_supported_headers_for(self, method=None):
@@ -470,12 +468,10 @@ class Service(object):
 
     def cors_support_credentials(self, method=None):
         """Backward compatibility for ``cors_support_credentials_for``."""
-        raise DeprecationWarning(
-            'The {0} property is deprecated. Please start using {1}() '
-            'instead.'.format(
-                'cors_support_credentials',
-                'cors_support_credentials_for')
-        )
+        msg = "The '{0}' property is deprecated. Please start using '{1}' "\
+              "instead.".format('cors_support_credentials',
+                                'cors_support_credentials_for()')
+        warnings.warn(msg, DeprecationWarning)
         return self.cors_supported_headers_for()
 
     def cors_support_credentials_for(self, method=None):
