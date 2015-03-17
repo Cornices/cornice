@@ -1,5 +1,5 @@
-0.20 (unreleased)
-=================
+0.20.0 (2015-03-17)
+===================
 
 - Service.cors_supported_headers are now filtered by method and CORS options
   are now handled in a more consistent way (#281).
