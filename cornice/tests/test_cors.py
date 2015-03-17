@@ -41,7 +41,7 @@ cors_klass = Service(name='cors_klass',
 cors_klass.add_view('post', 'post')
 
 
-@squirel.get(cors_origins=('notmyidea.org',))
+@squirel.get(cors_origins=('notmyidea.org',), cors_headers=('X-My-Header',))
 def get_squirel(request):
     return "squirels"
 
@@ -51,7 +51,7 @@ def post_squirel(request):
     return "moar squirels (take care)"
 
 
-@squirel.put(cors_headers=('X-My-Header',))
+@squirel.put()
 def put_squirel(request):
     return "squirels!"
 

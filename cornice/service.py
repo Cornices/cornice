@@ -415,15 +415,28 @@ class Service(object):
 
     @property
     def cors_supported_headers(self):
+        """Backward compatibility for ``cors_supported_headers_for``."""
+        msg = "The '{0}' property is deprecated. Please start using '{1}' "\
+              "instead.".format('cors_supported_headers',
+                                'cors_supported_headers_for()')
+        warnings.warn(msg, DeprecationWarning)
+        return self.cors_supported_headers_for()
+
+    def cors_supported_headers_for(self, method=None):
         """Return an iterable of supported headers for this service.
 
         The supported headers are defined by the :param headers: argument
         that is passed to services or methods, at definition time.
         """
         headers = set()
-        for _, _, args in self.definitions:
+        for meth, _, args in self.definitions:
             if args.get('cors_enabled', True):
-                headers |= set(args.get('cors_headers', ()))
+                exposed_headers = args.get('cors_headers', ())
+                if method is not None:
+                    if meth.upper() == method.upper():
+                        return exposed_headers
+                else:
+                    headers |= set(exposed_headers)
         return headers
 
     @property
@@ -454,6 +467,14 @@ class Service(object):
         return origins
 
     def cors_support_credentials(self, method=None):
+        """Backward compatibility for ``cors_support_credentials_for``."""
+        msg = "The '{0}' property is deprecated. Please start using '{1}' "\
+              "instead.".format('cors_support_credentials',
+                                'cors_support_credentials_for()')
+        warnings.warn(msg, DeprecationWarning)
+        return self.cors_supported_headers_for()
+
+    def cors_support_credentials_for(self, method=None):
         """Returns if the given method support credentials.
 
         :param method:
