@@ -6,6 +6,7 @@
 Sphinx extension that is able to convert a service into a documentation.
 """
 import sys
+import json
 from importlib import import_module
 
 from cornice.util import to_list, is_string, PY3
@@ -139,7 +140,13 @@ class ServiceDirective(Directive):
                             if not attr.required or attr.description:
                                 temp += nodes.inline(text=' - ')
                                 if not attr.required:
-                                    temp += nodes.inline(text='(optional) ')
+                                    if attr.missing is not None:
+                                        default = json.dumps(attr.missing)
+                                        temp += nodes.inline(
+                                            text='(default: %s) ' % default)
+                                    else:
+                                        temp += nodes.inline(
+                                            text='(optional) ')
                                 if attr.description:
                                     temp += nodes.inline(text=attr.description)
 
