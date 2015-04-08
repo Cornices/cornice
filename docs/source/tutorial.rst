@@ -135,7 +135,7 @@ to add our first service - the users management ::
 
 What we have here is 3 methods on **/users**:
 
-- **GET**: return the list of users names -- the keys of _USERS
+- **GET**: returns the list of users names -- the keys of _USERS
 - **POST**: adds a new user and returns a unique token
 - **DELETE**: removes the user.
 
