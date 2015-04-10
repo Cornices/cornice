@@ -148,7 +148,6 @@ class TestResource(TestCase):
             result = self.app.get('/thing', status=HTTPOk.code)
             self.assertEqual("yay", result.json)
 
-
     if validationapp.COLANDER:
         def test_schema_on_resource(self):
             User.schema = CorniceSchema.from_colander(
