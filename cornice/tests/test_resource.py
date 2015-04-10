@@ -8,7 +8,7 @@ from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.security import Allow
 from pyramid.httpexceptions import (
-    HTTPOk, HTTPForbidden, HTTPNotFound, HTTPMethodNotAllowed
+    HTTPOk, HTTPForbidden
 )
 from webtest import TestApp
 import mock
@@ -25,6 +25,7 @@ USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
 
 def my_collection_acl(request):
     return [(Allow, 'alice', 'read')]
+
 
 @resource(collection_path='/thing', path='/thing/{id}',
           name='thing_service', collection_acl=my_collection_acl)
