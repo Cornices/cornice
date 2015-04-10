@@ -170,6 +170,8 @@ def register_service_views(config, service):
     cornice_parameters = ('filters', 'validators', 'schema', 'klass',
                           'error_handler', 'deserializer') + CORS_PARAMETERS
 
+    route_added = False
+
     for method, view, args in service.definitions:
 
         args = copy.copy(args)  # make a copy of the dict to not modify it
@@ -191,6 +193,7 @@ def register_service_views(config, service):
             if item in args:
                 del args[item]
 
+    
         # if acl is present, then convert it to a "factory"
         if 'acl' in args:
             args["factory"] = make_route_factory(args.pop('acl'))
@@ -203,7 +206,9 @@ def register_service_views(config, service):
         if 'traverse' in args:
             route_args['traverse'] = args.pop('traverse')
 
-        config.add_route(route_name, service.path, **route_args)
+        if not route_added:
+            config.add_route(route_name, service.path, **route_args)
+            route_added = True
 
         # 2. register view(s)
         # pop and compute predicates which get passed through to Pyramid 1:1
