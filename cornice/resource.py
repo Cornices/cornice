@@ -41,6 +41,9 @@ def resource(depth=1, **kw):
                 elif k not in service_args:
                     service_args[k] = kw[k]
 
+            if prefix == 'collection_' and 'collection_acl' in kw.keys():
+                kw['acl'] = kw['collection_acl']
+
             # create service
             service_name = (service_args.pop('name', None) or
                             klass.__name__.lower())
