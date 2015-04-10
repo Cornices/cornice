@@ -9,7 +9,7 @@ deps
 *.egg*
 *.swp
 html
-doc/build
+docs/build
 \.coverage
 *~
 ._build.etag
@@ -18,3 +18,4 @@ test
 nosetests.xml
 man
 .channel
+dist/

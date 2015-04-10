@@ -6,6 +6,7 @@
 Sphinx extension that is able to convert a service into a documentation.
 """
 import sys
+import json
 from importlib import import_module
 
 from cornice.util import to_list, is_string, PY3
@@ -18,6 +19,7 @@ from docutils.writers.html4css1 import Writer, HTMLTranslator
 from sphinx.util.docfields import DocFieldTransformer
 
 MODULES = {}
+
 
 def convert_to_list(argument):
     """Convert a comma separated list into a list of python values"""
@@ -61,7 +63,8 @@ class ServiceDirective(Directive):
         self.env = self.state.document.settings.env
 
     def run(self):
-        # clear the SERVICES variable, which will allow to use this directive multiple times
+        # clear the SERVICES variable, which will allow to use this
+        # directive multiple times
         clear_services()
 
         # import the modules, which will populate the SERVICES variable.
@@ -95,7 +98,7 @@ class ServiceDirective(Directive):
 
         for method, view, args in service.definitions:
             if method == 'HEAD':
-                #Skip head - this is essentially duplicating the get docs.
+                # Skip head - this is essentially duplicating the get docs.
                 continue
             method_id = '%s-%s' % (service_id, method)
             method_node = nodes.section(ids=[method_id])
@@ -117,27 +120,36 @@ class ServiceDirective(Directive):
                     attributes = schema.get_attributes(location=location)
                     if attributes:
                         attrs_node += nodes.inline(
-                                text='values in the %s' % location)
+                            text='values in the %s' % location)
                         location_attrs = nodes.bullet_list()
 
                         for attr in attributes:
                             temp = nodes.list_item()
-                            desc = "%s : " % attr.name
 
                             # Get attribute data-type
                             if hasattr(attr, 'type'):
                                 attr_type = attr.type
                             elif hasattr(attr, 'typ'):
                                 attr_type = attr.typ.__class__.__name__
-
-                            desc += " %s, " % attr_type
-
-                            if attr.required:
-                                desc += "required "
                             else:
-                                desc += "optional "
+                                attr_type = None
 
-                            temp += nodes.inline(text=desc)
+                            temp += nodes.strong(text=attr.name)
+                            if attr_type is not None:
+                                temp += nodes.inline(text=' (%s)' % attr_type)
+                            if not attr.required or attr.description:
+                                temp += nodes.inline(text=' - ')
+                                if not attr.required:
+                                    if attr.missing is not None:
+                                        default = json.dumps(attr.missing)
+                                        temp += nodes.inline(
+                                            text='(default: %s) ' % default)
+                                    else:
+                                        temp += nodes.inline(
+                                            text='(optional) ')
+                                if attr.description:
+                                    temp += nodes.inline(text=attr.description)
+
                             location_attrs += temp
 
                         attrs_node += location_attrs

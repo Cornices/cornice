@@ -1,23 +1,31 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-from cornice.service import (Service, get_services, clear_services,
-                             decorate_view)
-from cornice.tests import validationapp
-from cornice.tests.support import TestCase, DummyRequest, DummyContext
-
-_validator = lambda req: True
-_validator2 = lambda req: True
-_stub = lambda req: None
-
-
 from cornice.resource import resource
+from cornice.service import (Service, get_services, clear_services,
+                             decorate_view, _UnboundView)
+from cornice.tests import validationapp
+from cornice.tests.support import TestCase, DummyRequest
+from cornice.util import func_name
+
+
+def _validator(req):
+    return True
+
+
+def _validator2(req):
+    return True
+
+
+def _stub(req):
+    return None
 
 
 @resource(collection_path='/pets', path='/pets/{id}')
 class DummyAPI(object):
     last_request = None
     last_context = None
+
     def __init__(self, request, context=None):
         DummyAPI.last_request = request
         DummyAPI.last_context = context
@@ -158,16 +166,16 @@ class TestService(TestCase):
 
         service.add_view("GET", lambda x: "blue", accept="application/json")
         self.assertEqual(service.get_acceptable("GET"),
-                          ['text/plain', 'application/json'])
+                         ['text/plain', 'application/json'])
 
         # adding a view for the POST method should not break everything :-)
         service.add_view("POST", lambda x: "ok", accept=('foo/bar'))
         self.assertEqual(service.get_acceptable("GET"),
-                          ['text/plain', 'application/json'])
+                         ['text/plain', 'application/json'])
         # and of course the list of accepted egress content-types should be
         # available for the "POST" as well.
         self.assertEqual(service.get_acceptable("POST"),
-                          ['foo/bar'])
+                         ['foo/bar'])
 
         # it is possible to give acceptable egress content-types dynamically at
         # run-time. You don't always want to have the callables when retrieving
@@ -222,7 +230,7 @@ class TestService(TestCase):
                          validators=(validator, validator))
         service.add_view('GET', lambda x: 'ok', validators=(validator2))
         self.assertEqual(service.get_validators('GET'),
-                          [validator, validator2])
+                         [validator, validator2])
 
     if validationapp.COLANDER:
         def test_schemas_for(self):
@@ -261,7 +269,7 @@ class TestService(TestCase):
         self.assertEqual([barbaz, ], get_services(exclude=['Foobar', ]))
         self.assertEqual([foobar, ], get_services(names=['Foobar', ]))
         self.assertEqual([foobar, barbaz],
-                          get_services(names=['Foobar', 'Barbaz']))
+                         get_services(names=['Foobar', 'Barbaz']))
 
     def test_default_validators(self):
 
@@ -339,29 +347,30 @@ class TestService(TestCase):
         # it is possible to list all the headers supported by a service.
         service = Service('coconuts', '/migrate',
                           cors_headers=('X-Header-Coconut'))
-        self.assertNotIn('X-Header-Coconut', service.cors_supported_headers)
+        self.assertNotIn('X-Header-Coconut',
+                         service.cors_supported_headers_for())
 
         service.add_view('POST', _stub)
-        self.assertIn('X-Header-Coconut', service.cors_supported_headers)
+        self.assertIn('X-Header-Coconut', service.cors_supported_headers_for())
 
     def test_cors_headers_for_view_definition(self):
         # defining headers in the view should work.
         service = Service('coconuts', '/migrate')
         service.add_view('POST', _stub, cors_headers=('X-Header-Foobar'))
-        self.assertIn('X-Header-Foobar', service.cors_supported_headers)
+        self.assertIn('X-Header-Foobar', service.cors_supported_headers_for())
 
     def test_cors_headers_extension(self):
         # definining headers in the service and in the view
         service = Service('coconuts', '/migrate',
                           cors_headers=('X-Header-Foobar'))
         service.add_view('POST', _stub, cors_headers=('X-Header-Barbaz'))
-        self.assertIn('X-Header-Foobar', service.cors_supported_headers)
-        self.assertIn('X-Header-Barbaz', service.cors_supported_headers)
+        self.assertIn('X-Header-Foobar', service.cors_supported_headers_for())
+        self.assertIn('X-Header-Barbaz', service.cors_supported_headers_for())
 
         # check that adding the same header twice doesn't make bad things
         # happen
         service.add_view('POST', _stub, cors_headers=('X-Header-Foobar'),)
-        self.assertEqual(len(service.cors_supported_headers), 2)
+        self.assertEqual(len(service.cors_supported_headers_for()), 2)
 
         # check that adding a header on a cors disabled method doesn't
         # change anything
@@ -369,7 +378,16 @@ class TestService(TestCase):
                          cors_headers=('X-Another-Header',),
                          cors_enabled=False)
 
-        self.assertFalse('X-Another-Header' in service.cors_supported_headers)
+        self.assertNotIn('X-Another-Header',
+                         service.cors_supported_headers_for())
+
+    def test_cors_headers_for_method(self):
+        # defining headers in the view should work.
+        service = Service('coconuts', '/migrate')
+        service.add_view('GET', _stub, cors_headers=('X-Header-Foobar'))
+        service.add_view('POST', _stub, cors_headers=('X-Header-Barbaz'))
+        get_headers = service.cors_supported_headers_for(method='GET')
+        self.assertNotIn('X-Header-Barbaz', get_headers)
 
     def test_cors_supported_methods(self):
         foo = Service(name='foo', path='/foo', cors_enabled=True)
@@ -412,26 +430,29 @@ class TestService(TestCase):
 
     def test_credential_support_can_be_enabled(self):
         foo = Service(name='foo', path='/foo', cors_credentials=True)
-        self.assertTrue(foo.cors_support_credentials())
+        foo.add_view('POST', _stub)
+        self.assertTrue(foo.cors_support_credentials_for())
 
     def test_credential_support_is_disabled_by_default(self):
         foo = Service(name='foo', path='/foo')
-        self.assertFalse(foo.cors_support_credentials())
+        foo.add_view('POST', _stub)
+        self.assertFalse(foo.cors_support_credentials_for())
 
     def test_per_method_credential_support(self):
         foo = Service(name='foo', path='/foo')
         foo.add_view('GET', _stub, cors_credentials=True)
         foo.add_view('POST', _stub)
-        self.assertTrue(foo.cors_support_credentials('GET'))
-        self.assertFalse(foo.cors_support_credentials('POST'))
+        self.assertTrue(foo.cors_support_credentials_for('GET'))
+        self.assertFalse(foo.cors_support_credentials_for('POST'))
 
     def test_method_takes_precendence_for_credential_support(self):
         foo = Service(name='foo', path='/foo', cors_credentials=True)
         foo.add_view('GET', _stub, cors_credentials=False)
-        self.assertFalse(foo.cors_support_credentials('GET'))
+        self.assertFalse(foo.cors_support_credentials_for('GET'))
 
     def test_max_age_can_be_defined(self):
         foo = Service(name='foo', path='/foo', cors_max_age=42)
+        foo.add_view('POST', _stub)
         self.assertEqual(foo.cors_max_age_for(), 42)
 
     def test_max_age_can_be_different_dependeing_methods(self):
@@ -494,3 +515,25 @@ class TestService(TestCase):
         self.assertEqual(ret, ['douggy', 'rusty'])
         self.assertEqual(dummy_request, DummyAPI.last_request)
         self.assertIsNone(DummyAPI.last_context)
+
+    def test_decorate_view(self):
+        def myfunction():
+            pass
+
+        meth = 'POST'
+        decorated = decorate_view(myfunction, {}, meth)
+        self.assertEqual(decorated.__name__, "{0}__{1}".format(
+            func_name(myfunction), meth))
+
+    def test_decorate_resource_view(self):
+        class MyResource(object):
+            def __init__(self, **kwargs):
+                pass
+
+            def myview(self):
+                pass
+
+        meth = 'POST'
+        decorated = decorate_view(_UnboundView(MyResource, 'myview'), {}, meth)
+        self.assertEqual(decorated.__name__, "{0}__{1}".format(
+            func_name(MyResource.myview), meth))

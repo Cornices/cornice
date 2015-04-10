@@ -5,12 +5,10 @@ from pyramid.config import Configurator
 import simplejson as json
 
 from webtest import TestApp
-from pyramid.response import Response
 
 from cornice.errors import Errors
 from cornice.tests.validationapp import main, includeme, dummy_deserializer
 from cornice.tests.support import LoggingCatcher, TestCase, CatchErrors
-from cornice.validators import filter_json_xsrf
 
 
 class TestServiceDefinition(LoggingCatcher, TestCase):
@@ -140,41 +138,25 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         self.assertTrue(response.content_type
                         in ("application/json", "text/plain"))
 
+    def test_override_default_accept_issue_252(self):
+        # override default acceptable content_types for interoperate with
+        # legacy applications i.e. ExtJS 3
+        from cornice.util import _JsonRenderer
+        _JsonRenderer.acceptable += ('text/html',)
+
+        app = TestApp(main({}))
+
+        response = app.get('/service5', headers={'Accept': 'text/html'})
+        self.assertEqual(response.content_type, "text/html")
+        # revert the override
+        _JsonRenderer.acceptable = _JsonRenderer.acceptable[:-1]
+
     def test_filters(self):
         app = TestApp(main({}))
 
         # filters can be applied to all the methods of a service
         self.assertTrue(b"filtered response" in app.get('/filtered').body)
         self.assertTrue(b"unfiltered" in app.post('/filtered').body)
-
-    def test_json_xsrf_vulnerable_values_warning(self):
-        vulnerable_values = [
-            '["value1", "value2"]',  # json array
-            '  \n ["value1", "value2"] ',  # may include whitespace
-            '"value"',  # strings may contain nasty characters in UTF-7
-        ]
-        # a view returning a vulnerable json response should issue a warning
-        for value in vulnerable_values:
-            response = Response(value)
-            response.status = 200
-            response.content_type = 'application/json'
-            filter_json_xsrf(response)
-            assert len(self.get_logs()) == 1, "Expected warning: %s" % value
-
-    def test_json_xsrf_safe_values_no_warning(self):
-        safe_values = [
-            '{"value1": "value2"}',  # json object
-            '  \n {"value1": "value2"} ',  # may include whitespace
-            'true', 'false', 'null',  # primitives
-            '123', '-123', '0.123',  # numbers
-        ]
-        # a view returning safe json response should not issue a warning
-        for value in safe_values:
-            response = Response(value)
-            response.status = 200
-            response.content_type = 'application/json'
-            filter_json_xsrf(response)
-            assert len(self.get_logs()) == 0, "Unexpected warning: %s" % value
 
     def test_multiple_querystrings(self):
         app = TestApp(main({}))
@@ -343,6 +325,15 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
         error_description = response.json['errors'][0]['description']
         self.assertIn('Invalid JSON', error_description)
 
+    def test_json_text(self):
+        app = self.make_ordinary_app()
+        response = app.post('/foobar?yeah=test',
+                            '"invalid json input"',
+                            headers={'content-type': 'application/json'},
+                            status=400)
+        self.assertEqual(response.json['status'], 'error')
+        error_description = response.json['errors'][0]['description']
+        self.assertIn('Should be a JSON object', error_description)
 
     def test_www_form_urlencoded(self):
         app = self.make_ordinary_app()
@@ -367,7 +358,8 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
         self.assertEqual(response.json['test'], 'succeeded')
 
     def test_view_config_has_priority_over_global_config(self):
-        low_priority_deserializer = lambda request: "we don't want this"
+        def low_priority_deserializer(request):
+            return "we don't want this"
         app = self.make_app_with_deserializer(low_priority_deserializer)
         response = app.post('/custom_deserializer?yeah=test',
                             "hello,open,yeah",

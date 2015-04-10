@@ -33,8 +33,8 @@ class TestSporeGeneration(TestCase):
 
         services = get_services(names=('coffee', 'Coffees'))
         spore = generate_spore_description(
-                services, name="oh yeah",
-                base_url="http://localhost/", version="1.0")
+            services, name="oh yeah",
+            base_url="http://localhost/", version="1.0")
 
         # basic fields
         self.assertEqual(spore['name'], "oh yeah")
@@ -48,7 +48,7 @@ class TestSporeGeneration(TestCase):
             'path': '/coffee',
             'method': 'GET',
             'formats': ['json'],
-            })
+        })
 
         self.assertIn('post_coffees', methods)
         self.assertDictEqual(methods['post_coffees'], {
@@ -56,7 +56,7 @@ class TestSporeGeneration(TestCase):
             'method': 'POST',
             'formats': ['json'],
             'description': post_coffees.__doc__
-            })
+        })
 
         self.assertIn('get_coffee', methods)
         self.assertDictEqual(methods['get_coffee'], {
@@ -64,7 +64,7 @@ class TestSporeGeneration(TestCase):
             'method': 'GET',
             'formats': ['json'],
             'required_params': ['bar', 'id']
-            })
+        })
 
     def test_rxjson_spore(self):
         rx = Rx.Factory({'register_core_types': True})
@@ -77,8 +77,8 @@ class TestSporeGeneration(TestCase):
 
         services = get_services(names=('coffee', 'Coffees'))
         spore = generate_spore_description(
-                services, name="oh yeah",
-                base_url="http://localhost/", version="1.0")
+            services, name="oh yeah",
+            base_url="http://localhost/", version="1.0")
 
         with open(os.path.join(HERE, 'spore_validation.rx')) as f:
             spore_json_schema = json.loads(f.read())

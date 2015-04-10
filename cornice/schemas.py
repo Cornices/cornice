@@ -1,9 +1,14 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-from pyramid.path import DottedNameResolver
 import webob.multidict
+
+from pyramid.path import DottedNameResolver
 from cornice.util import to_list, extract_request_data
+
+
+class SchemaError(Exception):
+    pass
 
 
 class CorniceSchema(object):
@@ -52,7 +57,7 @@ class CorniceSchema(object):
         """returns a dict containing keys for the different attributes, and
         for each of them, a dict containing information about them::
 
-            >>> schema.as_dict()
+            >>> schema.as_dict()  # NOQA
             {'foo': {'type': 'string',
                      'location': 'body',
                      'description': 'yeah',
@@ -89,7 +94,14 @@ class CorniceSchema(object):
 
 def validate_colander_schema(schema, request):
     """Validates that the request is conform to the given schema"""
-    from colander import Invalid, Sequence, drop, null
+    from colander import Invalid, Sequence, drop, null, MappingSchema
+
+    schema_type = schema.colander_schema.schema_type()
+    unknown = getattr(schema_type, 'unknown', None)
+
+    if not isinstance(schema.colander_schema, MappingSchema):
+        raise SchemaError('schema is not a MappingSchema: %s' %
+                          type(schema.colander_schema))
 
     def _validate_fields(location, data):
         if location == 'body':
@@ -109,13 +121,14 @@ def validate_colander_schema(schema, request):
 
         for attr in schema.get_attributes(location=location,
                                           request=request):
-            if attr.required and not attr.name in data and attr.default == null:
+            if attr.required and attr.name not in data and \
+               attr.default == null:
                 # missing
                 request.errors.add(location, attr.name,
                                    "%s is missing" % attr.name)
             else:
                 try:
-                    if not attr.name in data:
+                    if attr.name not in data:
                         if attr.default != null:
                             deserialized = attr.deserialize(attr.serialize())
                         else:
@@ -139,6 +152,11 @@ def validate_colander_schema(schema, request):
                 else:
                     if deserialized is not drop:
                         request.validated[attr.name] = deserialized
+
+        if location == "body" and unknown == 'preserve':
+            for field, value in data.items():
+                if field not in request.validated:
+                    request.validated[field] = value
 
     qs, headers, body, path = extract_request_data(request)
 

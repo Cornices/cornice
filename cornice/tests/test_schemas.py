@@ -3,14 +3,18 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 from cornice.errors import Errors
 from cornice.tests.support import TestCase
-from cornice.schemas import CorniceSchema, validate_colander_schema
+from cornice.schemas import (
+    CorniceSchema, validate_colander_schema, SchemaError
+)
 from cornice.util import extract_json_data
+import json
 
 try:
     from colander import (
         deferred,
         Mapping,
         MappingSchema,
+        SequenceSchema,
         SchemaNode,
         String,
         Int,
@@ -43,6 +47,9 @@ if COLANDER:
         foo = SchemaNode(String(), type='str')
         bar = SchemaNode(String(), type='str', location="body")
         baz = SchemaNode(String(), type='str', location="querystring")
+
+    class WrongSchema(SequenceSchema):
+        items = TestingSchema()
 
     class InheritedSchema(TestingSchema):
         foo = SchemaNode(Int(), missing=1)
@@ -79,7 +86,6 @@ if COLANDER:
         foo = SchemaNode(Int(), type="int")
         bar = SchemaNode(Int(), type="int", default=10)
 
-
     class QsSchema(MappingSchema):
         foo = SchemaNode(String(), type='str', location="querystring",
                          missing=drop)
@@ -87,7 +93,6 @@ if COLANDER:
     class StrictQsSchema(StrictMappingSchema):
         foo = SchemaNode(String(), type='str', location="querystring",
                          missing=drop)
-
 
     imperative_schema = SchemaNode(Mapping())
     imperative_schema.add(SchemaNode(String(), name='foo', type='str'))
@@ -101,6 +106,12 @@ if COLANDER:
         bar = SchemaNode(String(), type='str', location="body")
         baz = SchemaNode(String(), type='str', location="querystring")
         qux = SchemaNode(String(), type='str', location="header")
+
+    class PreserveUnkownSchema(MappingSchema):
+        bar = SchemaNode(String(), type='str')
+
+        def schema_type(self, **kw):
+            return Mapping(unknown='preserve')
 
     def get_mock_request(body, get=None):
         # Construct a mock request with the given request body
@@ -160,9 +171,11 @@ if COLANDER:
             inherited_schema = CorniceSchema.from_colander(InheritedSchema)
 
             self.assertEqual(len(base_schema.get_attributes()),
-                              len(inherited_schema.get_attributes()))
+                             len(inherited_schema.get_attributes()))
 
-            foo_filter = lambda x: x.name == "foo"
+            def foo_filter(obj):
+                return obj.name == "foo"
+
             base_foo = list(filter(foo_filter,
                                    base_schema.get_attributes()))[0]
             inherited_foo = list(filter(foo_filter,
@@ -283,7 +296,8 @@ if COLANDER:
 
             self.assertEqual(expected, dummy_request.validated)
 
-            dummy_request = get_mock_request('', {'bar': 'test', 'foo': 'test'})
+            dummy_request = get_mock_request('', {'bar': 'test',
+                                                  'foo': 'test'})
             validate_colander_schema(schema, dummy_request)
 
             qs_fields = schema.get_attributes(location="querystring")
@@ -309,9 +323,17 @@ if COLANDER:
             # default value should be available
             self.assertEqual(dummy_request.validated['bar'], 10)
 
+        def test_only_mapping_is_accepted(self):
+            schema = CorniceSchema.from_colander(WrongSchema)
+            dummy_request = get_mock_request('', {'foo': 'test',
+                                                  'bar': 'test'})
+            self.assertRaises(SchemaError,
+                              validate_colander_schema, schema, dummy_request)
+
         def test_extra_params_qs(self):
             schema = CorniceSchema.from_colander(QsSchema)
-            dummy_request = get_mock_request('', {'foo': 'test', 'bar': 'test'})
+            dummy_request = get_mock_request('', {'foo': 'test',
+                                                  'bar': 'test'})
             validate_colander_schema(schema, dummy_request)
 
             errors = dummy_request.errors
@@ -322,7 +344,8 @@ if COLANDER:
 
         def test_extra_params_qs_strict(self):
             schema = CorniceSchema.from_colander(StrictQsSchema)
-            dummy_request = get_mock_request('', {'foo': 'test', 'bar': 'test'})
+            dummy_request = get_mock_request('', {'foo': 'test',
+                                                  'bar': 'test'})
             validate_colander_schema(schema, dummy_request)
 
             errors = dummy_request.errors
@@ -333,3 +356,16 @@ if COLANDER:
 
             expected = {'foo': 'test'}
             self.assertEqual(expected, dummy_request.validated)
+
+        def test_validate_colander_schema_can_preserve_unknown_fields(self):
+            schema = CorniceSchema.from_colander(PreserveUnkownSchema)
+
+            data = json.dumps({"bar": "required_data", "optional": "true"})
+            dummy_request = get_mock_request(data)
+            validate_colander_schema(schema, dummy_request)
+
+            self.assertDictEqual(dummy_request.validated, {
+                "bar": "required_data",
+                "optional": "true"
+            })
+            self.assertEqual(len(dummy_request.errors), 0)

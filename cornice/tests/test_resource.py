@@ -34,7 +34,6 @@ class User(object):
         return USERS.get(int(self.request.matchdict['id']))
 
     @view(renderer='json', accept='text/json')
-    #@view(renderer='jsonp', accept='application/json')
     def collection_post(self):
         return {'test': 'yeah'}
 
@@ -104,7 +103,8 @@ class TestResource(TestCase):
 
     def test_explicit_collection_service_name(self):
         route_url = testing.DummyRequest().route_url
-        self.assert_(route_url('collection_user_service'))  # service must exist
+        # service must exist
+        self.assert_(route_url('collection_user_service'))
 
     def test_explicit_service_name(self):
         route_url = testing.DummyRequest().route_url
@@ -113,7 +113,7 @@ class TestResource(TestCase):
     if validationapp.COLANDER:
         def test_schema_on_resource(self):
             User.schema = CorniceSchema.from_colander(
-                    validationapp.FooBarSchema)
+                validationapp.FooBarSchema)
             result = self.patch("/users/1", status=400).json
             self.assertEquals(
                 [(e['name'], e['description']) for e in result['errors']], [

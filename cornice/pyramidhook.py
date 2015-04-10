@@ -59,9 +59,9 @@ def get_fallback_view(service):
 
             if 'accept' in args:
                 acceptable.extend(
-                        service.get_acceptable(method, filter_callables=True))
+                    service.get_acceptable(method, filter_callables=True))
                 acceptable.extend(
-                        request.info.get('acceptable', []))
+                    request.info.get('acceptable', []))
                 acceptable = list(set(acceptable))
 
                 # Now check if that was actually the source of the problem.
@@ -76,10 +76,10 @@ def get_fallback_view(service):
 
             if 'content_type' in args:
                 supported_contenttypes.extend(
-                        service.get_contenttypes(method,
-                                                 filter_callables=True))
+                    service.get_contenttypes(method,
+                                             filter_callables=True))
                 supported_contenttypes.extend(
-                        request.info.get('supported_contenttypes', []))
+                    request.info.get('supported_contenttypes', []))
                 supported_contenttypes = list(set(supported_contenttypes))
 
                 # Now check if that was actually the source of the problem.
@@ -151,17 +151,16 @@ def register_service_views(config, service):
     :param config: the pyramid configuration object that will be populated.
     :param service: the service object containing the definitions
     """
+    route_name = service.name
     services = config.registry.cornice_services
     prefix = config.route_prefix or ''
     services[prefix + service.path] = service
 
-    # keep track of the registered routes
-    registered_routes = []
-
     # before doing anything else, register a view for the OPTIONS method
     # if we need to
     if service.cors_enabled and 'OPTIONS' not in service.defined_methods:
-        service.add_view('options', view=get_cors_preflight_view(service))
+        service.add_view('options', view=get_cors_preflight_view(service),
+                         permission=NO_PERMISSION_REQUIRED)
 
     # register the fallback view, which takes care of returning good error
     # messages to the user-agent
@@ -204,14 +203,7 @@ def register_service_views(config, service):
         if 'traverse' in args:
             route_args['traverse'] = args.pop('traverse')
 
-        # register the route name with the path if it's not already done
-        if service.path not in registered_routes:
-            config.add_route(service.name, service.path, **route_args)
-            config.add_view(view=get_fallback_view(service),
-                            route_name=service.name,
-                            permission=NO_PERMISSION_REQUIRED)
-            registered_routes.append(service.path)
-            config.commit()
+        config.add_route(route_name, service.path, **route_args)
 
         # 2. register view(s)
         # pop and compute predicates which get passed through to Pyramid 1:1
@@ -227,15 +219,22 @@ def register_service_views(config, service):
 
                 # We register the same view multiple times with different
                 # accept / content_type / custom_predicates arguments
-                config.add_view(view=decorated_view, route_name=service.name,
-                            **args)
+                config.add_view(view=decorated_view, route_name=route_name,
+                                **args)
 
         else:
             # it is a simple view, we don't need to loop on the definitions
             # and just add it one time.
-            config.add_view(view=decorated_view, route_name=service.name,
+            config.add_view(view=decorated_view, route_name=route_name,
                             **args)
 
+        config.commit()
+
+    if service.definitions:
+        # Add the fallback view last
+        config.add_view(view=get_fallback_view(service),
+                        route_name=route_name,
+                        permission=NO_PERMISSION_REQUIRED)
         config.commit()
 
 
@@ -258,7 +257,8 @@ def _pop_complex_predicates(args):
     product_input = filter(None, [accept_list, content_type_list])
 
     # In Python 3, the filter() function returns an iterator, not a list.
-    # http://getpython3.com/diveintopython3/porting-code-to-python-3-with-2to3.html#filter
+    # http://getpython3.com/diveintopython3/ \
+    # porting-code-to-python-3-with-2to3.html#filter
     predicate_product = list(filter(None, itertools.product(*product_input)))
 
     return predicate_product
@@ -272,7 +272,8 @@ def _pop_predicate_definition(args, kind):
     values = to_list(args.pop(kind, ()))
     # In much the same way as filter(), the map() function [in Python 3] now
     # returns an iterator. (In Python 2, it returned a list.)
-    # http://getpython3.com/diveintopython3/porting-code-to-python-3-with-2to3.html#map
+    # http://getpython3.com/diveintopython3/ \
+    # porting-code-to-python-3-with-2to3.html#map
     values = list(map(lambda value: {'kind': kind, 'value': value}, values))
     return values
 
@@ -309,7 +310,8 @@ def _mungle_view_args(args, predicate_list):
                 predicates.append(predicate_checker)
                 args['custom_predicates'] = predicates
             else:
-                raise ValueError('No function defined for ' +
+                raise ValueError(
+                    'No function defined for ' +
                     'handling callables for field "{0}"'.format(kind))
         else:
             # otherwise argument value is just a scalar

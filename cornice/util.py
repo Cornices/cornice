@@ -38,9 +38,13 @@ class _JsonRenderer(object):
       This allows developers to config the JSON renderer using Pyramid's
       configuration machinery `[2]`_.
 
-      .. _`[1]`: https://github.com/mozilla-services/cornice/pull/116#issuecomment-14355865
-      .. _`[2]`: http://pyramid.readthedocs.org/en/latest/narr/renderers.html#serializing-custom-objects
+      .. _`[1]`: https://github.com/mozilla-services/cornice/pull/116 \
+                 #issuecomment-14355865
+      .. _`[2]`: http://pyramid.readthedocs.org/en/latest/narr/renderers.html \
+                 #serializing-custom-objects
     """
+    acceptable = ('application/json', 'text/json', 'text/plain')
+
     def __call__(self, data, context):
         """Serialise the ``data`` with the Pyramid renderer."""
         # Unpack the context.
@@ -48,15 +52,16 @@ class _JsonRenderer(object):
         response = request.response
         registry = request.registry
 
-        # Serialise the ``data`` object to a JSON string using the JSON renderer
-        # registered with Pyramid.
+        # Serialise the ``data`` object to a JSON string using the
+        # JSON renderer registered with Pyramid.
         renderer_factory = registry.queryUtility(IRendererFactory, name='json')
 
-        # XXX Patched with ``simplejson.dumps(..., use-decimal=True)`` iff the
-        # renderer has been configured to serialise using just ``json.dumps(...)``.
-        # This maintains backwards compatibility with the Cornice renderer,
-        # whilst allowing Pyramid renderer configuration via ``add_adapter``
-        # calls, at the price of rather fragile patching of instance properties.
+        # XXX Patched with ``simplejson.dumps(..., use-decimal=True)``
+        # if the renderer has been configured to serialise using just
+        # ``json.dumps(...)``.  This maintains backwards compatibility
+        # with the Cornice renderer, whilst allowing Pyramid renderer
+        # configuration via ``add_adapter`` calls, at the price of
+        # rather fragile patching of instance properties.
         if renderer_factory.serializer == json.dumps:
             renderer_factory.serializer = simplejson.dumps
         if 'use_decimal' not in renderer_factory.kw:
@@ -68,8 +73,8 @@ class _JsonRenderer(object):
         json_str = renderer(data, context)
 
         # XXX So we (re)set it ourselves here, i.e.: *after* the previous call.
-        acceptable = ('application/json', 'text/json', 'text/plain')
-        content_type = (request.accept.best_match(acceptable) or acceptable[0])
+        content_type = (request.accept.best_match(self.acceptable) or
+                        self.acceptable[0])
         response.content_type = content_type
         return json_str
 
@@ -123,7 +128,13 @@ def extract_json_data(request):
     if request.body:
         try:
             body = simplejson.loads(request.body)
-            return body
+            if isinstance(body, dict):
+                return body
+            request.errors.add(
+                'body', None,
+                "Invalid JSON: Should be a JSON object, got %s" % body
+            )
+            return {}
         except ValueError as e:
             request.errors.add(
                 'body', None,
@@ -146,8 +157,8 @@ def extract_request_data(request):
     registry = request.registry
     if hasattr(request, 'deserializer'):
         body = request.deserializer(request)
-    elif (hasattr(registry, 'cornice_deserializers')
-          and content_type in registry.cornice_deserializers):
+    elif (hasattr(registry, 'cornice_deserializers') and
+          content_type in registry.cornice_deserializers):
         deserializer = registry.cornice_deserializers[content_type]
         body = deserializer(request)
     # otherwise, don't block but it will be an empty body, decode
@@ -170,8 +181,8 @@ class ContentTypePredicate(object):
     Should live in ``pyramid.config.predicates``.
 
     .. seealso::
-
-        http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/hooks.html#view-and-route-predicates
+      http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/hooks.html
+      #view-and-route-predicates
     """
     def __init__(self, val, config):
         self.val = val
@@ -183,3 +194,15 @@ class ContentTypePredicate(object):
 
     def __call__(self, context, request):
         return request.content_type == self.val
+
+
+def func_name(f):
+    """Return the name of a function or class method."""
+    if isinstance(f, string_types):
+        return f
+    elif hasattr(f, '__qualname__'):  # Python 3
+        return f.__qualname__
+    elif hasattr(f, 'im_class'):  # Python 2
+        return '{0}.{1}'.format(f.im_class.__name__, f.__name__)
+    else:
+        return f.__name__

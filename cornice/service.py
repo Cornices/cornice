@@ -11,7 +11,7 @@ from cornice.validators import (
     DEFAULT_FILTERS,
 )
 from cornice.schemas import CorniceSchema, validate_colander_schema
-from cornice.util import is_string, to_list, json_error
+from cornice.util import is_string, to_list, json_error, func_name
 
 try:
     import venusian
@@ -45,8 +45,8 @@ class Service(object):
     A service is composed of a path and many potential methods, associated
     with context.
 
-    All the class attributes defined in this class or in childs are considered
-    default values.
+    All the class attributes defined in this class or in children are
+    considered default values.
 
     :param name:
         The name of the service. Should be unique among all the services.
@@ -93,6 +93,11 @@ class Service(object):
         A callable defining the ACL (returns true or false, function of the
         given request). Exclusive with the 'factory' option.
 
+    :param permission:
+        As for :ref:`pyramid.config.Configurator.add_view`.
+        Note: `acl` and `permission` can also be applied
+        to instance method decorators such as :meth:`~get` and :meth:`~put`.
+
     :param klass:
         The class to use when resolving views (if they are not callables)
 
@@ -104,7 +109,7 @@ class Service(object):
         A traversal pattern that will be passed on route declaration and that
         will be used as the traversal path.
 
-    There is also a number of parameters that are related to the support of
+    There are also a number of parameters that are related to the support of
     CORS (Cross Origin Resource Sharing). You can read the CORS specification
     at http://www.w3.org/TR/cors/
 
@@ -129,7 +134,7 @@ class Service(object):
     :param cors_expose_all_headers:
         If set to True, all the headers will be exposed and considered valid
         ones (Default: True). If set to False, all the headers need be
-        explicitely mentionned with the cors_headers parameter.
+        explicitly mentioned with the cors_headers parameter.
 
     :param cors_policy:
         It may be easier to have an external object containing all the policy
@@ -174,7 +179,7 @@ class Service(object):
                 kw.setdefault('cors_' + key, value)
 
         for key in self.list_arguments:
-            # default_{validators,filters} and {filters,validators} doesn't
+            # default_{validators,filters} and {filters,validators} don't
             # have to be mutables, so we need to create a new list from them
             extra = to_list(kw.get(key, []))
             kw[key] = []
@@ -192,7 +197,7 @@ class Service(object):
         if hasattr(self, 'factory') and hasattr(self, 'acl'):
             raise KeyError("Cannot specify both 'acl' and 'factory'")
 
-        # instanciate some variables we use to keep track of what's defined for
+        # instantiate some variables we use to keep track of what's defined for
         # this service.
         self.defined_methods = []
         self.definitions = []
@@ -216,10 +221,10 @@ class Service(object):
                                    depth=depth)
 
     def get_arguments(self, conf=None):
-        """Return a dictionnary of arguments. Takes arguments from the :param
+        """Return a dictionary of arguments. Takes arguments from the :param
         conf: param and merges it with the arguments passed in the constructor.
 
-        :param conf: the dictionnary to use.
+        :param conf: the dictionary to use.
         """
         if conf is None:
             conf = {}
@@ -231,9 +236,10 @@ class Service(object):
             arguments[arg] = conf.pop(arg, getattr(self, arg, None))
 
         for arg in self.list_arguments:
-            # rather than overwriting, extend the defined lists if any.
-            # take care of re-creating the lists before appening items to them,
-            # to avoid modifications to the already existing ones
+            # rather than overwriting, extend the defined lists if
+            # any. take care of re-creating the lists before appending
+            # items to them, to avoid modifications to the already
+            # existing ones
             value = list(getattr(self, arg, []))
             if arg in conf:
                 value.extend(to_list(conf.pop(arg)))
@@ -275,10 +281,11 @@ class Service(object):
         can be overwritten here. Additionally,
         :meth:`~cornice.service.Service.api` has following keyword params:
 
-        :param method: The request method. Should be one of GET, POST, PUT,
-                       DELETE, OPTIONS, TRACE or CONNECT.
+        :param method: The request method. Should be one of 'GET', 'POST',
+                       'PUT', 'DELETE', 'OPTIONS', 'TRACE', or 'CONNECT'.
         :param view: the view to hook to
-        :param **kwargs: additional configuration for this view
+        :param **kwargs: additional configuration for this view,
+                        including `permission`.
         """
         method = method.upper()
         if 'schema' in kwargs:
@@ -287,6 +294,9 @@ class Service(object):
             # still here for legacy reasons: you'll get a warning if you try to
             # use it.
             self._schemas[method] = kwargs['schema']
+
+        if 'klass' in kwargs and not callable(view):
+            view = _UnboundView(kwargs['klass'], view)
 
         args = self.get_arguments(kwargs)
         if hasattr(self, 'get_view_wrapper'):
@@ -405,15 +415,28 @@ class Service(object):
 
     @property
     def cors_supported_headers(self):
+        """Backward compatibility for ``cors_supported_headers_for``."""
+        msg = "The '{0}' property is deprecated. Please start using '{1}' "\
+              "instead.".format('cors_supported_headers',
+                                'cors_supported_headers_for()')
+        warnings.warn(msg, DeprecationWarning)
+        return self.cors_supported_headers_for()
+
+    def cors_supported_headers_for(self, method=None):
         """Return an iterable of supported headers for this service.
 
         The supported headers are defined by the :param headers: argument
         that is passed to services or methods, at definition time.
         """
         headers = set()
-        for _, _, args in self.definitions:
+        for meth, _, args in self.definitions:
             if args.get('cors_enabled', True):
-                headers |= set(args.get('cors_headers', ()))
+                exposed_headers = args.get('cors_headers', ())
+                if method is not None:
+                    if meth.upper() == method.upper():
+                        return exposed_headers
+                else:
+                    headers |= set(exposed_headers)
         return headers
 
     @property
@@ -444,13 +467,21 @@ class Service(object):
         return origins
 
     def cors_support_credentials(self, method=None):
+        """Backward compatibility for ``cors_support_credentials_for``."""
+        msg = "The '{0}' property is deprecated. Please start using '{1}' "\
+              "instead.".format('cors_support_credentials',
+                                'cors_support_credentials_for()')
+        warnings.warn(msg, DeprecationWarning)
+        return self.cors_supported_headers_for()
+
+    def cors_support_credentials_for(self, method=None):
         """Returns if the given method support credentials.
 
         :param method:
             The method to check the credentials support for
         """
         for meth, view, args in self.definitions:
-            if meth.upper() == method.upper():
+            if method and meth.upper() == method.upper():
                 return args.get('cors_credentials', False)
 
         if getattr(self, 'cors_credentials', False):
@@ -459,7 +490,7 @@ class Service(object):
 
     def cors_max_age_for(self, method=None):
         for meth, view, args in self.definitions:
-            if meth.upper() == method.upper():
+            if method and meth.upper() == method.upper():
                 return args.get('cors_max_age', False)
 
         return getattr(self, 'cors_max_age', None)
@@ -487,6 +518,8 @@ def decorate_view(view, args, method):
             ob = args['klass'](**params)
             if is_string(view):
                 view_ = getattr(ob, view.lower())
+            elif isinstance(view, _UnboundView):
+                view_ = view.make_bound_view(ob)
 
         # set data deserializer
         if 'deserializer' in args:
@@ -498,7 +531,6 @@ def decorate_view(view, args, method):
         elif hasattr(ob, 'schema'):
             validate_colander_schema(ob.schema, request)
 
-
         # the validators can either be a list of callables or contain some
         # non-callable values. In which case we want to resolve them using the
         # object if any
@@ -508,11 +540,10 @@ def decorate_view(view, args, method):
                 validator = getattr(ob, validator)
             validator(request)
 
-
         # only call the view if we don't have validation errors
         if len(request.errors) == 0:
             try:
-                # if we have an object, the request had already been passed to it
+                # If we have an object, it already has the request.
                 if ob:
                     response = view_()
                 else:
@@ -542,5 +573,19 @@ def decorate_view(view, args, method):
         return response
 
     # return the wrapper, not the function, keep the same signature
-    functools.wraps(wrapper)
+    if not is_string(view):
+        functools.update_wrapper(wrapper, view)
+
+    # Set the wrapper name to something useful
+    wrapper.__name__ = "{0}__{1}".format(func_name(view), method)
     return wrapper
+
+
+class _UnboundView(object):
+    def __init__(self, klass, view):
+        self.unbound_view = getattr(klass, view.lower())
+        functools.update_wrapper(self, self.unbound_view)
+        self.__name__ = func_name(self.unbound_view)
+
+    def make_bound_view(self, ob):
+        return functools.partial(self.unbound_view, ob)

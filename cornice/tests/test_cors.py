@@ -2,8 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 from pyramid import testing
-from pyramid.exceptions import NotFound
+from pyramid.authentication import BasicAuthAuthenticationPolicy
+from pyramid.exceptions import NotFound, HTTPBadRequest
+from pyramid.interfaces import IAuthorizationPolicy
 from pyramid.response import Response
+from pyramid.view import view_config
+from zope.interface import implementer
 
 from webtest import TestApp
 
@@ -28,7 +32,7 @@ class Klass(object):
     def post(self):
         return "moar squirels (take care)"
 
-cors_policy = {'origins': ('*',), 'enabled': True}
+cors_policy = {'origins': ('*',), 'enabled': True, 'credentials': True}
 
 cors_klass = Service(name='cors_klass',
                      path='/cors_klass',
@@ -37,7 +41,7 @@ cors_klass = Service(name='cors_klass',
 cors_klass.add_view('post', 'post')
 
 
-@squirel.get(cors_origins=('notmyidea.org',))
+@squirel.get(cors_origins=('notmyidea.org',), cors_headers=('X-My-Header',))
 def get_squirel(request):
     return "squirels"
 
@@ -47,7 +51,7 @@ def post_squirel(request):
     return "moar squirels (take care)"
 
 
-@squirel.put(cors_headers=('X-My-Header',))
+@squirel.put()
 def put_squirel(request):
     return "squirels!"
 
@@ -58,7 +62,7 @@ def gimme_some_spam_please(request):
     return 'spam'
 
 
-@spam.post()
+@spam.post(permission='read-only')
 def moar_spam(request):
     return 'moar spam'
 
@@ -75,7 +79,15 @@ def get_some_bacon(request):
         raise NotFound(detail='Not. Found.')
     return "yay"
 
-from pyramid.view import view_config
+
+@bacon.post()
+def post_some_bacon(request):
+    return Response()
+
+
+@bacon.put()
+def put_some_bacon(request):
+    raise HTTPBadRequest()
 
 
 @view_config(route_name='noservice')
@@ -87,14 +99,13 @@ class TestCORS(TestCase):
 
     def setUp(self):
         self.config = testing.setUp()
-        self.config.include("cornice")
+        self.config.include('cornice')
         self.config.add_route('noservice', '/noservice')
-
-        self.config.scan("cornice.tests.test_cors")
+        self.config.scan('cornice.tests.test_cors')
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
 
-        def tearDown(self):
-            testing.tearDown()
+    def tearDown(self):
+        testing.tearDown()
 
     def test_preflight_cors_klass_post(self):
         resp = self.app.options('/cors_klass',
@@ -102,14 +113,15 @@ class TestCORS(TestCase):
                                 headers={
                                     'Origin': 'lolnet.org',
                                     'Access-Control-Request-Method': 'POST'})
-        self.assertEqual('POST,OPTIONS', dict(resp.headers)['Access-Control-Allow-Methods'])
+        self.assertEqual('POST,OPTIONS',
+                         dict(resp.headers)['Access-Control-Allow-Methods'])
 
     def test_preflight_cors_klass_put(self):
-        resp = self.app.options('/cors_klass',
-                                status=400,
-                                headers={
-                                    'Origin': 'lolnet.org',
-                                    'Access-Control-Request-Method': 'PUT'})
+        self.app.options('/cors_klass',
+                         status=400,
+                         headers={
+                             'Origin': 'lolnet.org',
+                             'Access-Control-Request-Method': 'PUT'})
 
     def test_preflight_missing_headers(self):
         # we should have an OPTION method defined.
@@ -126,6 +138,14 @@ class TestCORS(TestCase):
             headers={'Access-Control-Request-Method': 'GET'},
             status=400)
         self.assertEqual(len(resp.json['errors']), 1)
+
+    def test_preflight_does_not_expose_headers(self):
+        resp = self.app.options(
+            '/squirel',
+            headers={'Access-Control-Request-Method': 'GET',
+                     'Origin': 'notmyidea.org'},
+            status=200)
+        self.assertNotIn('Access-Control-Expose-Headers', resp.headers)
 
     def test_preflight_missing_request_method(self):
 
@@ -170,36 +190,35 @@ class TestCORS(TestCase):
 
     def test_preflight_deactivated_method(self):
         self.app.options('/squirel',
-            headers={'Origin': 'notmyidea.org',
-                     'Access-Control-Request-Method': 'POST'},
-            status=400)
+                         headers={'Origin': 'notmyidea.org',
+                                  'Access-Control-Request-Method': 'POST'},
+                         status=400)
 
     def test_preflight_origin_not_allowed_for_method(self):
         self.app.options('/squirel',
-            headers={'Origin': 'notmyidea.org',
-                     'Access-Control-Request-Method': 'PUT'},
-            status=400)
+                         headers={'Origin': 'notmyidea.org',
+                                  'Access-Control-Request-Method': 'PUT'},
+                         status=400)
 
     def test_preflight_credentials_are_supported(self):
-        resp = self.app.options('/spam',
-            headers={'Origin': 'notmyidea.org',
-                     'Access-Control-Request-Method': 'GET'})
-
+        resp = self.app.options(
+            '/spam', headers={'Origin': 'notmyidea.org',
+                              'Access-Control-Request-Method': 'GET'})
         self.assertIn('Access-Control-Allow-Credentials', resp.headers)
         self.assertEqual(resp.headers['Access-Control-Allow-Credentials'],
-                          'true')
+                         'true')
 
     def test_preflight_credentials_header_not_included_when_not_needed(self):
-        resp = self.app.options('/spam',
-            headers={'Origin': 'notmyidea.org',
-                     'Access-Control-Request-Method': 'POST'})
+        resp = self.app.options(
+            '/spam', headers={'Origin': 'notmyidea.org',
+                              'Access-Control-Request-Method': 'POST'})
 
         self.assertNotIn('Access-Control-Allow-Credentials', resp.headers)
 
     def test_preflight_contains_max_age(self):
-        resp = self.app.options('/spam',
-                headers={'Origin': 'notmyidea.org',
-                         'Access-Control-Request-Method': 'GET'})
+        resp = self.app.options(
+            '/spam', headers={'Origin': 'notmyidea.org',
+                              'Access-Control-Request-Method': 'GET'})
 
         self.assertIn('Access-Control-Max-Age', resp.headers)
         self.assertEqual(resp.headers['Access-Control-Max-Age'], '42')
@@ -218,17 +237,29 @@ class TestCORS(TestCase):
                 'Access-Control-Request-Method': 'POST'})
         self.assertEqual(resp.headers['Access-Control-Allow-Origin'], '*')
 
+    def test_origin_is_not_wildcard_if_allow_credentials(self):
+        resp = self.app.options(
+            '/cors_klass',
+            status=200,
+            headers={
+                'Origin': 'lolnet.org',
+                'Access-Control-Request-Method': 'POST',
+                'Access-Control-Allow-Credentials': 'true'
+            })
+        self.assertEqual(resp.headers['Access-Control-Allow-Origin'],
+                         'lolnet.org')
+
     def test_responses_include_an_allow_origin_header(self):
         resp = self.app.get('/squirel', headers={'Origin': 'notmyidea.org'})
         self.assertIn('Access-Control-Allow-Origin', resp.headers)
         self.assertEqual(resp.headers['Access-Control-Allow-Origin'],
-                          'notmyidea.org')
+                         'notmyidea.org')
 
     def test_credentials_are_included(self):
         resp = self.app.get('/spam', headers={'Origin': 'notmyidea.org'})
         self.assertIn('Access-Control-Allow-Credentials', resp.headers)
         self.assertEqual(resp.headers['Access-Control-Allow-Credentials'],
-                          'true')
+                         'true')
 
     def test_headers_are_exposed(self):
         resp = self.app.get('/squirel', headers={'Origin': 'notmyidea.org'})
@@ -238,10 +269,11 @@ class TestCORS(TestCase):
         self.assertIn('X-My-Header', headers)
 
     def test_preflight_request_headers_are_included(self):
-        resp = self.app.options('/squirel',
-            headers={'Origin': 'notmyidea.org',
-                     'Access-Control-Request-Method': 'GET',
-                     'Access-Control-Request-Headers': 'foo,    bar,baz  '})
+        resp = self.app.options(
+            '/squirel', headers={
+                'Origin': 'notmyidea.org',
+                'Access-Control-Request-Method': 'GET',
+                'Access-Control-Request-Headers': 'foo,    bar,baz  '})
         # The specification says we can have any number of LWS (Linear white
         # spaces) in the values and that it should be removed.
 
@@ -253,10 +285,11 @@ class TestCORS(TestCase):
         self.assertIn('baz', headers)
 
     def test_preflight_request_headers_isnt_too_permissive(self):
-        self.app.options('/eggs',
-            headers={'Origin': 'notmyidea.org',
-                     'Access-Control-Request-Method': 'GET',
-                     'Access-Control-Request-Headers': 'foo,bar,baz'},
+        self.app.options(
+            '/eggs', headers={
+                'Origin': 'notmyidea.org',
+                'Access-Control-Request-Method': 'GET',
+                'Access-Control-Request-Headers': 'foo,bar,baz'},
             status=400)
 
     def test_preflight_headers_arent_case_sensitive(self):
@@ -275,7 +308,50 @@ class TestCORS(TestCase):
                             headers={'Origin': 'notmyidea.org'})
         self.assertIn('Access-Control-Allow-Origin', resp.headers)
 
+    def test_response_returns_CORS_headers(self):
+        resp = self.app.post('/bacon/response', status=200,
+                             headers={'Origin': 'notmyidea.org'})
+        self.assertIn('Access-Control-Allow-Origin', resp.headers)
+
+    def test_raise_returns_CORS_headers(self):
+        resp = self.app.put('/bacon/raise', status=400,
+                            headers={'Origin': 'notmyidea.org'})
+        self.assertIn('Access-Control-Allow-Origin', resp.headers)
+
     def test_existing_non_service_route(self):
         resp = self.app.get('/noservice', status=200,
                             headers={'Origin': 'notmyidea.org'})
         self.assertEqual(resp.body, b'No Service here.')
+
+
+class TestAuthenticatedCORS(TestCase):
+    def setUp(self):
+
+        def check_cred(username, *args, **kwargs):
+            return [username]
+
+        @implementer(IAuthorizationPolicy)
+        class AuthorizationPolicy(object):
+            def permits(self, context, principals, permission):
+                return permission in principals
+
+        self.config = testing.setUp()
+        self.config.include('cornice')
+        self.config.add_route('noservice', '/noservice')
+        self.config.set_authorization_policy(AuthorizationPolicy())
+        self.config.set_authentication_policy(BasicAuthAuthenticationPolicy(
+            check_cred))
+        self.config.set_default_permission('readwrite')
+        self.config.scan('cornice.tests.test_cors')
+        self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
+
+    def tearDown(self):
+        testing.tearDown()
+
+    def test_post_on_spam_should_be_forbidden(self):
+        self.app.post('/spam', status=403)
+
+    def test_preflight_does_not_need_authentication(self):
+        self.app.options('/spam', status=200,
+                         headers={'Origin': 'notmyidea.org',
+                                  'Access-Control-Request-Method': 'POST'})

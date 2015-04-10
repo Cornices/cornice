@@ -200,7 +200,7 @@ if COLANDER:
                     "fields.0.name": "genre",
                     "fields.0.description": "Genre"}
 
-            resp = self.app.post('/nested', params=data, status=200)
+            self.app.post('/nested', params=data, status=200)
 
         def test_qux_header(self):
             resp = self.app.delete('/foobar', status=400)

@@ -42,8 +42,8 @@ def resource(depth=1, **kw):
                     service_args[k] = kw[k]
 
             # create service
-            service_name = (service_args.pop('name', None)
-                            or klass.__name__.lower())
+            service_name = (service_args.pop('name', None) or
+                            klass.__name__.lower())
             service_name = prefix + service_name
             service = services[service_name] = Service(name=service_name,
                                                        depth=2, **service_args)
@@ -62,7 +62,7 @@ def resource(depth=1, **kw):
                     if views:
                         for view_args in views:
                             service.add_view(verb, view_attr, klass=klass,
-                                              **view_args)
+                                             **view_args)
                     else:
                         service.add_view(verb, view_attr, klass=klass)
 
@@ -77,7 +77,8 @@ def resource(depth=1, **kw):
                     config = context.config.with_package(info.module)
                     config.add_cornice_service(service)
 
-            info = venusian.attach(klass, callback, category='pyramid', depth=depth)
+            info = venusian.attach(klass, callback, category='pyramid',
+                                   depth=depth)
         return klass
     return wrapper
 

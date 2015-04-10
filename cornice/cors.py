@@ -21,7 +21,7 @@ def get_cors_preflight_view(service):
     def _preflight_view(request):
         response = request.response
         origin = request.headers.get('Origin')
-        supported_headers = service.cors_supported_headers
+        supported_headers = service.cors_supported_headers_for()
 
         if not origin:
             request.errors.add('header', 'Origin',
@@ -56,7 +56,7 @@ def get_cors_preflight_view(service):
         supported_headers = set(supported_headers) | set(requested_headers)
 
         response.headers['Access-Control-Allow-Headers'] = (
-                ','.join(supported_headers))
+            ','.join(supported_headers))
 
         response.headers['Access-Control-Allow-Methods'] = (
             ','.join(service.cors_supported_methods))
@@ -65,7 +65,7 @@ def get_cors_preflight_view(service):
         if max_age is not None:
             response.headers['Access-Control-Max-Age'] = str(max_age)
 
-        return {}
+        return None
     return _preflight_view
 
 
@@ -96,6 +96,9 @@ def ensure_origin(service, request, response=None):
                         for o in service.cors_origins_for(method)]):
                 request.errors.add('header', 'Origin',
                                    '%s not allowed' % origin)
+            elif request.headers.get(
+                    'Access-Control-Allow-Credentials', False):
+                response.headers['Access-Control-Allow-Origin'] = origin
             else:
                 if any([o == "*" for o in service.cors_origins_for(method)]):
                     response.headers['Access-Control-Allow-Origin'] = '*'
@@ -118,15 +121,15 @@ def apply_cors_post_request(service, request, response):
     response = ensure_origin(service, request, response)
     method = _get_method(request)
 
-    if (service.cors_support_credentials(method) and
-            not 'Access-Control-Allow-Credentials' in response.headers):
+    if (service.cors_support_credentials_for(method) and
+            'Access-Control-Allow-Credentials' not in response.headers):
         response.headers['Access-Control-Allow-Credentials'] = 'true'
 
-    if request.method is not 'OPTIONS':
+    if request.method != 'OPTIONS':
         # Which headers are exposed?
-        supported_headers = service.cors_supported_headers
+        supported_headers = service.cors_supported_headers_for(request.method)
         if supported_headers:
             response.headers['Access-Control-Expose-Headers'] = (
-                    ', '.join(supported_headers))
+                ', '.join(supported_headers))
 
     return response
