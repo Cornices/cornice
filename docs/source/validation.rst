@@ -134,7 +134,7 @@ If you want the schema to be dynamic, i.e. you want to chose which one to use pe
         elif self.request.method == 'PUT':
             schema = bar_schema
         schema = schema().bind(context=self.context, request=self.request)
-        return CorniceSchema(schema.children)
+        return CorniceSchema(schema)
 
 Cornice provides built-in support for JSON and HTML forms
 (``application/x-www-form-urlencoded``) input validation using Colander. If

@@ -14,9 +14,10 @@ class SchemaError(Exception):
 class CorniceSchema(object):
     """Defines a cornice schema"""
 
-    def __init__(self, _colander_schema):
+    def __init__(self, _colander_schema, bind_request=True):
         self._colander_schema = _colander_schema
         self._colander_schema_runtime = None
+        self._bind_request = bind_request
 
     @property
     def colander_schema(self):
@@ -30,7 +31,7 @@ class CorniceSchema(object):
 
     def bind_attributes(self, request=None):
         schema = self.colander_schema
-        if request:
+        if request and self._bind_request:
             schema = schema.bind(request=request)
         return schema.children
 
@@ -88,8 +89,8 @@ class CorniceSchema(object):
         return self.colander_schema.flatten(data)
 
     @classmethod
-    def from_colander(klass, colander_schema):
-        return CorniceSchema(colander_schema)
+    def from_colander(klass, colander_schema, **kwargs):
+        return CorniceSchema(colander_schema, **kwargs)
 
 
 def validate_colander_schema(schema, request):
