@@ -204,6 +204,21 @@ if COLANDER:
             field = the_schema.get_attributes(request=other_dummy_request)[3]
             self.assertEqual(field.validator.choices, ['c', 'd'])
 
+        def test_colander_request_is_bound_by_default(self):
+            the_schema = CorniceSchema.from_colander(ToBoundSchema)
+            dummy_request = {'x-foo': 'version_a'}
+            field = the_schema.get_attributes(request=dummy_request)[3]
+            # Deferred are resolved
+            self.assertNotEqual(type(field.validator), deferred)
+
+        def test_colander_request_is_not_bound_if_disabled(self):
+            the_schema = CorniceSchema.from_colander(ToBoundSchema,
+                                                     bind_request=False)
+            dummy_request = {'x-foo': 'version_a'}
+            field = the_schema.get_attributes(request=dummy_request)[3]
+            # Deferred are not resolved
+            self.assertEqual(type(field.validator), deferred)
+
         def test_imperative_colander_schema(self):
             # not specifying body should act the same way as specifying it
             schema = CorniceSchema.from_colander(imperative_schema)
