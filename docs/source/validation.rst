@@ -125,7 +125,35 @@ To describe a schema, using colander and cornice, here is how you can do::
 
 You can even use Schema-Inheritance as introduced by Colander 0.9.9.
 
-If you want the schema to be dynamic, i.e. you want to chose which one to use per request you can define it as a property on your class and it will be used instead. In this case, however, you must explitly bind it yourself. For example::
+
+If you want to access the request within the the schema nodes during validation,
+you can use the `deferred feature of Colander <http://docs.pylonsproject.org/projects/colander/en/latest/binding.html>`_,
+since Cornice binds the schema with the current request::
+
+    def deferred_validator(node, kw):
+        request = kw['request']
+        if request['x-foo'] == 'version_a':
+            return OneOf(['a', 'b'])
+        else:
+            return OneOf(['c', 'd'])
+
+    class FooBarSchema(MappingSchema):
+        choice = SchemaNode(String(), validator=deferred_validator)
+
+.. note::
+
+    Since binding on request has a cost, it can be disabled
+    by specifying ``bind_request`` as ``False``::
+
+        @property
+        def schema(self):
+            return CorniceSchema.from_colander(FooBarSchema(),
+                                               bind_request=False)
+
+
+If you want the schema to be dynamic, i.e. you want to chose which one to use
+per request you can define it as a property on your class and it will be used
+instead. For example::
 
     @property
     def schema(self):
@@ -133,8 +161,11 @@ If you want the schema to be dynamic, i.e. you want to chose which one to use pe
             schema = foo_schema
         elif self.request.method == 'PUT':
             schema = bar_schema
-        schema = schema().bind(context=self.context, request=self.request)
-        return CorniceSchema(schema)
+        schema = CorniceSchema.from_colander(schema)
+        # Custom additional context
+        schema = schema.bind(context=self.context)
+        return schema
+
 
 Cornice provides built-in support for JSON and HTML forms
 (``application/x-www-form-urlencoded``) input validation using Colander. If
