@@ -209,7 +209,3 @@ If you've grown to love using `matchdicts` (above), then `schema2matchdict()` ca
 It's common to use a database in a REST API, and it's not unlikely your reponses will be some kind of JSON dump of a database table.  If your tables are such that you'd like to dump all the columns for a queried set of rows, then all of your `Column` definitions within your SQLAlchemy `models` can be parsed to learn about what the response will look like.  
 
 `col2swag_type()` converts a primitive type used by SQLAlchemy Columns, to Swagger types.  It's not really a converter one would use directly very often.  But `sqa2swag_model()` is helpful to convert a SQLAlchemy model into a Swagger Response Model.  Note that the `models` argument can be a list.  This is used if your query joins several tables.  If your code returns a subset of columns, you'll need to manually document your `Response Object`.
-
-
-
-The best practice SQLAlchemy Models and Colander Schemas will be documented in child pages below, but an overview will be provided here along with 
