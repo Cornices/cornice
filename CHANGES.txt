@@ -1,7 +1,11 @@
-0.21.0 (unreleased)
-===================
+1.0.0 (2015-04-15)
+==================
 
-- Nothing changed yet.
+- ACLs are now handled per route and not per view. Thanks @circlingthesun
+  (#287)
+- Display default values in the sphinx documentation extension, Thanks
+  @MikaYuoadas (#284)
+- Add an option to disable Colander schema request binding. (#288)
 
 
 0.20.0 (2015-03-17)
