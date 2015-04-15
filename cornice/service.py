@@ -287,6 +287,25 @@ class Service(object):
         :param **kwargs: additional configuration for this view,
                         including `permission`.
         """
+
+        if 'acl' in kwargs:
+            kwargs.pop('acl')
+            msg = ("Warning: Using acl in method definitions is deprecated."
+                   "Use service or resource instead.")
+            warnings.warn(msg, DeprecationWarning)
+
+        if 'factory' in kwargs:
+            kwargs.pop('factory')
+            msg = ("Warning: Using acl in method definitions is deprecated."
+                   "Use service or resource instead.")
+            warnings.warn(msg, DeprecationWarning)
+
+        if 'traverse' in kwargs:
+            kwargs.pop('traverse')
+            msg = ("Warning: Using traverse in method definitions is "
+                   "deprecated. Use service or resource instead.")
+            warnings.warn(msg, DeprecationWarning)
+
         method = method.upper()
         if 'schema' in kwargs:
             # this is deprecated and unusable because multiple schema

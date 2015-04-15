@@ -170,6 +170,23 @@ def register_service_views(config, service):
     cornice_parameters = ('filters', 'validators', 'schema', 'klass',
                           'error_handler', 'deserializer') + CORS_PARAMETERS
 
+    # 1. register route
+
+    route_args = {}
+
+    if hasattr(service, 'acl'):
+        route_args['factory'] = make_route_factory(service.acl)
+
+    elif hasattr(service, 'factory'):
+        route_args['factory'] = service.factory
+
+    if hasattr(service, 'traverse'):
+        route_args['traverse'] = service.traverse
+
+    config.add_route(route_name, service.path, **route_args)
+
+    # 2. register view(s)
+
     for method, view, args in service.definitions:
 
         args = copy.copy(args)  # make a copy of the dict to not modify it
@@ -191,21 +208,12 @@ def register_service_views(config, service):
             if item in args:
                 del args[item]
 
-        # if acl is present, then convert it to a "factory"
-        if 'acl' in args:
-            args["factory"] = make_route_factory(args.pop('acl'))
+        # These attributes are used in routes not views
+        deprecated_attrs = ['acl', 'factory', 'traverse']
+        for attr in deprecated_attrs:
+            if attr in args:
+                args.pop(attr)
 
-        # 1. register route
-        route_args = {}
-        if 'factory' in args:
-            route_args['factory'] = args.pop('factory')
-
-        if 'traverse' in args:
-            route_args['traverse'] = args.pop('traverse')
-
-        config.add_route(route_name, service.path, **route_args)
-
-        # 2. register view(s)
         # pop and compute predicates which get passed through to Pyramid 1:1
 
         predicate_definitions = _pop_complex_predicates(args)

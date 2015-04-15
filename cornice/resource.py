@@ -26,7 +26,7 @@ def resource(depth=1, **kw):
         services = {}
 
         if 'collection_path' in kw:
-            prefixes = ('collection_', '')
+            prefixes = ('', 'collection_')
         else:
             prefixes = ('',)
 
@@ -40,6 +40,9 @@ def resource(depth=1, **kw):
                         service_args[k[len(prefix):]] = kw[k]
                 elif k not in service_args:
                     service_args[k] = kw[k]
+
+            if prefix == 'collection_' and service_args.get('collection_acl'):
+                service_args['acl'] = service_args['collection_acl']
 
             # create service
             service_name = (service_args.pop('name', None) or

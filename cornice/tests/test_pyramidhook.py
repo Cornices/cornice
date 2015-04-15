@@ -29,14 +29,6 @@ from cornice.util import func_name
 
 from mock import MagicMock
 
-service = Service(name="service", path="/service")
-
-
-@service.get()
-def return_404(request):
-    raise HTTPNotFound()
-
-
 def my_acl(request):
     return [(Allow, 'alice', 'read'),
             (Allow, 'bob', 'write'),
@@ -44,13 +36,19 @@ def my_acl(request):
             (Allow, 'dan', ('write', 'update')),
         ]
 
+service = Service(name="service", path="/service", acl=my_acl)
 
-@service.put(acl=my_acl, permission='update')
+
+@service.get()
+def return_404(request):
+    raise HTTPNotFound()
+
+@service.put(permission='update')
 def update_view(request):
     return "updated_view"
 
 
-@service.delete(acl=my_acl, permission='write')
+@service.delete(permission='write')
 def return_yay(request):
     return "yay"
 

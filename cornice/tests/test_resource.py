@@ -4,7 +4,14 @@
 import json
 
 from pyramid import testing
+from pyramid.authentication import AuthTktAuthenticationPolicy
+from pyramid.authorization import ACLAuthorizationPolicy
+from pyramid.security import Allow
+from pyramid.httpexceptions import (
+    HTTPOk, HTTPForbidden
+)
 from webtest import TestApp
+import mock
 
 from cornice.resource import resource
 from cornice.resource import view
@@ -15,6 +22,23 @@ from cornice.tests.support import dummy_factory
 
 
 USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
+
+
+def my_collection_acl(request):
+    return [(Allow, 'alice', 'read')]
+
+
+@resource(collection_path='/thing', path='/thing/{id}',
+          name='thing_service', collection_acl=my_collection_acl)
+class Thing(object):
+
+    def __init__(self, request, context=None):
+        self.request = request
+        self.context = context
+
+    @view(permission='read')
+    def collection_get(self):
+        return 'yay'
 
 
 @resource(collection_path='/users', path='/users/{id}',
@@ -54,6 +78,11 @@ class TestResource(TestCase):
         self.config = testing.setUp()
         self.config.add_renderer('jsonp', JSONP(param_name='callback'))
         self.config.include("cornice")
+        self.authz_policy = ACLAuthorizationPolicy()
+        self.config.set_authorization_policy(self.authz_policy)
+
+        self.authn_policy = AuthTktAuthenticationPolicy('$3kr1t')
+        self.config.set_authentication_policy(self.authn_policy)
         self.config.scan("cornice.tests.test_resource")
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
 
@@ -109,6 +138,16 @@ class TestResource(TestCase):
     def test_explicit_service_name(self):
         route_url = testing.DummyRequest().route_url
         self.assert_(route_url('user_service', id=42))  # service must exist
+
+    def test_acl_support_unauthenticated_thing_get(self):
+        # calling a view with permissions without an auth'd user => 403
+        self.app.get('/thing', status=HTTPForbidden.code)
+
+    def test_acl_support_authenticated_allowed_thing_get(self):
+        with mock.patch.object(self.authn_policy, 'unauthenticated_userid',
+                               return_value='alice'):
+            result = self.app.get('/thing', status=HTTPOk.code)
+            self.assertEqual("yay", result.json)
 
     if validationapp.COLANDER:
         def test_schema_on_resource(self):
