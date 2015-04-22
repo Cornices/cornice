@@ -564,7 +564,7 @@ def decorate_view(view, args, method):
             validator(request)
 
         # check for errors and return them if any
-        if len(request.errors) > 0:
+        if request.errors:
             # We already checked for CORS, but since the response is created
             # again, we want to do that again before returning the response.
             request.info['cors_checked'] = False
@@ -605,12 +605,13 @@ def decorate_view(view, args, method):
 
 class _UnboundView(object):
     def __init__(self, klass, view):
+        self.klass = klass
         self.unbound_view = getattr(klass, view.lower())
         functools.update_wrapper(self, self.unbound_view)
         self.__name__ = func_name(self.unbound_view)
 
     def make_bound_view(self, ob):
-        return functools.partial(self.unbound_view, ob)
+        return self.unbound_view.__get__(ob, self.klass)
 
 
 class _ViewContextFactory(object):
