@@ -29,7 +29,7 @@ def resource(depth=1, **kw):
         if 'collection_path' in kw:
             if kw['collection_path'] == kw['path']:
                 msg = "Warning: collection_path and path are not distinct."
-                warnings.warn(msg, DeprecationWarning)
+                warnings.warn(msg)
 
             prefixes = ('', 'collection_')
         else:
