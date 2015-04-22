@@ -1,7 +1,9 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+
 import functools
+import sys
 import warnings
 
 from pyramid.response import Response
@@ -255,6 +257,10 @@ class Service(object):
                                               getattr(self, 'error_handler',
                                                       json_error))
 
+        # Allow custom exception handler
+        arguments['exception_handler'] = conf.pop('exception_handler',
+                                                  self.exception_handler)
+
         # exclude some validators or filters
         if 'exclude' in conf:
             for item in to_list(conf.pop('exclude')):
@@ -413,6 +419,10 @@ class Service(object):
                 schemas.append((args['schema'], args))
         return schemas
 
+    @staticmethod
+    def exception_handler(context, exc_info):
+        raise exc_info[1], None, exc_info[2]
+
     @property
     def schemas(self):
         """Here for backward compatibility with the old API."""
@@ -525,20 +535,14 @@ def decorate_view(view, args, method):
     :param args: the args to use for the decoration
     :param method: the HTTP method
     """
+
+    context_factory = _ViewContextFactory(view, args, method)
+
     def wrapper(request):
         # if the args contain a klass argument then use it to resolve the view
         # location (if the view argument isn't a callable)
-        ob = None
-        view_ = view
-        if 'klass' in args and not callable(view):
-            params = dict(request=request)
-            if 'factory' in args and 'acl' not in args:
-                params['context'] = request.context
-            ob = args['klass'](**params)
-            if is_string(view):
-                view_ = getattr(ob, view.lower())
-            elif isinstance(view, _UnboundView):
-                view_ = view.make_bound_view(ob)
+
+        context = context_factory(request)
 
         # set data deserializer
         if 'deserializer' in args:
@@ -547,30 +551,17 @@ def decorate_view(view, args, method):
         # do schema validation
         if 'schema' in args:
             validate_colander_schema(args['schema'], request)
-        elif hasattr(ob, 'schema'):
-            validate_colander_schema(ob.schema, request)
+        elif hasattr(context.object, 'schema'):
+            validate_colander_schema(context.object.schema, request)
 
         # the validators can either be a list of callables or contain some
         # non-callable values. In which case we want to resolve them using the
         # object if any
         validators = args.get('validators', ())
         for validator in validators:
-            if is_string(validator) and ob is not None:
-                validator = getattr(ob, validator)
+            if is_string(validator) and context.object is not None:
+                validator = getattr(context.object, validator)
             validator(request)
-
-        # only call the view if we don't have validation errors
-        if len(request.errors) == 0:
-            try:
-                # If we have an object, it already has the request.
-                if ob:
-                    response = view_()
-                else:
-                    response = view_(request)
-            except:
-                # cors headers need to be set if an exception was raised
-                request.info['cors_checked'] = False
-                raise
 
         # check for errors and return them if any
         if len(request.errors) > 0:
@@ -578,6 +569,18 @@ def decorate_view(view, args, method):
             # again, we want to do that again before returning the response.
             request.info['cors_checked'] = False
             return args['error_handler'](request.errors)
+
+        # only call the view if we don't have validation errors
+        try:
+            # If we have an object, it already has the request.
+            if context.object:
+                response = context.callable()
+            else:
+                response = context.callable(request)
+        except Exception:
+            # cors headers need to be set if an exception was raised
+            request.info['cors_checked'] = False
+            return args['exception_handler'](context, sys.exc_info())
 
         # if the view returns its own response, cors headers need to be set
         if isinstance(response, Response):
@@ -588,7 +591,7 @@ def decorate_view(view, args, method):
         # request a reference to its api_kwargs so that a tween can apply them.
         # We also pass the object we created (if any) so we can use it to find
         # the filters that are in fact methods.
-        request.cornice_args = (args, ob)
+        request.cornice_args = context.tween_args
         return response
 
     # return the wrapper, not the function, keep the same signature
@@ -608,3 +611,43 @@ class _UnboundView(object):
 
     def make_bound_view(self, ob):
         return functools.partial(self.unbound_view, ob)
+
+
+class _ViewContextFactory(object):
+    def __init__(self, view, args, method):
+        self.view = view
+        self.args = args
+        self.method = method
+        self.request = None
+
+    def __call__(self, request):
+        return _ViewContext(self, request)
+
+
+class _ViewContext(object):
+    def __init__(self, parent, request):
+        self._parent = parent
+        self.request = request
+
+        self.object = None
+        self.callable = parent.view
+        if 'klass' in parent.args and not callable(self.callable):
+            params = dict(request=request)
+            if 'factory' in parent.args and 'acl' not in parent.args:
+                params['context'] = request.context
+            self.object = parent.args['klass'](**params)
+
+        if is_string(parent.view):
+            self.callable = getattr(self.object, parent.view.lower())
+        elif isinstance(parent.view, _UnboundView):
+            self.callable = parent.view.make_bound_view(self.callable)
+
+        self.tween_args = (parent.args, self.object)
+
+    def __getattr__(self, attr):
+        try:
+            value = getattr(self._parent, attr)
+        except AttributeError as e:
+            # we should own this exception
+            raise AttributeError(*e.args)
+        return value
