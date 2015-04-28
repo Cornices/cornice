@@ -8,6 +8,7 @@ try:
     VENUSIAN = True
 except ImportError:
     VENUSIAN = False
+import functools
 
 
 def resource(depth=1, **kw):
@@ -17,32 +18,51 @@ def resource(depth=1, **kw):
     will be used as such. You can also prefix them by "collection_" and they
     will be treated as HTTP methods for the given collection path
     (collection_path), if any.
-
+    
     Here is an example::
 
         @resource(collection_path='/users', path='/users/{id}')
+        
+    You can also add any other prefixed path like e.g. "activate_path".
+    This may be useful when defining sub-resources.
+
+    Here is an example::
+
+        @resource(collection_path='/users', path='/users/{id}', 
+                  activate_path='/users/{id}/activate')
     """
     def wrapper(klass):
         services = {}
 
-        if 'collection_path' in kw:
-            prefixes = ('', 'collection_')
+        path_keys = [x[:len(x)-len('path')] for x in list(kw) if x.endswith('_path')]
+        if len(path_keys) > 0:
+            prefixes = tuple(path_keys + [''])
         else:
             prefixes = ('',)
-
+        
+        def filter_prefixes(prefix, x):
+            """Filters out keys for prefixes other than specified prefix.
+            """
+            other = set(prefixes) - set(['', prefix])
+            return len([y for y in other if x.startswith(y)]) == 0
+        
         for prefix in prefixes:
 
             # get clean view arguments
             service_args = {}
-            for k in list(kw):
-                if k.startswith('collection_'):
-                    if prefix == 'collection_':
-                        service_args[k[len(prefix):]] = kw[k]
+            
+            filter_other = filter(functools.partial(filter_prefixes, prefix), list(kw))
+            
+            for k in filter_other:
+                if k.startswith(prefix):
+                    service_args[k[len(prefix):]] = kw[k]
                 elif k not in service_args:
                     service_args[k] = kw[k]
 
-            if prefix == 'collection_' and service_args.get('collection_acl'):
-                service_args['acl'] = service_args['collection_acl']
+            if prefix != '':
+                prefix_acl = prefix + '_acl'
+                if service_args.get(prefix_acl):
+                    service_args['acl'] = service_args[prefix_acl]
 
             # create service
             service_name = (service_args.pop('name', None) or
