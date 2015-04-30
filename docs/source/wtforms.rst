@@ -24,7 +24,7 @@ Let's start with importing required packages::
     from cornice.ext.wtforms import validate_wtforms_schema
     
     from wtforms import Form, StringField, FormField, IntegerField
-	from wtforms.validators import AnyOf, Length, DataRequired, Optional, \
+    from wtforms.validators import AnyOf, Length, DataRequired, Optional, \
 	                               InputRequired
 
 We have to import wtforms_json and initialize it after our WTForms imports::
@@ -121,7 +121,7 @@ Here's a quick example::
 
     
     @userupdate.put(
-   		content-type='application/json',
+   	    content-type='application/json',
         validators=validate_wtforms_schema(UserUpdateSchema, with_matchdict=True))
     def update_user(request):
         form = request.form
