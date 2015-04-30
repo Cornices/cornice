@@ -198,5 +198,5 @@ def validate_matchdict(matchdict_types):
                 try:
                     typ(item)
                 except Exception as e:
-                    request.errors.add('matchdict', name, str(e))
+                    request.errors.add('path', name, str(e))
     return wrapper

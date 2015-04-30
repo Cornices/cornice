@@ -284,7 +284,7 @@ fails. Here's a simple example for coercing email in matchdict::
     from cornice import Service
     import re
 	
-	FOO = {}
+    FOO = {}
 	
     foo = Service(name='foo', path='/foo/{id}')
     
@@ -296,7 +296,8 @@ fails. Here's a simple example for coercing email in matchdict::
         match = re.match("^[a-zA-Z0-9._%-+]+@[a-zA-Z0-9._%-]+.[a-zA-Z]{2,6}$", 
                          value)
         if match is None:
-            raise Exception('Value "{email}" is not proper email!'.format(value)
+            raise Exception('Value "{email}" is not proper email!'.format(
+                            email=value))
     
     
     @foo.get(validators=validate_matchdict({'email' : coerce_email}))
@@ -305,6 +306,35 @@ fails. Here's a simple example for coercing email in matchdict::
         """
         email = request.matchdict.get('email')
         return FOO[email]
+
+
+Here's another example for validating UUID in matchdict::
+
+    from cornice import Service
+    from uuid import UUID
+	
+    FOO = {}
+	
+    foo = Service(name='foo', path='/foo/{uuid}')
+    
+    
+    def coerce_uuid(value):
+        """Try to coerce value to UUID.
+        """
+        try:
+            UUID(str(value), version=4)
+        except:
+            raise Exception('Value {uuid_name} is not proper UUID!'.format(
+                            uuid_name=value))
+    
+    
+    @foo.get(validators=validate_matchdict({'uuid' : coerce_uuid}))
+    def get_foo(request):
+        """Returns foo value by UUID.
+        """
+        uuid = request.matchdict.get('uuid')
+        return FOO[uuid]
+    
 
 
 Validation using custom callables
