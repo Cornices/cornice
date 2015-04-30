@@ -95,6 +95,7 @@ Documentation content
    validation
    builtin_validation
    sphinx
+   wtforms
    testing
    exhaustive_list
    exampledoc
