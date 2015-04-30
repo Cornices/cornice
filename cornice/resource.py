@@ -2,6 +2,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+import warnings
 from cornice import Service
 try:
     import venusian
@@ -26,6 +27,10 @@ def resource(depth=1, **kw):
         services = {}
 
         if 'collection_path' in kw:
+            if kw['collection_path'] == kw['path']:
+                msg = "Warning: collection_path and path are not distinct."
+                warnings.warn(msg)
+
             prefixes = ('', 'collection_')
         else:
             prefixes = ('',)
