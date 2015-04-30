@@ -181,7 +181,7 @@ def validate_matchdict(matchdict_types):
     """Validates types of request.matchdict through matchdict_types
     dictionary.
 
-    matchdict_types dictionary should have it's values defined as
+    matchdict_types dictionary should have its values defined as
     callable type. Here's an example::
 
         @view(
