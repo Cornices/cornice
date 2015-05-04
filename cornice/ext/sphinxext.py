@@ -8,6 +8,10 @@ Sphinx extension that is able to convert a service into a documentation.
 import sys
 import json
 from importlib import import_module
+try:
+    from importlib import reload
+except ImportError:
+    pass
 
 from cornice.util import to_list, is_string, PY3
 from cornice.service import get_services, clear_services
