@@ -27,6 +27,6 @@ setup(name='{{project}}',
       install_requires=['cornice', 'waitress'],
       entry_points = """\
       [paste.app_factory]
-      main = {{package}}:main
+      main={{package}}:main
       """,
       paster_plugins=['pyramid'])
