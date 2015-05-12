@@ -1,7 +1,7 @@
 Cornice internals
 #################
 
-Internally, cornice doesn't do a lot of magic. The logic is mainly split in two
+Internally, Cornice doesn't do a lot of magic. The logic is mainly split in two
 different locations: the `services.py` module and the `pyramid_hook.py` module.
 
 That's important to understand what they are doing in order to add new features
@@ -12,7 +12,7 @@ The Service class
 
 The cornice.service.Service class is a container for all the definition
 information for a particular service. That's what you use when you use the
-cornice decorators for instance, by doing things like
+Cornice decorators for instance, by doing things like
 `@myservice.get(**kwargs)`. Under the hood, all the information you're passing
 to the service is stored in this class. Into other things you will find there:
 

@@ -12,21 +12,18 @@ To use Cornice, install it::
 That'll give you a Paster template to use::
 
     $ pcreate -t cornice project
-    ...
+
 
 The template creates a working Cornice application.
 
-You can then start to poke at the :file:`views.py` file it 
-created in the package.
+You can then start poking at the :file:`views.py` file that has been created.
 
-For example, let's
-define a service where you can **GET** and **POST** a value at
-**/values/{value}**, where *value* is an ascii value representing the
+For example, let's define a service where you can **GET** and **POST** a value
+at **/values/{value}**, where *value* is an ascii value representing the
 name of the value.
 
 The :file:`views` module can look like this::
 
-    import json
     from cornice import Service
 
     values = Service(name='foo', path='/values/{value}',
@@ -51,10 +48,26 @@ The :file:`views` module can look like this::
         """
         key = request.matchdict['value']
         try:
-            _VALUES[key] = json.loads(request.body)
+            # json_body is JSON-decoded variant of the request body
+            _VALUES[key] = request.json_body
         except ValueError:
             return False
         return True
 
 
-By default, Cornice uses a Json renderer.
+.. note::
+
+    By default, Cornice uses a Json renderer.
+
+
+Run your Cornice application with::
+
+    $ pserve project.ini --reload
+
+
+Set a key-value using Curl::
+
+    $ curl -X POST http://localhost:6543/values/foo -d '{"a": 1}'
+
+
+Check out what is stored in a foo values, open http://localhost:6543/values/foo

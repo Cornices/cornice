@@ -8,7 +8,8 @@ registered as handlers for the appropriate methods / services.
 Here is how you can register a resource::
 
     from cornice.resource import resource, view
-    
+
+    USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
 
     @resource(collection_path='/users', path='/users/{id}')
     class User(object):
@@ -17,14 +18,20 @@ Here is how you can register a resource::
             self.request = request
 
         def collection_get(self):
-            return {'users': USERS.keys()}
+            return {'users': _USERS.keys()}
 
         @view(renderer='json')
         def get(self):
-            return USERS.get(int(self.request.matchdict['id']))
+            return _USERS.get(int(self.request.matchdict['id']))
+
+        @view(renderer='json', accept='text/json')
+        def collection_post(self):
+            print(self.request.json_body)
+            USERS[len(USERS) + 1] = self.request.json_body
+            return True
 
 As you can see, you can define methods for the collection (it will use the
-**path** argument of the class decorator. When defining collection_* methods, the 
+**path** argument of the class decorator. When defining collection_* methods, the
 path defined in the **collection_path** will be used.
 
 validators and filters

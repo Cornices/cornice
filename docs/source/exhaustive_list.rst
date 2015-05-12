@@ -1,4 +1,4 @@
-Exhaustive list of the validations provided by cornice
+Exhaustive list of the validations provided by Cornice
 ######################################################
 
 As you may have noticed, Cornice does some validation for you. This document

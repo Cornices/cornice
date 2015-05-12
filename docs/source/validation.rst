@@ -3,7 +3,7 @@ Validation features
 
 Cornice provides a way to to control the request before it's passed to the
 code. A validator is a simple callable that gets the request object and fills
-**request.errors** in case the request has some errors.
+**request.errors** in case the request isn't valid.
 
 Validators can also convert values and saves them so they can be reused
 by the code. This is done by filling the **request.validated** dictionary.
@@ -16,7 +16,7 @@ Disabling or adding filters/validators
 ======================================
 
 Some validators and filters are activated by default, for all the services. In
-case you want to disable them, or if you 
+case you want to disable them, or if you
 
 You can register a filter for all the services by tweaking the `DEFAULT_FILTER`
 parameter::
@@ -43,11 +43,11 @@ The default returned JSON object is a dictionary of the following form::
 
     {
         'status': 'error',
-        'errors': errors.
+        'errors': errors
     }
 
 
-With errors being a JSON dictionary with the keys "location", "name" and
+With ``errors`` being a JSON dictionary with the keys "location", "name" and
 "description".
 
 * **location** is the location of the error. It can be "querystring", "header"
@@ -88,8 +88,8 @@ Validators
 Schema validation
 -----------------
 
-You can do schema validation using either libraries or custom code. However, 
-cornice integrates better when using Colander for instance, and will be able
+You can do schema validation using either libraries or custom code. However,
+Cornice integrates better when using Colander for instance, and will be able
 to generate the documentation and describe the variables needed if you use it.
 
 Using Colander
@@ -100,7 +100,7 @@ validation framework from the Pylons project that can be used with Cornice's
 validation hook to control a request and deserialize its content into
 objects.
 
-To describe a schema, using colander and cornice, here is how you can do::
+To describe a schema, using Colander and Cornice, here is how you can do::
 
     from cornice import Service
     from cornice.schemas import CorniceSchema
@@ -126,7 +126,7 @@ To describe a schema, using colander and cornice, here is how you can do::
 You can even use Schema-Inheritance as introduced by Colander 0.9.9.
 
 
-If you want to access the request within the the schema nodes during validation,
+If you want to access the ``request`` within the schema nodes during validation,
 you can use the `deferred feature of Colander <http://docs.pylonsproject.org/projects/colander/en/latest/binding.html>`_,
 since Cornice binds the schema with the current request::
 
@@ -151,9 +151,8 @@ since Cornice binds the schema with the current request::
                                                bind_request=False)
 
 
-If you want the schema to be dynamic, i.e. you want to chose which one to use
-per request you can define it as a property on your class and it will be used
-instead. For example::
+If you want the schema to be dynamic, i.e. you want to chose which schema to use
+per request, you can define it as a property on your class. For example::
 
     @property
     def schema(self):
@@ -177,7 +176,7 @@ that Colander can understand::
         return parse_my_input_format(request.body)
 
 
-You can then instruct a specific view to use it with the ``deserializer``
+You can then instruct a specific view to use with the ``deserializer``
 parameter::
 
     @foobar.post(schema=FooBarSchema, deserializer=dummy_deserializer)
@@ -246,7 +245,7 @@ Let's take an example: we want to make sure the incoming request has an
 
     def has_paid(request):
         if not 'X-Verified' in request.headers:
-            request.errors.add('header', 'X-Verified', 'You need to provied a token')
+            request.errors.add('header', 'X-Verified', 'You need to provide a token')
 
     @foo.get(validators=has_paid)
     def get_value(request):
@@ -258,10 +257,9 @@ Let's take an example: we want to make sure the incoming request has an
 Notice that you can chain the validators by passing a sequence
 to the **validators** option.
 
-In any case, when doing validation, cornice will try to extract information
-coming from the validation functions you are providing to put them in the
-generated documentation. Refer to :doc:`sphinx` for more information about
-documentation automatic generation.
+When using validation, Cornice will try to extract information coming from
+the validation functions and use them in the generated documentation.
+Refer to :doc:`sphinx` for more information about automatic generated documentation.
 
 Changing the status code from validators
 ----------------------------------------
@@ -303,13 +301,13 @@ This means something like this::
 Content validation
 ==================
 
-There are two flavors of content validations cornice can apply to services:
+There are two flavors of content validations Cornice can apply to services:
 
     - **Content-Type validation** will match the ``Content-Type`` header sent
       by the client against a list of allowed content types.
       When failing on that, it will croak with a ``415 Unsupported Media Type``.
 
-    - **Content negotiation** checks if cornice is able to respond with the
+    - **Content negotiation** checks if Cornice is able to respond with the
       requested content type asked by the client sending an ``Accept`` header.
       Otherwise it will croak with a ``406 Not Acceptable``.
 
@@ -382,7 +380,7 @@ like this::
         return 'Foo'
 
 In case the client sends a request, asking for some particular content types
-(using the HTTP **Accept** header), cornice will check that it is able to 
+(using the HTTP **Accept** header), Cornice will check that it is able to
 handle it.
 
 If not, it will respond with a http status of ``406 Not Acceptable``. The body
@@ -408,8 +406,8 @@ The callable should return a list of accepted content types::
 Managing ACLs
 =============
 
-You can also specify a way to deal with ACLs: pass in a function that takes 
-a request and returns an ACL, and that ACL will be applied to all views 
+You can also specify a way to deal with ACLs: pass in a function that takes
+a request and returns an ACL, and that ACL will be applied to all views
 in the service::
 
     foo = Service(name='foo', path='/foo', acl=_check_acls)

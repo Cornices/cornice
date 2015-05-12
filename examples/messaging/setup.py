@@ -27,7 +27,7 @@ setup(name='messaging',
     include_package_data=True,
     zip_safe=False,
     install_requires=['cornice', 'PasteScript'],
-    entry_points = """\
+    entry_points="""\
     [paste.app_factory]
     main = messaging:main
     """,
