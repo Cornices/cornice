@@ -127,12 +127,12 @@ def apply_cors_post_request(service, request, response):
 
     supported_headers = service.cors_supported_headers_for(request.method)
     if supported_headers:
-        supported_headers = ', '.join(supported_headers)
+        headers = ', '.join(supported_headers)
         if request.method == 'OPTIONS':
             # Which headers are allowed?
-            response.headers['Access-Control-Allow-Headers'] = supported_headers
+            response.headers['Access-Control-Allow-Headers'] = headers
         else:
             # Which headers are exposed?
-            response.headers['Access-Control-Expose-Headers'] = supported_headers
+            response.headers['Access-Control-Expose-Headers'] = headers
 
     return response
