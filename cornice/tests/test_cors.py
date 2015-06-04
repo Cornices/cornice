@@ -10,10 +10,8 @@ from pyramid.view import view_config
 from zope.interface import implementer
 
 from webtest import TestApp
-
 from cornice.service import Service
 from cornice.tests.support import TestCase, CatchErrors
-
 
 squirel = Service(path='/squirel', name='squirel', cors_origins=('foobar',))
 spam = Service(path='/spam', name='spam', cors_origins=('*',))
@@ -26,13 +24,20 @@ class Klass(object):
     """
     Class implementation of a service
     """
+
     def __init__(self, request):
         self.request = request
 
     def post(self):
         return "moar squirels (take care)"
 
-cors_policy = {'origins': ('*',), 'enabled': True, 'credentials': True}
+
+cors_policy = {
+    'origins': ('*',),
+    'enabled': True,
+    'credentials': True,
+    'headers': ('Accept', 'Content-Type')
+}
 
 cors_klass = Service(name='cors_klass',
                      path='/cors_klass',
@@ -96,7 +101,6 @@ def noservice(request):
 
 
 class TestCORS(TestCase):
-
     def setUp(self):
         self.config = testing.setUp()
         self.config.include('cornice')
@@ -108,13 +112,19 @@ class TestCORS(TestCase):
         testing.tearDown()
 
     def test_preflight_cors_klass_post(self):
-        resp = self.app.options('/cors_klass',
-                                status=200,
-                                headers={
-                                    'Origin': 'lolnet.org',
-                                    'Access-Control-Request-Method': 'POST'})
+        resp = self.app.options(
+            '/cors_klass',
+            status=200,
+            headers={
+                'Origin': 'lolnet.org',
+                'Access-Control-Request-Method': 'POST',
+                'Access-Control-Request-Headers': 'Accept, Content-Type'
+            }
+        )
         self.assertEqual('POST,OPTIONS',
                          dict(resp.headers)['Access-Control-Allow-Methods'])
+        self.assertEqual('Accept, Content-Type',
+                         dict(resp.headers)['Access-Control-Allow-Headers'])
 
     def test_preflight_cors_klass_put(self):
         self.app.options('/cors_klass',
@@ -132,7 +142,6 @@ class TestCORS(TestCase):
         self.assertEqual(len(resp.json['errors']), 2)
 
     def test_preflight_missing_origin(self):
-
         resp = self.app.options(
             '/squirel',
             headers={'Access-Control-Request-Method': 'GET'},
@@ -148,7 +157,6 @@ class TestCORS(TestCase):
         self.assertNotIn('Access-Control-Expose-Headers', resp.headers)
 
     def test_preflight_missing_request_method(self):
-
         resp = self.app.options(
             '/squirel',
             headers={'Origin': 'foobar.org'},
@@ -326,7 +334,6 @@ class TestCORS(TestCase):
 
 class TestAuthenticatedCORS(TestCase):
     def setUp(self):
-
         def check_cred(username, *args, **kwargs):
             return [username]
 
