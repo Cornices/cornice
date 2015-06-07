@@ -16,7 +16,12 @@ That'll give you a Paster template to use::
 
 The template creates a working Cornice application.
 
-You can then start to poke at the :file:`views.py` file it 
+If you want to add cornice support to an already existing project, you'll need
+to include cornice in your project `includeme`::
+
+    config.include("cornice")
+
+You can then start to poke at the :file:`views.py` file it
 created in the package.
 
 For example, let's
