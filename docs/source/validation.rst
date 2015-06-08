@@ -151,7 +151,7 @@ since Cornice binds the schema with the current request::
                                                bind_request=False)
 
 
-If you want the schema to be dynamic, i.e. you want to chose which one to use
+If you want the schema to be dynamic, i.e. you want to choose which one to use
 per request you can define it as a property on your class and it will be used
 instead. For example::
 
