@@ -45,4 +45,13 @@ setup(name='cornice',
       include_package_data=True,
       zip_safe=False,
       install_requires=requires,
-      paster_plugins=['pyramid'])
+      paster_plugins=['pyramid'],
+      test_suite='cornice.tests',
+      tests_require=[
+          'Sphinx',
+          'WebTest',
+          'colander>=1.0b1',
+          'mock',
+          'nose',
+          'rxjson'
+      ])
