@@ -66,7 +66,7 @@ if COLANDER:
     class StrictMappingSchema(MappingSchema):
         @staticmethod
         def schema_type():
-            return MappingSchema.schema_type(unknown='raise')
+            return Mapping(unknown='raise')
 
     class StrictSchema(StrictMappingSchema):
         foo = SchemaNode(String(), type='str', location="body", missing=drop)
@@ -110,7 +110,8 @@ if COLANDER:
     class PreserveUnkownSchema(MappingSchema):
         bar = SchemaNode(String(), type='str')
 
-        def schema_type(self, **kw):
+        @staticmethod
+        def schema_type():
             return Mapping(unknown='preserve')
 
     def get_mock_request(body, get=None):
