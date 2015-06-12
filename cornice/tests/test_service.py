@@ -389,6 +389,16 @@ class TestService(TestCase):
         get_headers = service.cors_supported_headers_for(method='GET')
         self.assertNotIn('X-Header-Barbaz', get_headers)
 
+    def test_cors_headers_for_method_are_deduplicated(self):
+        # defining headers in the view should work.
+        service = Service('coconuts', '/migrate')
+        service.cors_headers = ('X-Header-Foobar',)
+        service.add_view('GET', _stub,
+                         cors_headers=('X-Header-Foobar', 'X-Header-Barbaz'))
+        get_headers = service.cors_supported_headers_for(method='GET')
+        expected = set(['X-Header-Foobar', 'X-Header-Barbaz'])
+        self.assertEqual(expected, get_headers)
+
     def test_cors_supported_methods(self):
         foo = Service(name='foo', path='/foo', cors_enabled=True)
         foo.add_view('GET', _stub)

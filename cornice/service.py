@@ -453,7 +453,7 @@ class Service(object):
                 exposed_headers = args.get('cors_headers', ())
                 if method is not None:
                     if meth.upper() == method.upper():
-                        return exposed_headers
+                        return set(exposed_headers)
                 else:
                     headers |= set(exposed_headers)
         return headers
