@@ -14,6 +14,7 @@ try:
         deferred,
         Mapping,
         MappingSchema,
+        Sequence,
         SequenceSchema,
         SchemaNode,
         String,
@@ -229,6 +230,9 @@ if COLANDER:
             self.assertEqual(len(body_fields), 2)
             self.assertEqual(len(qs_fields), 1)
 
+            dummy_request = get_mock_request('{"bar": "some data"}')
+            validate_colander_schema(schema, dummy_request)
+
         def test_colander_schema_using_drop(self):
             """
             remove fields from validated data if they deserialize to colander's
@@ -343,6 +347,19 @@ if COLANDER:
             schema = CorniceSchema.from_colander(WrongSchema)
             dummy_request = get_mock_request('', {'foo': 'test',
                                                   'bar': 'test'})
+            self.assertRaises(SchemaError,
+                              validate_colander_schema, schema, dummy_request)
+
+            # We shouldn't accept a MappingSchema if the `typ` has
+            #  been set to something else:
+            schema = CorniceSchema.from_colander(
+                MappingSchema(
+                    Sequence,
+                    SchemaNode(String(), name='foo'),
+                    SchemaNode(String(), name='bar'),
+                    SchemaNode(String(), name='baz')
+                )
+            )
             self.assertRaises(SchemaError,
                               validate_colander_schema, schema, dummy_request)
 
