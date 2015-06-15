@@ -246,7 +246,7 @@ Let's take an example: we want to make sure the incoming request has an
 
     def has_paid(request):
         if not 'X-Verified' in request.headers:
-            request.errors.add('header', 'X-Verified', 'You need to provied a token')
+            request.errors.add('header', 'X-Verified', 'You need to provide a token')
 
     @foo.get(validators=has_paid)
     def get_value(request):
