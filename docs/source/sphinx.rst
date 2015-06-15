@@ -47,7 +47,7 @@ The directive has the following options:
   than `services`. **optional**
 - **ignore**: a comma separated list of services names to ignore. **optional**
 
-You can use info fields (see 
+You can use info fields (see
 `Info field lists <http://sphinx.pocoo.org/domains.html#info-field-lists>`_)
 in your functions, methods and validators.
 
@@ -68,7 +68,6 @@ Here's the **full** app::
 
     from cornice import Service
     from pyramid.config import Configurator
-    from pyramid.httpexceptions import HTTPNotFound
     import string
 
     desc = """\
@@ -81,7 +80,7 @@ Here's the **full** app::
     def check_quote(request):
         """Makes sure the quote starts with a majuscule and ends with a dot"""
         quote = request.body
-        if quote[0] not in uppercase:
+        if quote[0] not in string.ascii_uppercase:
             request.errors.add('body', 'quote', 'Does not start with a majuscule')
 
         if quote[-1] not in ('.', '?', '!'):
@@ -91,19 +90,20 @@ Here's the **full** app::
             request.validated['quote'] = quote
 
 
-    _quote = "Not set, yet !"
+    _quote = {}
+    _quote['default'] = "Not set, yet !"
+
 
     @quote.get()
     def get_quote(request):
         """Returns the quote"""
-        return _quote
+        return _quote['default']
 
 
     @quote.post(validator=check_quote)
     def post_quote(request):
         """Update the quote"""
-        global _quote
-        _quote = request.validated['quote']
+        _quote['default'] = request.validated['quote']
 
 
     def main(global_config, **settings):
@@ -115,12 +115,12 @@ Here's the **full** app::
     if __name__ == '__main__':
         from wsgiref.simple_server import make_server
         app = main({})
-        httpd = make_server('', 8000, app)
-        print "Listening on port 8000...."
+        httpd = make_server('', 6543, app)
+        print("Listening on port 6543....")
         httpd.serve_forever()
 
 
-And here's the **full** sphinx doc example::
+And here's the **full** Sphinx doc example::
 
     Welcome to coolapp's documentation!
     ===================================

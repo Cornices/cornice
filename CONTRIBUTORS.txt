@@ -6,6 +6,7 @@ Cornice:
 * Andre Caron <andre.l.caron@gmail.com>
 * Andreas Motl <andreas.motl@ilo.de>
 * Anton D <anton@screwtop>
+* Areski Belaid <areski@gmail.com>
 * Ben Bangert <ben@groovie.org>
 * Bruno Binet <bruno.binet@gmail.com>
 * Bryan Zegar <bryanzegar@gmail.com>

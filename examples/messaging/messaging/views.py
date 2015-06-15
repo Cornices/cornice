@@ -33,15 +33,13 @@ class _401(exc.HTTPError):
 
 def valid_token(request):
     header = 'X-Messaging-Token'
-    token = request.headers.get(header)
-    if token is None:
+    htoken = request.headers.get(header)
+    if htoken is None:
         raise _401()
-
-    token = token.split('-')
-    if len(token) != 2:
+    try:
+        user, token = htoken.split('-', 1)
+    except ValueError:
         raise _401()
-
-    user, token = token
 
     valid = user in _USERS and _USERS[user] == token
     if not valid:
@@ -58,15 +56,10 @@ def unique(request):
         user = {'name': name, 'token': _create_token()}
         request.validated['user'] = user
 
-#
-# Services
-#
 
 #
-# User Management
+# Services - User Management
 #
-
-
 @users.get(validators=valid_token)
 def get_users(request):
     """Returns a list of all users."""
@@ -88,23 +81,20 @@ def del_user(request):
     del _USERS[name]
     return {'Goodbye': name}
 
-#
-# Messages management
-#
 
-
+#
+# Services - Messages management
+#
 def valid_message(request):
     try:
         message = json.loads(request.body)
     except ValueError:
         request.errors.add('body', 'message', 'Not valid JSON')
         return
-
     # make sure we have the fields we want
     if 'text' not in message:
         request.errors.add('body', 'text', 'Missing text')
         return
-
     if 'color' in message and message['color'] not in ('red', 'black'):
         request.errors.add('body', 'color', 'only red and black supported')
     elif 'color' not in message:

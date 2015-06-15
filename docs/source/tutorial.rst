@@ -41,7 +41,7 @@ Setting up the development environment
 
 To create this application, we'll use Python 2.7. Make sure you
 have it on your system, then install **virtualenv** (see
-http://pypi.python.org/pypi/virtualenv.)
+http://pypi.python.org/pypi/virtualenv).
 
 Create a new directory and a virtualenv in it::
 
@@ -65,7 +65,17 @@ application::
       Copying +package+.ini_tmpl to <...path ...>/messaging/messaging.ini
       Copying README.rst_tmpl to <...path ...>/messaging/README.rst
       Copying setup.py_tmpl to <...path ...>/messaging/setup.py
+
+    ===============================================================================
+    Tutorials: http://docs.pylonsproject.org/projects/pyramid_tutorials
+    Documentation: http://docs.pylonsproject.org/projects/pyramid
+
+    Twitter (tips & updates): http://twitter.com/pylons
+    Mailing List: http://groups.google.com/group/pylons-discuss
+
     Welcome to Pyramid.  Sorry for the convenience.
+    ===============================================================================
+
 
 Once your application is generated, go there and call *develop* against it::
 
@@ -80,16 +90,29 @@ service check::
     Starting server in PID 7618.
     serving on 0.0.0.0:6543 view at http://127.0.0.1:6543
 
-Once the application is running, visit http://127.0.0.1:6543 in your browser or
-Curl and make sure you get::
+Once the application is running, visit http://127.0.0.1:6543 in your browser and make sure you get::
 
     {'Hello': 'World'}
+
+You should also get the same results calling the URL via Curl::
+
+    $ curl -i http://0.0.0.0:6543/
+
+This will result::
+
+    HTTP/1.1 200 OK
+    Content-Length: 18
+    Content-Type: application/json; charset=UTF-8
+    Date: Tue, 12 May 2015 13:23:32 GMT
+    Server: waitress
+
+    {"Hello": "World"}
 
 
 Defining the services
 ---------------------
 
-Let's open the file in messaging/views.py, it contains all the Services::
+Let's open the file in :file:`messaging/views.py`, it contains all the Services::
 
     from cornice import Service
 
@@ -182,15 +205,13 @@ Here's their code::
 
     def valid_token(request):
         header = 'X-Messaging-Token'
-        token = request.headers.get(header)
-        if token is None:
+        htoken = request.headers.get(header)
+        if htoken is None:
             raise _401()
-
-        token = token.split('-')
-        if len(token) != 2:
+        try:
+            user, token = htoken.split('-', 1)
+        except ValueError:
             raise _401()
-
-        user, token = token
 
         valid = user in _USERS and _USERS[user] == token
         if not valid:
@@ -209,14 +230,8 @@ Here's their code::
 
 
     #
-    # Services
+    # Services - User Management
     #
-
-    #
-    # User Management
-    #
-
-
     @users.get(validators=valid_token)
     def get_users(request):
         """Returns a list of all users."""

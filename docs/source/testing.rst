@@ -2,11 +2,11 @@ Testing
 =======
 
 Testing is nice and useful. Some folks even said it helped saving kittens. And
-childs.  Here is how you can test your cornices applications.
+childs.  Here is how you can test your Cornice's applications.
 
 Let's suppose you have this service definition::
 
-    
+
     from pyramid.config import Configurator
 
     from cornice import Service
