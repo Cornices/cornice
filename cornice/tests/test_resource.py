@@ -104,19 +104,13 @@ class TestResource(TestCase):
         testing.tearDown()
 
     def test_basic_resource(self):
-        from pkg_resources import parse_version, get_distribution
-        current_version = parse_version(get_distribution('pyramid').version)
-
         self.assertEqual(self.app.get("/users").json, {'users': [1, 2]})
 
         self.assertEqual(self.app.get("/users/1").json, {'name': 'gawel'})
 
         resp = self.app.get("/users/1?callback=test")
 
-        if current_version < parse_version('1.5a4'):
-            self.assertEqual(resp.body, b'test({"name": "gawel"})', resp.body)
-        else:
-            self.assertEqual(resp.body, b'test({"name": "gawel"});', resp.body)
+        self.assertIn(b'test({"name": "gawel"})', resp.body, msg=resp.body)
 
     def test_accept_headers(self):
         # the accept headers should work even in case they're specified in a
