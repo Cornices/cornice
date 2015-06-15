@@ -97,6 +97,9 @@ def validate_colander_schema(schema, request):
     """Validates that the request is conform to the given schema"""
     from colander import Invalid, Sequence, drop, null, Mapping
 
+    # CorniceSchema.colander_schema guarantees that we have a colander
+    #  instance and not a class so we should use `typ` and not
+    #  `schema_type()` to determine the type.
     schema_type = schema.colander_schema.typ
     unknown = getattr(schema_type, 'unknown', None)
 
