@@ -563,24 +563,25 @@ def decorate_view(view, args, method):
                 validator = getattr(context.object, validator)
             validator(request)
 
+        # only call the view if we don't have validation errors
+        if len(request.errors) == 0:
+            try:
+                # If we have an object, it already has the request.
+                if context.object:
+                    response = context.callable()
+                else:
+                    response = context.callable(request)
+            except Exception:
+                # cors headers need to be set if an exception was raised
+                request.info['cors_checked'] = False
+                response = args['exception_handler'](context, sys.exc_info())
+
         # check for errors and return them if any
-        if request.errors:
+        if len(request.errors) > 0:
             # We already checked for CORS, but since the response is created
             # again, we want to do that again before returning the response.
             request.info['cors_checked'] = False
             return args['error_handler'](request.errors)
-
-        # only call the view if we don't have validation errors
-        try:
-            # If we have an object, it already has the request.
-            if context.object:
-                response = context.callable()
-            else:
-                response = context.callable(request)
-        except Exception:
-            # cors headers need to be set if an exception was raised
-            request.info['cors_checked'] = False
-            return args['exception_handler'](context, sys.exc_info())
 
         # if the view returns its own response, cors headers need to be set
         if isinstance(response, Response):

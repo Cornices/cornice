@@ -168,7 +168,8 @@ def register_service_views(config, service):
 
     # Cornice-specific arguments that pyramid does not know about
     cornice_parameters = ('filters', 'validators', 'schema', 'klass',
-                          'error_handler', 'deserializer') + CORS_PARAMETERS
+                          'error_handler', 'exception_handler',
+                          'deserializer') + CORS_PARAMETERS
 
     # 1. register route
 
