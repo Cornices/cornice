@@ -642,7 +642,7 @@ class _ViewContext(object):
         if is_string(parent.view):
             self.callable = getattr(self.object, parent.view.lower())
         elif isinstance(parent.view, _UnboundView):
-            self.callable = parent.view.make_bound_view(self.callable)
+            self.callable = parent.view.make_bound_view(self.object)
 
         self.tween_args = (parent.args, self.object)
 
