@@ -85,6 +85,18 @@ if COLANDER:
 
     class DefaultValueSchema(MappingSchema):
         foo = SchemaNode(Int(), type="int")
+        bar = SchemaNode(Int(), type="int", missing=10)
+
+    missing_sentinel = object()
+
+    class SchemaUsingMissing(MappingSchema):
+        foo = SchemaNode(Int(), missing=missing_sentinel)
+
+    def raise_exc_if_called(*args, **kwargs):
+        raise RuntimeError('Unwanted callable have been called.', args, kwargs)
+
+    class SchemaUsingPreparer(MappingSchema):
+        foo = SchemaNode(Int(), preparer=raise_exc_if_called, missing=drop)
         bar = SchemaNode(Int(), type="int", default=10)
 
     class QsSchema(MappingSchema):
@@ -312,7 +324,7 @@ if COLANDER:
             self.assertEqual(len(errors), 0)
             self.assertEqual(len(qs_fields), 2)
 
-            expected = {'foo': 'foo', 'bar': 'test'}
+            expected = {'bar': 'test'}
 
             self.assertEqual(expected, dummy_request.validated)
 
@@ -342,6 +354,26 @@ if COLANDER:
             self.assertEqual(dummy_request.validated['foo'], 5)
             # default value should be available
             self.assertEqual(dummy_request.validated['bar'], 10)
+
+        def test_colander_schema_returning_missing(self):
+            schema = CorniceSchema.from_colander(SchemaUsingMissing)
+            dummy_request = get_mock_request('')
+            validate_colander_schema(schema, dummy_request)
+
+            expected = {'foo': missing_sentinel}
+            self.assertEqual(expected, dummy_request.validated)
+
+        def test_colander_schema_preparer_called_if_missing_is_drop(self):
+            schema = CorniceSchema.from_colander(SchemaUsingPreparer)
+            dummy_request = get_mock_request('{"bar": 1}')
+
+            try:
+                validate_colander_schema(schema, dummy_request)
+            except RuntimeError as e:
+                self.fail(str(e))
+
+            expected = {'bar': 1}
+            self.assertEqual(expected, dummy_request.validated)
 
         def test_only_mapping_is_accepted(self):
             schema = CorniceSchema.from_colander(WrongSchema)
