@@ -113,10 +113,13 @@ class TestResource(TestCase):
 
         resp = self.app.get("/users/1?callback=test")
 
-        if current_version < parse_version('1.5a4'):
-            self.assertEqual(resp.body, b'test({"name": "gawel"})', resp.body)
-        else:
+        if parse_version('1.5.6') < current_version:
+            self.assertEqual(
+                resp.body, b'/**/test({"name": "gawel"});', resp.body)
+        elif parse_version('1.5a4') < current_version:
             self.assertEqual(resp.body, b'test({"name": "gawel"});', resp.body)
+        else:
+            self.assertEqual(resp.body, b'test({"name": "gawel"})', resp.body)
 
     def test_accept_headers(self):
         # the accept headers should work even in case they're specified in a
