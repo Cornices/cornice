@@ -95,14 +95,17 @@ class CorniceSchema(object):
 
 def validate_colander_schema(schema, request):
     """Validates that the request is conform to the given schema"""
-    from colander import Invalid, Sequence, drop, null, MappingSchema
+    from colander import Invalid, Sequence, drop, null, Mapping
 
-    schema_type = schema.colander_schema.schema_type()
+    # CorniceSchema.colander_schema guarantees that we have a colander
+    #  instance and not a class so we should use `typ` and not
+    #  `schema_type()` to determine the type.
+    schema_type = schema.colander_schema.typ
     unknown = getattr(schema_type, 'unknown', None)
 
-    if not isinstance(schema.colander_schema, MappingSchema):
-        raise SchemaError('schema is not a MappingSchema: %s' %
-                          type(schema.colander_schema))
+    if not isinstance(schema_type, Mapping):
+        raise SchemaError('colander schema type is not a Mapping: %s' %
+                          type(schema_type))
 
     def _validate_fields(location, data):
         if location == 'body':
@@ -167,7 +170,7 @@ def validate_colander_schema(schema, request):
     _validate_fields('querystring', qs)
 
     # validate unknown
-    if schema.colander_schema.typ.unknown == 'raise':
+    if unknown == 'raise':
         attrs = schema.get_attributes(location=('body', 'querystring'),
                                       request=request)
         params = list(qs.keys()) + list(body.keys())
