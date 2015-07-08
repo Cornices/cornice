@@ -96,8 +96,7 @@ def ensure_origin(service, request, response=None):
                         for o in service.cors_origins_for(method)]):
                 request.errors.add('header', 'Origin',
                                    '%s not allowed' % origin)
-            elif request.headers.get(
-                    'Access-Control-Allow-Credentials', False):
+            elif service.cors_support_credentials_for(method):
                 response.headers['Access-Control-Allow-Origin'] = origin
             else:
                 if any([o == "*" for o in service.cors_origins_for(method)]):
