@@ -238,6 +238,8 @@ class TestCORS(TestCase):
             })
         self.assertEqual(resp.headers['Access-Control-Allow-Origin'],
                          'lolnet.org')
+        self.assertEqual(resp.headers['Access-Control-Allow-Credentials'],
+                         'true')
 
     def test_responses_include_an_allow_origin_header(self):
         resp = self.app.get('/squirel', headers={'Origin': 'notmyidea.org'})
