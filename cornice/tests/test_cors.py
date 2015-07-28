@@ -228,15 +228,6 @@ class TestCORS(TestCase):
         self.assertNotIn('Access-Control-Allow-Origin', resp.headers)
         self.assertEqual(resp.json, 'squirels')
 
-    def test_resp_allow_origin_wildcard(self):
-        resp = self.app.options(
-            '/cors_klass',
-            status=200,
-            headers={
-                'Origin': 'lolnet.org',
-                'Access-Control-Request-Method': 'POST'})
-        self.assertEqual(resp.headers['Access-Control-Allow-Origin'], '*')
-
     def test_origin_is_not_wildcard_if_allow_credentials(self):
         resp = self.app.options(
             '/cors_klass',
@@ -244,10 +235,11 @@ class TestCORS(TestCase):
             headers={
                 'Origin': 'lolnet.org',
                 'Access-Control-Request-Method': 'POST',
-                'Access-Control-Allow-Credentials': 'true'
             })
         self.assertEqual(resp.headers['Access-Control-Allow-Origin'],
                          'lolnet.org')
+        self.assertEqual(resp.headers['Access-Control-Allow-Credentials'],
+                         'true')
 
     def test_responses_include_an_allow_origin_header(self):
         resp = self.app.get('/squirel', headers={'Origin': 'notmyidea.org'})
