@@ -95,7 +95,7 @@ class CorniceSchema(object):
 
 def validate_colander_schema(schema, request):
     """Validates that the request is conform to the given schema"""
-    from colander import Invalid, Sequence, drop, null, Mapping
+    from colander import Invalid, Sequence, Mapping
 
     # CorniceSchema.colander_schema guarantees that we have a colander
     #  instance and not a class so we should use `typ` and not
@@ -162,7 +162,7 @@ def validate_colander_schema(schema, request):
     try:
         appstruct = schema.colander_schema.deserialize(cstruct)
     except Invalid as e:
-        for k, v in e.asdict().iteritems():
+        for k, v in e.asdict().items():
             v = '%s is missing' % k if v == 'Required' else v
 
             try:
@@ -176,7 +176,7 @@ def validate_colander_schema(schema, request):
 
         return
 
-    for k,v in appstruct.iteritems():
+    for k,v in appstruct.items():
         request.validated[k] = v
 
     # validate unknown
