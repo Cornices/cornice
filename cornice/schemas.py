@@ -107,7 +107,7 @@ def validate_colander_schema(schema, request):
         raise SchemaError('colander schema type is not a Mapping: %s' %
                           type(schema_type))
 
-    def _validate_fields(location, data):
+    def _extract_fields(location, data):
         if location == 'body':
             try:
                 original = data
@@ -123,51 +123,61 @@ def validate_colander_schema(schema, request):
             except KeyError:
                 pass
 
+        meta = {
+            'cstruct': {},
+            'locations': {},
+        }
+
         for attr in schema.get_attributes(location=location,
                                           request=request):
-            if attr.required and attr.name not in data and \
-               attr.default == null:
-                # missing
-                request.errors.add(location, attr.name,
-                                   "%s is missing" % attr.name)
-            else:
-                try:
-                    if attr.name not in data:
-                        if attr.default != null:
-                            deserialized = attr.deserialize(attr.serialize())
-                        else:
-                            deserialized = attr.deserialize()
-                    else:
-                        if (location == 'querystring' and
-                                isinstance(attr.typ, Sequence)):
-                            serialized = original.getall(attr.name)
-                        else:
-                            serialized = data[attr.name]
-                        deserialized = attr.deserialize(serialized)
-                except Invalid as e:
-                    # the struct is invalid
-                    try:
-                        request.errors.add(location, attr.name,
-                                           e.asdict()[attr.name])
-                    except KeyError:
-                        for k, v in e.asdict().items():
-                            if k.startswith(attr.name):
-                                request.errors.add(location, k, v)
-                else:
-                    if deserialized is not drop:
-                        request.validated[attr.name] = deserialized
+            if (location == 'querystring' and
+                    isinstance(attr.typ, Sequence)):
+                meta['cstruct'][attr.name] = original.getall(attr.name)
+            elif attr.name in data:
+                meta['cstruct'][attr.name] = data[attr.name]
+
+            meta['locations'][attr.name] = location
 
         if location == "body" and unknown == 'preserve':
             for field, value in data.items():
-                if field not in request.validated:
+                if field not in request.validated and\
+                   field not in meta['cstruct']:
                     request.validated[field] = value
+
+        return meta
 
     qs, headers, body, path = extract_request_data(request)
 
-    _validate_fields('path', path)
-    _validate_fields('header', headers)
-    _validate_fields('body', body)
-    _validate_fields('querystring', qs)
+    cstruct = {}
+    attr_locs = {}
+
+    # tried to preserve original order here since each call could overwrite
+    # existing keys
+    for location in [('path', path), ('header', headers),
+                     ('body', body), ('querystring', qs)]:
+        meta = _extract_fields(location[0], location[1])
+        cstruct.update(meta['cstruct'])
+        attr_locs.update(meta['locations'])
+
+    try:
+        appstruct = schema.colander_schema.deserialize(cstruct)
+    except Invalid as e:
+        for k, v in e.asdict().iteritems():
+            v = '%s is missing' % k if v == 'Required' else v
+
+            try:
+                location = attr_locs[k]
+            except KeyError:
+                for attr in attr_locs.keys():
+                    if k.startswith(attr):
+                        location = attr_locs[attr]
+
+            request.errors.add(location, k, v)
+
+        return
+
+    for k,v in appstruct.iteritems():
+        request.validated[k] = v
 
     # validate unknown
     if unknown == 'raise':
