@@ -176,7 +176,7 @@ def validate_colander_schema(schema, request):
 
         return
 
-    for k,v in appstruct.items():
+    for k, v in appstruct.items():
         request.validated[k] = v
 
     # validate unknown
