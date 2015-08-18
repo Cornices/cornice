@@ -16,18 +16,34 @@ else:
             return colander.Mapping(unknown='raise')
 
     class CorniceSchema(colander.MappingSchema):
-        querystring = StrictMappingSchema(
-            default=colander.drop
-        )
-        headers = StrictMappingSchema(
-            default=colander.drop
-        )
-        body = StrictMappingSchema(
-            default=colander.drop
-        )
-        path = StrictMappingSchema(
-            default=colander.drop
-        )
+        querystring = StrictMappingSchema()
+        headers = StrictMappingSchema()
+        body = StrictMappingSchema()
+        path = StrictMappingSchema()
+
+    def simple_cstruct_serialize(val):
+        """ cstruct is colander's internal use format which is a
+        series of nested dicts, lists, and tuples with only str values
+        as the "leaf" values.  If this method will try to recursively
+        go through a given value and convert all dict-like objects into
+        dicts, convert iterables that aren't dict-like into lists, and
+        convert everything else into a string.
+        """
+        try:
+            # try dict-like interpretation
+            result = {}
+            for k in val.keys():
+                result[k] = simple_cstruct_serialize(val[k])
+            return result
+        except (TypeError, AttributeError):
+            try:
+                # try iterable interpretation
+                result = []
+                for k in val:
+                    result.append(simple_cstruct_serialize(k))
+                return result
+            except TypeError:
+                return str(val)
 
 
 def validate_colander_schema(schema, request):
@@ -50,7 +66,7 @@ def validate_colander_schema(schema, request):
     }
 
     try:
-        cstruct = schema.serialize(initial_appstruct)
+        cstruct = simple_cstruct_serialize(initial_appstruct)
         appstruct = schema.deserialize(cstruct)
     except colander.Invalid as e:
         for component_path, msg in e.asdict().items():
