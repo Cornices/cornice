@@ -4,7 +4,7 @@
 from cornice.errors import Errors
 from cornice.tests.support import TestCase
 from cornice.schemas import (
-    CorniceSchema, validate_colander_schema, SchemaError
+    CorniceSchema, validate_colander_schema, InvalidSchemaError
 )
 from cornice.util import extract_json_data
 import json
@@ -347,7 +347,7 @@ if COLANDER:
             schema = CorniceSchema.from_colander(WrongSchema)
             dummy_request = get_mock_request('', {'foo': 'test',
                                                   'bar': 'test'})
-            self.assertRaises(SchemaError,
+            self.assertRaises(InvalidSchemaError,
                               validate_colander_schema, schema, dummy_request)
 
             # We shouldn't accept a MappingSchema if the `typ` has

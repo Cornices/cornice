@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from __future__ import absolute_import
+
 import functools
 
 import colander
@@ -16,13 +18,12 @@ class ColanderAdapter(generic.GenericAdapter):
     UNKNOWN_KEEP = 1
     UNKNOWN_ERROR = 2
 
-    def __init__(self, request, schema, bind_request=True,
+    def __init__(self, schema, bind_request=True,
                  unknown=None):
-        super(ColanderAdapter, self).__init__(request, schema)
+        super(ColanderAdapter, self).__init__(schema)
 
         if not self._is_mapping_field(self.schema):
-            raise generic.InvalidSchemaError(
-                'schema is not a MappingSchema: %s' % type(self.schema))
+            raise generic.UnsuitableSchemaCtrl
 
         self.bind_request = bind_request
 
@@ -150,3 +151,7 @@ class _ForceFailValidator(object):
 
     def __call__(self, node, value):
         raise colander.Invalid(node, self.message, value)
+
+
+def init():
+    return generic.AdapterBinding(ColanderAdapter, colander.Schema)
