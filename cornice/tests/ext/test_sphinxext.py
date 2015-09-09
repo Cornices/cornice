@@ -22,5 +22,16 @@ class TestServiceDirective(TestCase):
         directive = ServiceDirective(
             'test', [], {}, [], 1, 1, 'test', mock.Mock(), 1)
         directive.options['modules'] = ['cornice']
-        directive.run()
-        directive.run()
+        ret = directive.run()
+        self.assertEqual(ret, [])
+
+    def test_dummy(self):
+        param = mock.Mock()
+        param.document.settings.env.new_serialno.return_value = 1
+        directive = ServiceDirective(
+            'test', [], {}, [], 1, 1, 'test', param, 1)
+        directive.options['app'] = 'cornice.tests.ext.dummy'
+        directive.options['service'] = 'users'
+        ret = directive.run()
+        self.assertEqual(len(ret), 1)
+        self.assertTrue('Users service at' in str(ret[0]))
