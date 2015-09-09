@@ -40,5 +40,16 @@ class CallableAdapter(GenericAdapter):
         return self.schema(payload), tuple()
 
 
+# Backward compatibility
+class CorniceSchema(object):
+    def __init__(self, schema, bind_request=True):
+        self.schema = schema
+        self.bind_request = bind_request
+
+    @classmethod
+    def from_colander(cls, schema, **kwargs):
+        return cls(schema, **kwargs)
+
+
 def init():
     return CallableAdapter

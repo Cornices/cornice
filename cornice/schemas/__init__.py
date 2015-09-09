@@ -11,6 +11,7 @@ from cornice.schemas import generic
 
 def use(schema, request):
     schema = _python_path_resolver.maybe_resolve(schema)
+    schema = _apply_compat_if_required(schema)
 
     for bind in _adapters:
         try:
@@ -27,6 +28,16 @@ def use(schema, request):
 
     request.errors.extend(errors)
     request.validated.update(payload)
+
+
+def _apply_compat_if_required(schema):
+    if isinstance(schema, CorniceSchema):
+        pass
+    elif isinstance(schema, generic.GenericAdapter):
+        pass
+    else:
+        schema = CorniceSchema.from_colander(schema)
+    return schema
 
 
 class _PredefinedAdapter(generic.GenericAdapter):
@@ -58,3 +69,6 @@ for name in (
         _adapters.extend(factories)
     except TypeError:
         _adapters.append(factories)
+
+
+CorniceSchema = generic.CorniceSchema
