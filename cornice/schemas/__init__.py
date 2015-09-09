@@ -4,11 +4,15 @@
 
 from __future__ import absolute_import
 
+from pyramid import path
+
 from cornice.schemas import generic
 from cornice.schemas import colander
 
 
 def use(schema, request):
+    schema = _python_path_resolver.maybe_resolve(schema)
+
     for bind in _adapters:
         try:
             adapter = bind(schema)
@@ -46,6 +50,9 @@ class _BackwardCompatibilityAdapter(generic.GenericAdapter):
 
     def __call__(self, request):
         return self.adapter(request)
+
+
+_python_path_resolver = path.DottedNameResolver(__name__)
 
 
 class CorniceSchema(object):

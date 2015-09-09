@@ -38,7 +38,7 @@ class ColanderAdapter(generic.GenericAdapter):
                 unknown = self.UNKNOWN_DROP
         self.unknown = unknown
 
-    def validate(self):
+    def __call__(self, request):
         schema = self.schema.clone()
         if self.bind_request:
             schema = schema.bind(self.request)

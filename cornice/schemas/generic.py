@@ -4,7 +4,9 @@
 
 from __future__ import absolute_import
 
-from pyramid import path
+import abc
+import collections
+
 from cornice import util
 
 
@@ -17,10 +19,21 @@ class UnsuitableSchemaCtrl(Exception):
 
 
 class GenericAdapter(object):
-    _python_path_resolver = path.DottedNameResolver(__name__)
+    __metaclass__ = abc.ABCMeta
 
     def __init__(self, schema):
-        self.schema = self._python_path_resolver.maybe_resolve(schema)
+        self.schema = schema
+
+    @abc.abstractmethod
+    def __call__(self, request):
+        pass
+
+
+class CallableAdapter(GenericAdapter):
+    def __init__(self, schema):
+        if not isinstance(schema, collections.Callable):
+            raise UnsuitableSchemaCtrl
+        super(CallableAdapter, self).__init__(schema)
 
     def __call__(self, request):
         payload = util.extract_request_body(request)
@@ -28,4 +41,4 @@ class GenericAdapter(object):
 
 
 def init():
-    return GenericAdapter
+    return CallableAdapter
