@@ -7,10 +7,11 @@ import warnings
 from pyramid import testing
 from webtest import TestApp
 
-from cornice.schemas import CorniceSchema
+from cornice import schemas
 from cornice.tests.validationapp import COLANDER
 from cornice.tests.support import TestCase, CatchErrors
 from cornice.service import Service
+
 
 if COLANDER:
     from cornice.tests.validationapp import FooBarSchema

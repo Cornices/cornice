@@ -3,9 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 from cornice.errors import Errors
 from cornice.tests.support import TestCase
-from cornice.schemas import (
-    CorniceSchema, validate_colander_schema, InvalidSchemaError
-)
+from cornice import schemas
 from cornice.util import extract_json_data
 import json
 
@@ -103,24 +101,24 @@ if COLANDER:
             remove fields from validated data if they deserialize to colander's
             `drop` object.
             """
-            schema = CorniceSchema.from_colander(DropSchema)
+            schema = schemas.CorniceSchema.from_colander(DropSchema)
 
             dummy_request = get_mock_request('{"bar": "required_data"}')
-            validate_colander_schema(schema, dummy_request)
+            schemas.use(schema, dummy_request)
 
             self.assertNotIn('foo', dummy_request.validated)
             self.assertIn('bar', dummy_request.validated)
             self.assertEqual(len(dummy_request.errors), 0)
 
         def test_colander_strict_schema(self):
-            schema = CorniceSchema.from_colander(StrictSchema)
+            schema = schemas.CorniceSchema.from_colander(StrictSchema)
 
             dummy_request = get_mock_request(
                 '''
                 {"bar": "required_data", "foo": "optional_data",
                 "other": "not_wanted_data"}
                 ''')
-            validate_colander_schema(schema, dummy_request)
+            schemas.use(schema, dummy_request)
 
             errors = dummy_request.errors
             self.assertEqual(len(errors), 1)
@@ -134,27 +132,24 @@ if COLANDER:
             """
             Schema could be passed as string in view
             """
-            schema = CorniceSchema.from_colander(
-                'cornice.tests.schema.AccountSchema')
+            schema = 'cornice.tests.schema.AccountSchema'
 
-            dummy_request = get_mock_request('{"nickname": "john"}')
-            validate_colander_schema(schema, dummy_request)
+            dummy_request = get_mock_request(
+                '{"nickname": "john", "city": "Moscow"}')
+            schemas.use(schema, dummy_request)
 
             self.assertIn('nickname', dummy_request.validated)
             self.assertNotIn('city', dummy_request.validated)
 
         def test_colander_nested_schema(self):
-            schema = CorniceSchema.from_colander(NestedSchema)
+            schema = schemas.CorniceSchema.from_colander(NestedSchema)
 
             dummy_request = get_mock_request('{"ham": {"bar": "POST"}}',
                                              {'egg.bar': 'GET'})
-            validate_colander_schema(schema, dummy_request)
-
-            qs_fields = schema.get_attributes(location="querystring")
+            schemas.use(schema, dummy_request)
 
             errors = dummy_request.errors
             self.assertEqual(len(errors), 0, errors)
-            self.assertEqual(len(qs_fields), 1)
 
             expected = {'egg': {'bar': 'GET'},
                         'ham': {'bar': 'POST'},
@@ -166,16 +161,13 @@ if COLANDER:
             """
             Schema could contains default values
             """
-            schema = CorniceSchema.from_colander(DefaultSchema)
+            schema = schemas.CorniceSchema.from_colander(DefaultSchema)
 
             dummy_request = get_mock_request('', {'bar': 'test'})
-            validate_colander_schema(schema, dummy_request)
-
-            qs_fields = schema.get_attributes(location="querystring")
+            schemas.use(schema, dummy_request)
 
             errors = dummy_request.errors
             self.assertEqual(len(errors), 0)
-            self.assertEqual(len(qs_fields), 2)
 
             expected = {'foo': 'foo', 'bar': 'test'}
 
@@ -183,13 +175,10 @@ if COLANDER:
 
             dummy_request = get_mock_request('', {'bar': 'test',
                                                   'foo': 'test'})
-            validate_colander_schema(schema, dummy_request)
-
-            qs_fields = schema.get_attributes(location="querystring")
+            schemas.use(schema, dummy_request)
 
             errors = dummy_request.errors
             self.assertEqual(len(errors), 0)
-            self.assertEqual(len(qs_fields), 2)
 
             expected = {'foo': 'test', 'bar': 'test'}
 
@@ -198,9 +187,9 @@ if COLANDER:
         def test_colander_schema_default_value(self):
             # apply default value to field if the input for them is
             # missing
-            schema = CorniceSchema.from_colander(DefaultValueSchema)
+            schema = schemas.CorniceSchema.from_colander(DefaultValueSchema)
             dummy_request = get_mock_request('{"foo": 5}')
-            validate_colander_schema(schema, dummy_request)
+            schemas.use(schema, dummy_request)
 
             self.assertIn('bar', dummy_request.validated)
             self.assertEqual(len(dummy_request.errors), 0)
@@ -209,11 +198,11 @@ if COLANDER:
             self.assertEqual(dummy_request.validated['bar'], 10)
 
         def test_only_mapping_is_accepted(self):
-            schema = CorniceSchema.from_colander(WrongSchema)
+            schema = schemas.CorniceSchema.from_colander(WrongSchema)
             dummy_request = get_mock_request('', {'foo': 'test',
                                                   'bar': 'test'})
-            self.assertRaises(InvalidSchemaError,
-                              validate_colander_schema, schema, dummy_request)
+            self.assertRaises(schemas.InvalidSchemaError,
+                              schemas.use, schema, dummy_request)
 
             # We shouldn't accept a MappingSchema if the `typ` has
             #  been set to something else:
@@ -229,10 +218,10 @@ if COLANDER:
                               validate_colander_schema, schema, dummy_request)
 
         def test_extra_params_qs(self):
-            schema = CorniceSchema.from_colander(QsSchema)
+            schema = schemas.CorniceSchema.from_colander(QsSchema)
             dummy_request = get_mock_request('', {'foo': 'test',
                                                   'bar': 'test'})
-            validate_colander_schema(schema, dummy_request)
+            schemas.use(schema, dummy_request)
 
             errors = dummy_request.errors
             self.assertEqual(len(errors), 0)
@@ -241,10 +230,10 @@ if COLANDER:
             self.assertEqual(expected, dummy_request.validated)
 
         def test_extra_params_qs_strict(self):
-            schema = CorniceSchema.from_colander(StrictQsSchema)
+            schema = schemas.CorniceSchema.from_colander(StrictQsSchema)
             dummy_request = get_mock_request('', {'foo': 'test',
                                                   'bar': 'test'})
-            validate_colander_schema(schema, dummy_request)
+            schemas.use(schema, dummy_request)
 
             errors = dummy_request.errors
             self.assertEqual(len(errors), 1)
@@ -256,11 +245,11 @@ if COLANDER:
             self.assertEqual(expected, dummy_request.validated)
 
         def test_validate_colander_schema_can_preserve_unknown_fields(self):
-            schema = CorniceSchema.from_colander(PreserveUnkownSchema)
+            schema = schemas.CorniceSchema.from_colander(PreserveUnkownSchema)
 
             data = json.dumps({"bar": "required_data", "optional": "true"})
             dummy_request = get_mock_request(data)
-            validate_colander_schema(schema, dummy_request)
+            schemas.use(schema, dummy_request)
 
             self.assertDictEqual(dummy_request.validated, {
                 "bar": "required_data",

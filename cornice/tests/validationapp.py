@@ -141,9 +141,9 @@ def post7(request):
 
 
 try:
+    from cornice.schemas.compat import ColanderSchema as MappingSchema
     from colander import (
         Invalid,
-        MappingSchema,
         SequenceSchema,
         SchemaNode,
         String,
