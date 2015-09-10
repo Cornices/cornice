@@ -4,6 +4,8 @@
 
 from __future__ import absolute_import
 
+import importlib
+
 from pyramid import path
 
 from cornice.schemas import generic
@@ -53,22 +55,31 @@ class _PredefinedAdapter(generic.GenericAdapter):
 _python_path_resolver = path.DottedNameResolver(__name__)
 
 
-# TODO: rewrite using stevedore
 _adapters = [
     _PredefinedAdapter]
-for name in (
-        'cornice.schemas.generic',
-        'cornice.schemas.colander'):
+for name in ('.compat', '.colander', '.generic'):
     try:
-        mod = __import__(name)
+        # TODO: rewrite using stevedore
+        mod = importlib.import_module(name, __name__)
     except ImportError:
         continue
 
-    factories = mod.init()
-    try:
-        _adapters.extend(factories)
-    except TypeError:
-        _adapters.append(factories)
+    payload = mod.init()
+    if isinstance(payload, generic.AdapterDescriptor):
+        _adapters.append(payload.adapter)
+    else:
+        try:
+            _adapters.extend(payload)
+        except TypeError:
+            _adapters.append(payload)
+
+adapters = {}
+for idx, a in enumerate(_adapters):
+    if not isinstance(a, generic.AdapterDescriptor):
+        continue
+    adapters[a.name] = a.adapter
+    _adapters[idx] = a.adapter
 
 
+InvalidSchemaError = generic.InvalidSchemaError
 CorniceSchema = generic.CorniceSchema

@@ -10,6 +10,10 @@ import collections
 from cornice import util
 
 
+AdapterDescriptor = collections.namedtuple(
+    'AdapterDescriptor', 'name, adapter')
+
+
 class InvalidSchemaError(Exception):
     pass
 

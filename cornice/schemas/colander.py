@@ -154,4 +154,4 @@ class _ForceFailValidator(object):
 
 
 def init():
-    return generic.AdapterBinding(ColanderAdapter, colander.Schema)
+    return generic.AdapterDescriptor('colander', ColanderAdapter)
