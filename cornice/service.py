@@ -10,7 +10,7 @@ from cornice.validators import (
     DEFAULT_VALIDATORS,
     DEFAULT_FILTERS,
 )
-from cornice.schemas import CorniceSchema, validate_colander_schema
+from cornice import schemas
 from cornice.util import is_string, to_list, json_error, func_name
 
 try:
@@ -246,9 +246,10 @@ class Service(object):
             arguments[arg] = value
 
         # schema validation handling
-        if 'schema' in conf:
-            arguments['schema'] = (
-                CorniceSchema.from_colander(conf.pop('schema')))
+        try:
+            arguments['schema'] = conf.pop('schema')
+        except KeyError:
+            pass
 
         # Allow custom error handler
         arguments['error_handler'] = conf.pop('error_handler',
@@ -545,10 +546,11 @@ def decorate_view(view, args, method):
             request.deserializer = args['deserializer']
 
         # do schema validation
-        if 'schema' in args:
-            validate_colander_schema(args['schema'], request)
-        elif hasattr(ob, 'schema'):
-            validate_colander_schema(ob.schema, request)
+        schema = args.get('schema')
+        if schema is None:
+            schema = getattr(ob, 'schema', None)
+        if schema is not None:
+            schemas.use(schema, request)
 
         # the validators can either be a list of callables or contain some
         # non-callable values. In which case we want to resolve them using the
