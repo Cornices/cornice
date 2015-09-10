@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import
 
-import functools
+import inspect
 
 import colander
 from webob import multidict
@@ -20,8 +20,12 @@ class ColanderAdapter(generic.GenericAdapter):
 
     def __init__(self, schema, bind_request=True,
                  unknown=None):
+        if inspect.isclass(schema) and issubclass(schema, colander.Schema):
+            schema = schema()
         super(ColanderAdapter, self).__init__(schema)
 
+        if not isinstance(self.schema, colander.Schema):
+            raise generic.UnsuitableSchemaCtrl
         if not self._is_mapping_field(self.schema):
             raise generic.UnsuitableSchemaCtrl
 
@@ -125,7 +129,7 @@ class ColanderAdapter(generic.GenericAdapter):
 
     @staticmethod
     def _is_mapping_field(field):
-        return isinstance(field.typ, colander.Schema)
+        return isinstance(field.typ, colander.Mapping)
 
     @staticmethod
     def _is_sequence_field(field):
