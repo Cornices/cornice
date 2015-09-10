@@ -17,7 +17,18 @@ class BackwardCompatibilityAdapter(cornice_colander.ColanderAdapter):
             raise generic.UnsuitableSchemaCtrl
 
         super(BackwardCompatibilityAdapter, self).__init__(
-            schema, bind_request=bind_request)
+            schema, bind_request=bind_request, flattening=True)
+
+    def _flattening_data(self, schema, data):
+        if not self.need_flattening:
+            return data
+        try:
+            flatted = schema.unflatten(data)
+            flatted.update(data)
+        except KeyError:
+            flatted = data
+
+        return flatted
 
 
 def init():

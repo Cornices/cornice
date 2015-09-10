@@ -14,12 +14,7 @@ from cornice import util
 
 
 class ColanderAdapter(generic.GenericAdapter):
-    UNKNOWN_DROP = 0
-    UNKNOWN_KEEP = 1
-    UNKNOWN_ERROR = 2
-
-    def __init__(self, schema, bind_request=True,
-                 unknown=None):
+    def __init__(self, schema, bind_request=True, flattening=False):
         if inspect.isclass(schema) and issubclass(schema, colander.Schema):
             schema = schema()
         super(ColanderAdapter, self).__init__(schema)
@@ -30,26 +25,15 @@ class ColanderAdapter(generic.GenericAdapter):
             raise generic.UnsuitableSchemaCtrl
 
         self.bind_request = bind_request
-
-        if unknown is None:
-            for attr in (self.schema.typ, self.schema):
-                try:
-                    unknown = getattr(attr, 'unknown')
-                    break
-                except AttributeError:
-                    pass
-            else:
-                unknown = self.UNKNOWN_DROP
-        self.unknown = unknown
+        self.need_flattening = flattening
 
     def __call__(self, request):
         schema = self.schema.clone()
         if self.bind_request:
-            schema = schema.bind(self.request)
+            schema = schema.bind(request=request)
 
-        data, missing_fields = self._assemble_request_data(schema)
-        schema = self._patch_schema(schema, missing_fields)
-
+        data, fields_to_location = self._assemble_request_data(schema, request)
+        data = self._flattening_data(schema, data)
         try:
             validated = schema.deserialize(data)
         except colander.Invalid as e:
@@ -58,32 +42,34 @@ class ColanderAdapter(generic.GenericAdapter):
                     self._get_field_location(error.node),
                     error.node.name,
                     error.asdict())
-        else:
-            self.request.validated.update(validated)
+        return validated, errors
 
-    def _assemble_request_data(self, schema):
+    @classmethod
+    def _assemble_request_data(cls, schema, request):
         sources = {
-            'path': self.request.matchdict,
-            'header': self.request.headers,
-            'body': util.extract_request_body(self.request),
-            'querystring': self.request.GET}
+            'path': request.matchdict,
+            'header': request.headers,
+            'body': util.extract_request_body(request),
+            'querystring': request.GET}
 
         data = dict()
+        fields_to_location = dict()
         invalid_locations = list()
 
         for field in schema:
-            source_name = self._get_field_location(field)
+            source_name = cls._get_field_location(field)
             try:
                 location = sources[source_name]
             except KeyError:
                 invalid_locations.append(field)
                 continue
+            fields_to_location[field.name] = source_name
 
             is_multi = isinstance(location, multidict.MultiDict)
 
             try:
                 value = location[field.name]
-                if is_multi and self._is_sequence_field(field):
+                if is_multi and cls._is_sequence_field(field):
                     value = location.getall(field.name)
             except KeyError:
                 continue
@@ -95,37 +81,19 @@ class ColanderAdapter(generic.GenericAdapter):
                 'Schema contain fields with unsupported "location" markers',
                 invalid_locations)
 
-        missing_fields = list()
-        known_fields = set(data)
+        # copy unknown fields
+        for location in ('body', 'querystring'):
+            for name, value in sources[location].iteritems():
+                data.setdefault(name, value)
+                fields_to_location.setdefault(name, location)
 
-        if self.unknown != self.UNKNOWN_DROP:
-            for location in 'querystring', 'body':
-                for name in sources[location]:
-                    try:
-                        known_fields.remove(name)
-                    except KeyError:
-                        continue
-                    data[name] = location[name]
-                    missing_fields.append((location, name))
+        return data, fields_to_location
 
-        return data, missing_fields
+    def _flattening_data(self, schema, data):
+        if not self.need_flattening:
+            return data
+        return schema.unflatten(data)
 
-    def _patch_schema(self, schema, missing_fields):
-        if self.unknown == self.UNKNOWN_DROP:
-            return schema
-        elif self.unknown == self.UNKNOWN_KEEP:
-            field_factory = functools.partial(
-                colander.SchemaNode, _RawType())
-        elif self.unknown == self.UNKNOWN_ERROR:
-            field_factory = functools.partial(
-                colander.SchemaNode, _RawType(),
-                validator=_ForceFailValidator('Unexpected field'))
-        else:
-            raise generic.InvalidSchemaError(
-                'Unsupported "unknown" value.', self.unknown)
-
-        for field in missing_fields:
-            schema.add(field_factory(name=field))
 
     @staticmethod
     def _is_mapping_field(field):
@@ -139,22 +107,6 @@ class ColanderAdapter(generic.GenericAdapter):
     @staticmethod
     def _get_field_location(field):
         return getattr(field, 'location', 'body')
-
-
-class _RawType(colander.SchemaType):
-    def serialize(self, node, appstruct):
-        return appstruct
-
-    def deserialize(self, node, cstruct):
-        return cstruct
-
-
-class _ForceFailValidator(object):
-    def __init__(self, message='Forced error'):
-        self.message = message
-
-    def __call__(self, node, value):
-        raise colander.Invalid(node, self.message, value)
 
 
 def init():
