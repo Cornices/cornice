@@ -36,12 +36,10 @@ class ColanderAdapter(generic.GenericAdapter):
         data = self._flattening_data(schema, data)
         try:
             validated = schema.deserialize(data)
+            errors = []
         except colander.Invalid as e:
-            for error in e.children:
-                self.request.errors.add(
-                    self._get_field_location(error.node),
-                    error.node.name,
-                    error.asdict())
+            validated = {}
+            errors = self._unpack_errors(e, fields_to_location)
         return validated, errors
 
     @classmethod
@@ -94,6 +92,31 @@ class ColanderAdapter(generic.GenericAdapter):
             return data
         return schema.unflatten(data)
 
+    @classmethod
+    def _unpack_errors(cls, err, fields_to_locations):
+        # TODO(surabujin): move at least part of this into colander code
+        errors = []
+        err_factory = generic.ErrorFactory(fields_to_locations)
+        for path in err.paths():
+            prefix = []
+            for e in path:
+                prefix.append(e._keyname())
+                if isinstance(e, colander.ExtraItemsError):
+                    for item in e.extras:
+                        errors.append(err_factory(
+                            prefix + [item], 'Unrecognized key'))
+                elif e.msg is None:
+                    pass
+                else:
+                    msg = e.msg
+                    try:
+                        substitute = getattr(msg, 'interpolate')
+                    except AttributeError:
+                        pass
+                    else:
+                        msg = substitute()
+                    errors.append(err_factory(prefix, msg))
+        return errors
 
     @staticmethod
     def _is_mapping_field(field):

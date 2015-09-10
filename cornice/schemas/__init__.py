@@ -28,7 +28,8 @@ def use(schema, request):
 
     payload, errors = adapter(request)
 
-    request.errors.extend(errors)
+    for err in errors:
+        request.errors.add(err.location, err.field, err.desc)
     request.validated.update(payload)
 
 

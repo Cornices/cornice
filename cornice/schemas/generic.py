@@ -12,6 +12,7 @@ from cornice import util
 
 AdapterDescriptor = collections.namedtuple(
     'AdapterDescriptor', 'name, adapter')
+InvalidField = collections.namedtuple('InvalidField', 'location, field, desc')
 
 
 class InvalidSchemaError(Exception):
@@ -53,6 +54,19 @@ class CorniceSchema(object):
     @classmethod
     def from_colander(cls, schema, **kwargs):
         return cls(schema, **kwargs)
+
+
+class ErrorFactory(object):
+    def __init__(self, fields_to_locations):
+        self.fields_to_locations = fields_to_locations
+
+    def __call__(self, chunks, desc):
+        chunks = filter(bool, chunks)
+        field = '.'.join(chunks)
+        location = None
+        if chunks:
+            location = self.fields_to_locations.get(chunks[0])
+        return InvalidField(location, field, desc)
 
 
 def init():
