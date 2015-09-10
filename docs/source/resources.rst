@@ -30,6 +30,24 @@ Here is how you can register a resource::
             _USERS[len(_USERS) + 1] = self.request.json_body
             return True
 
+Here a example of imperative way defining a resource::
+
+    from cornice.resource import add_resource, add_view
+
+    class User(object):
+
+        def __init__(self, request):
+            self.request = request
+
+        def collection_get(self):
+            return {'users': _USERS.keys()}
+
+        def get(self):
+            return _USERS.get(int(self.request.matchdict['id']))
+
+    add_resource(User, collection_path='/users', path='/users/{id}')
+    add_view(User.get, renderer='json')
+
 As you can see, you can define methods for the collection (it will use the
 **path** argument of the class decorator. When defining collection_* methods, the
 path defined in the **collection_path** will be used.
