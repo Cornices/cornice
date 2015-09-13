@@ -135,7 +135,7 @@ if COLANDER:
                                       status=400)
 
             self.assertEqual(resp.json, {
-                u'errors': [{u'description': u'foo is missing',
+                u'errors': [{u'description': u'Required',
                              u'location': u'body',
                              u'name': u'foo'}],
                 u'status': u'error'})
@@ -207,7 +207,7 @@ if COLANDER:
             resp = self.app.delete('/foobar', status=400)
             self.assertEqual(resp.json, {
                 u'errors': [
-                    {u'description': u'X-Qux is missing',
+                    {u'description': u'Required',
                      u'location': u'header',
                      u'name': u'X-Qux'}],
                 u'status': u'error'})

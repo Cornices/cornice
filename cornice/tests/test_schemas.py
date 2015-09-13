@@ -121,7 +121,7 @@ if COLANDER:
 
             errors = dummy_request.errors
             self.assertEqual(len(errors), 1)
-            self.assertEqual(errors[0], {'description': 'other is not allowed',
+            self.assertEqual(errors[0], {'description': 'Unrecognized key',
                                          'location': 'body',
                                          'name': 'other'})
             self.assertIn('foo', dummy_request.validated)
@@ -232,7 +232,7 @@ if COLANDER:
 
             errors = dummy_request.errors
             self.assertEqual(len(errors), 1)
-            self.assertEqual(errors[0], {'description': 'bar is not allowed',
+            self.assertEqual(errors[0], {'description': 'Unrecognized key',
                                          'location': 'querystring',
                                          'name': 'bar'})
 
