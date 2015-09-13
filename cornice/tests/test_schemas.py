@@ -48,13 +48,12 @@ if COLANDER:
 
     class DefaultSchema(MappingSchema):
         foo = SchemaNode(String(), type='str', location="querystring",
-                         missing=drop, default='foo')
+                         missing='foo')
         bar = SchemaNode(String(), type='str', location="querystring",
-                         default='bar')
+                         missing='bar')
 
-    class DefaultValueSchema(MappingSchema):
-        foo = SchemaNode(Int(), type="int")
-        bar = SchemaNode(Int(), type="int", default=10)
+    class DefaultValueConvertSchema(MappingSchema):
+        bar = SchemaNode(Int(), type="int", missing=10)
 
     class QsSchema(MappingSchema):
         foo = SchemaNode(String(), type='str', location="querystring",
@@ -166,36 +165,32 @@ if COLANDER:
             dummy_request = get_mock_request('', {'bar': 'test'})
             schemas.use(schema, dummy_request)
 
-            errors = dummy_request.errors
-            self.assertEqual(len(errors), 0)
-
             expected = {'foo': 'foo', 'bar': 'test'}
-
             self.assertEqual(expected, dummy_request.validated)
 
             dummy_request = get_mock_request('', {'bar': 'test',
                                                   'foo': 'test'})
             schemas.use(schema, dummy_request)
 
-            errors = dummy_request.errors
-            self.assertEqual(len(errors), 0)
-
             expected = {'foo': 'test', 'bar': 'test'}
-
             self.assertEqual(expected, dummy_request.validated)
 
-        def test_colander_schema_default_value(self):
+        def test_colander_schema_defaults_convert(self):
+            """
+            Test schema behaviour regarding conversion missing(default) values
+            """
             # apply default value to field if the input for them is
             # missing
-            schema = schemas.CorniceSchema.from_colander(DefaultValueSchema)
+            schema = schemas.CorniceSchema.from_colander(
+                DefaultValueConvertSchema)
+
+            dummy_request = get_mock_request('')
+            schemas.use(schema, dummy_request)
+            self.assertEqual({'bar': 10}, dummy_request.validated)
+
             dummy_request = get_mock_request('{"foo": 5}')
             schemas.use(schema, dummy_request)
-
-            self.assertIn('bar', dummy_request.validated)
-            self.assertEqual(len(dummy_request.errors), 0)
-            self.assertEqual(dummy_request.validated['foo'], 5)
-            # default value should be available
-            self.assertEqual(dummy_request.validated['bar'], 10)
+            self.assertEqual({'bar': 5}, dummy_request.validated)
 
         def test_only_mapping_is_accepted(self):
             schema = schemas.CorniceSchema.from_colander(WrongSchema)
