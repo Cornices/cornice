@@ -124,8 +124,6 @@ if COLANDER:
             self.assertEqual(errors[0], {'description': 'Unrecognized key',
                                          'location': 'body',
                                          'name': 'other'})
-            self.assertIn('foo', dummy_request.validated)
-            self.assertIn('bar', dummy_request.validated)
 
         def test_colander_schema_using_dotted_names(self):
             """
@@ -235,9 +233,6 @@ if COLANDER:
             self.assertEqual(errors[0], {'description': 'Unrecognized key',
                                          'location': 'querystring',
                                          'name': 'bar'})
-
-            expected = {'foo': 'test'}
-            self.assertEqual(expected, dummy_request.validated)
 
         def test_validate_colander_schema_can_preserve_unknown_fields(self):
             schema = schemas.CorniceSchema.from_colander(PreserveUnkownSchema)
