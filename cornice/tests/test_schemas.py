@@ -53,7 +53,7 @@ if COLANDER:
                          missing='bar')
 
     class DefaultValueConvertSchema(MappingSchema):
-        bar = SchemaNode(Int(), type="int", missing=10)
+        foo = SchemaNode(Int(), type="int", missing=10)
 
     class QsSchema(MappingSchema):
         foo = SchemaNode(String(), type='str', location="querystring",
@@ -136,7 +136,7 @@ if COLANDER:
             schemas.use(schema, dummy_request)
 
             self.assertIn('nickname', dummy_request.validated)
-            self.assertNotIn('city', dummy_request.validated)
+            self.assertIn('city', dummy_request.validated)
 
         def test_colander_nested_schema(self):
             schema = schemas.CorniceSchema.from_colander(NestedSchema)
@@ -184,11 +184,11 @@ if COLANDER:
 
             dummy_request = get_mock_request('')
             schemas.use(schema, dummy_request)
-            self.assertEqual({'bar': 10}, dummy_request.validated)
+            self.assertEqual({'foo': 10}, dummy_request.validated)
 
             dummy_request = get_mock_request('{"foo": 5}')
             schemas.use(schema, dummy_request)
-            self.assertEqual({'bar': 5}, dummy_request.validated)
+            self.assertEqual({'foo': 5}, dummy_request.validated)
 
         def test_only_mapping_is_accepted(self):
             schema = schemas.CorniceSchema.from_colander(WrongSchema)

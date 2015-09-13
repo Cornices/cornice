@@ -67,11 +67,6 @@ if COLANDER:
         def tearDown(self):
             testing.tearDown()
 
-        def test_get_from_colander(self):
-            schema = CorniceSchema.from_colander(FooBarSchema)
-            attrs = schema.as_dict()
-            self.assertEqual(len(attrs), 6)
-
         def test_description_attached(self):
             # foobar should contain a schema argument containing the cornice
             # schema object, so it can be introspected if needed

@@ -4,15 +4,24 @@
 
 from __future__ import print_function, absolute_import
 
+import colander
+from pyramid import path
+
 from cornice.schemas import generic
 from cornice.schemas import colander as cornice_colander
+
+
+class ColanderSchema(colander.MappingSchema):
+    pass
 
 
 class BackwardCompatibilityAdapter(cornice_colander.ColanderAdapter):
     def __init__(self, schema):
         if isinstance(schema, generic.CorniceSchema):
             bind_request = schema.bind_request
-            schema = schema.schema
+            schema = _python_path_resolver.maybe_resolve(schema.schema)
+        elif isinstance(schema, ColanderSchema):
+            bind_request = True
         else:
             raise generic.UnsuitableSchemaCtrl
 
@@ -29,6 +38,9 @@ class BackwardCompatibilityAdapter(cornice_colander.ColanderAdapter):
             flatted = data
 
         return flatted
+
+
+_python_path_resolver = path.DottedNameResolver(__name__)
 
 
 def init():
