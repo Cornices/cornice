@@ -199,7 +199,7 @@ if COLANDER:
 
             # We shouldn't accept a MappingSchema if the `typ` has
             #  been set to something else:
-            schema = CorniceSchema.from_colander(
+            schema = schemas.CorniceSchema.from_colander(
                 MappingSchema(
                     Sequence,
                     SchemaNode(String(), name='foo'),
@@ -207,8 +207,8 @@ if COLANDER:
                     SchemaNode(String(), name='baz')
                 )
             )
-            self.assertRaises(InvalidSchemaError,
-                              validate_colander_schema, schema, dummy_request)
+            self.assertRaises(schemas.InvalidSchemaError,
+                              schemas.use, schema, dummy_request)
 
         def test_extra_params_qs(self):
             schema = schemas.CorniceSchema.from_colander(QsSchema)
