@@ -245,12 +245,6 @@ class Service(object):
                 value.extend(to_list(conf.pop(arg)))
             arguments[arg] = value
 
-        # schema validation handling
-        try:
-            arguments['schema'] = conf.pop('schema')
-        except KeyError:
-            pass
-
         # Allow custom error handler
         arguments['error_handler'] = conf.pop('error_handler',
                                               getattr(self, 'error_handler',

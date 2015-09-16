@@ -15,6 +15,15 @@ AdapterDescriptor = collections.namedtuple(
 InvalidField = collections.namedtuple('InvalidField', 'location, field, desc')
 
 
+class AdapterNotFoundError(Exception):
+    def __init__(self, name):
+        super(AdapterNotFoundError, self).__init__(name)
+
+    @property
+    def name(self):
+        return self.args[0]
+
+
 class InvalidSchemaError(Exception):
     pass
 
