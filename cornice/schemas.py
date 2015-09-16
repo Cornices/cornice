@@ -1,8 +1,9 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-from cornice.util import extract_request_data
+from pyramid.compat import is_nonstr_iter
 
+from cornice.util import extract_request_data
 
 try:
     import colander
@@ -36,13 +37,13 @@ else:
                 result[k] = simple_cstruct_serialize(val[k])
             return result
         except (TypeError, AttributeError):
-            try:
+            if is_nonstr_iter(val):
                 # try iterable interpretation
                 result = []
                 for k in val:
                     result.append(simple_cstruct_serialize(k))
                 return result
-            except TypeError:
+            else:
                 return str(val)
 
 
