@@ -13,6 +13,7 @@ Cornice:
 * David Charboneau 
 * Gael Pasgrimaud <gael@gawel.org>
 * Janek Hiis <janek@utopic.me>
+* Josip Delic <delicj@delijati.net>
 * Lorenzo Gil Sanchez <lorenzo.gil.sanchez@gmail.com>
 * Marc Abramowitz <marca@surveymonkey.com>
 * Marcin Lulek <info@webreactor.eu>
