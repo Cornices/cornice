@@ -37,10 +37,6 @@ class ThingImp(object):
     def collection_get(self):
         return 'yay'
 
-add_view(ThingImp.collection_get, permission='read')
-add_resource(ThingImp, collection_path='/thing', path='/thing/{id}',
-             name='thing_service', collection_acl=my_collection_acl)
-
 
 class UserImp(object):
 
@@ -65,12 +61,6 @@ class UserImp(object):
 
     def put(self):
         return dict(type=repr(self.context))
-
-add_view(UserImp.get, renderer='json')
-add_view(UserImp.get, renderer='jsonp')
-add_view(UserImp.collection_post, renderer='json', accept='text/json')
-add_resource(UserImp, collection_path='/users', path='/users/{id}',
-             name='user_service', factory=dummy_factory)
 
 
 class TestResourceWarning(TestCase):
@@ -100,7 +90,21 @@ class TestResource(TestCase):
 
         self.authn_policy = AuthTktAuthenticationPolicy('$3kr1t')
         self.config.set_authentication_policy(self.authn_policy)
-        self.config.scan("cornice.tests.test_imperative_resource")
+
+        add_view(ThingImp.collection_get, permission='read')
+        thing_resource = add_resource(
+            ThingImp, collection_path='/thing', path='/thing/{id}',
+            name='thing_service', collection_acl=my_collection_acl)
+
+        add_view(UserImp.get, renderer='json')
+        add_view(UserImp.get, renderer='jsonp')
+        add_view(UserImp.collection_post, renderer='json', accept='text/json')
+        user_resource = add_resource(
+            UserImp, collection_path='/users', path='/users/{id}',
+            name='user_service', factory=dummy_factory)
+
+        self.config.add_cornice_resource(thing_resource)
+        self.config.add_cornice_resource(user_resource)
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
 
     def tearDown(self):
@@ -184,7 +188,15 @@ class NonAutocommittingConfigurationTestResource(TestCase):
         self.config = testing.setUp(autocommit=False)
         self.config.add_renderer('jsonp', JSONP(param_name='callback'))
         self.config.include("cornice")
-        self.config.scan("cornice.tests.test_imperative_resource")
+
+        add_view(UserImp.get, renderer='json')
+        add_view(UserImp.get, renderer='jsonp')
+        add_view(UserImp.collection_post, renderer='json', accept='text/json')
+        user_resource = add_resource(
+            UserImp, collection_path='/users', path='/users/{id}',
+            name='user_service', factory=dummy_factory)
+
+        self.config.add_cornice_resource(user_resource)
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
 
     def tearDown(self):

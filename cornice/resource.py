@@ -19,6 +19,12 @@ def resource(depth=2, **kw):
     will be treated as HTTP methods for the given collection path
     (collection_path), if any.
 
+    :param depth:
+        Witch frame should be looked in default 2.
+
+    :param kw:
+        Keyword arguments configuring the resource.
+
     Here is an example::
 
         @resource(collection_path='/users', path='/users/{id}')
@@ -35,6 +41,16 @@ def add_resource(klass, depth=1, **kw):
     will be used as such. You can also prefix them by "collection_" and they
     will be treated as HTTP methods for the given collection path
     (collection_path), if any.
+
+    :param klass:
+        The class (resource) on witch to register the service.
+
+    :param depth:
+        Witch frame should be looked in default 2.
+
+    :param kw:
+        Keyword arguments configuring the resource.
+
 
     Here is an example::
         class User(object):
@@ -112,6 +128,9 @@ def add_resource(klass, depth=1, **kw):
 def view(**kw):
     """Method decorator to store view arguments when defining a resource with
     the @resource class decorator
+
+    :param kw:
+        Keyword arguments configuring the view.
     """
     def wrapper(func):
         return add_view(func, **kw)
@@ -121,6 +140,12 @@ def view(**kw):
 def add_view(func, **kw):
     """Method to store view arguments when defining a resource with
     the add_resource class method
+
+    :param func:
+        The func to hook to
+
+    :param kw:
+        Keyword arguments configuring the view.
 
     Example:
 

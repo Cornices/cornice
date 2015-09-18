@@ -31,7 +31,8 @@ class TestServiceDirective(TestCase):
         directive = ServiceDirective(
             'test', [], {}, [], 1, 1, 'test', param, 1)
         directive.options['app'] = 'cornice.tests.ext.dummy'
-        directive.options['service'] = 'users'
+        directive.options['services'] = ['users', "thing_service"]
         ret = directive.run()
-        self.assertEqual(len(ret), 1)
+        self.assertEqual(len(ret), 2)
         self.assertTrue('Users service at' in str(ret[0]))
+        self.assertTrue('Thing_Service service at ' in str(ret[1]))

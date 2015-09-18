@@ -335,3 +335,17 @@ def add_deserializer(config, content_type, deserializer):
         registry.cornice_deserializers[content_type] = deserializer
 
     config.action(content_type, callable=callback)
+
+
+def register_resource_views(config, resource):
+    """Register a resource and it's views.
+
+    :param config:
+        The pyramid configuration object that will be populated.
+    :param resource:
+        The resource class containing the definitions
+    """
+    services = resource._services
+
+    for service in services.values():
+        config.add_cornice_service(service)

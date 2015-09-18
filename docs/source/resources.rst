@@ -30,9 +30,9 @@ Here is how you can register a resource::
             _USERS[len(_USERS) + 1] = self.request.json_body
             return True
 
-Here a example of imperative way defining a resource::
+Here is an example of how to define cornice resources in an imperative way::
 
-    from cornice.resource import add_resource, add_view
+    from cornice import resource
 
     class User(object):
 
@@ -45,8 +45,13 @@ Here a example of imperative way defining a resource::
         def get(self):
             return _USERS.get(int(self.request.matchdict['id']))
 
-    add_resource(User, collection_path='/users', path='/users/{id}')
-    add_view(User.get, renderer='json')
+    resource.add_view(User.get, renderer='json')
+    user_resource = resource.add_resource(User, collection_path='/users', path='/users/{id}')
+
+    def includeme(config):
+        config.add_cornice_resource(user_resource)
+        # or
+        config.scan("PATH_TO_THIS_MODULE")
 
 As you can see, you can define methods for the collection (it will use the
 **path** argument of the class decorator. When defining collection_* methods, the
