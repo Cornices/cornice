@@ -508,11 +508,15 @@ class Service(object):
         return False
 
     def cors_max_age_for(self, method=None):
+        max_age = None
         for meth, view, args in self.definitions:
             if method and meth.upper() == method.upper():
-                return args.get('cors_max_age', False)
+                max_age = args.get('cors_max_age', None)
+                break
 
-        return getattr(self, 'cors_max_age', None)
+        if max_age is None:
+            max_age = getattr(self, 'cors_max_age', None)
+        return max_age
 
 
 def decorate_view(view, args, method):
