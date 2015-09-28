@@ -460,6 +460,11 @@ class TestService(TestCase):
         foo.add_view('GET', _stub, cors_credentials=False)
         self.assertFalse(foo.cors_support_credentials_for('GET'))
 
+    def test_max_age_is_none_if_undefined(self):
+        foo = Service(name='foo', path='/foo')
+        foo.add_view('POST', _stub)
+        self.assertIsNone(foo.cors_max_age_for('POST'))
+
     def test_max_age_can_be_defined(self):
         foo = Service(name='foo', path='/foo', cors_max_age=42)
         foo.add_view('POST', _stub)
