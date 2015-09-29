@@ -1,3 +1,27 @@
+1.1.0 (unreleased)
+==================
+
+- Warn if resource collection and record paths are not distinct. Thanks
+  @circlingthesun (#292)
+
+Bug fixes
+
+- Fix duplicated CORS exposed headers (#301)
+- Fix setup.py in template. Thanks @areski (#296)
+- Make resource test less dependent on Pyramid version (#312)
+- Fix reload in sphinx extension for Python 3. Thanks @JohnBrodie (#295)
+- Fix usage of Colander ``schema_type()`` and ``schema.typ``. Thanks
+  @tisdall (#309)
+- Fix check for CORS Allow Credentials. Thanks @treerao (#320)
+- Fix Access-Control-Max-Age value if undefined on service (#338)
+
+Documentation
+
+- Fix typos in documentation. Thanks @robvdl, @tisdall (#306, #313)
+- Rewrite quickstart documentation (#305)
+- Huge set of documentation improvements. Thanks @areski (#297)
+
+
 1.0.0 (2015-04-15)
 ==================
 
