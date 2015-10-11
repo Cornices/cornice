@@ -49,13 +49,15 @@ class ServiceDirective(Directive):
 
         .. cornice-autodoc::
             :modules: your.module
+            :app: load app to work with imperative add_view call.
             :services: name1, name2
             :service: name1 # no need to specify both services and service.
             :ignore: a comma separated list of services names to ignore
 
     """
     has_content = True
-    option_spec = {'modules': convert_to_list_required,
+    option_spec = {'modules': convert_to_list,
+                   'app': directives.unchanged,
                    'service': directives.unchanged,
                    'services': convert_to_list,
                    'ignore': convert_to_list}
@@ -71,8 +73,13 @@ class ServiceDirective(Directive):
         # directive multiple times
         clear_services()
 
+        app_name = self.options.get('app')
+        if app_name:
+            app = import_module(app_name)
+            app.main({})
+
         # import the modules, which will populate the SERVICES variable.
-        for module in self.options.get('modules'):
+        for module in self.options.get('modules', []):
             if module in MODULES:
                 reload(MODULES[module])
             else:

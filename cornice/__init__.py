@@ -11,6 +11,7 @@ from cornice.pyramidhook import (
     register_service_views,
     handle_exceptions,
     add_deserializer,
+    register_resource_views,
 )
 from cornice.util import ContentTypePredicate
 
@@ -42,6 +43,7 @@ def includeme(config):
 
     # config.add_directive('add_apidoc', add_apidoc)
     config.add_directive('add_cornice_service', register_service_views)
+    config.add_directive('add_cornice_resource', register_resource_views)
     config.add_directive('add_cornice_deserializer', add_deserializer)
     config.add_subscriber(add_renderer_globals, BeforeRender)
     config.add_subscriber(wrap_request, NewRequest)

@@ -40,12 +40,14 @@ The directive has the following options:
 
 - **modules**: a comma-separated list of the python modules that contain
   Cornice Web services. Cornice will scan it and look for the services.
-  **mandatory**
+- **app**: set the path to you app needed for imperative registering services.
 - **services**: a comma-separated list of services, as you named them when
   using the cornice `Service` directive. **optional**
 - **service**: if you have only one name, then you can use `service` rather
   than `services`. **optional**
 - **ignore**: a comma separated list of services names to ignore. **optional**
+
+  **module** or **app** are **mandatory**
 
 You can use info fields (see
 `Info field lists <http://sphinx.pocoo.org/domains.html#info-field-lists>`_)
@@ -59,12 +61,12 @@ Full example
 ------------
 
 Let's say you have a **quote** project with a single service where you
-can **PUT** and **GET** a quote.
+can **POST** and **GET** a quote.
 
 The service makes sure the quote starts with a majuscule and ends with
 a dot !
 
-Here's the **full** app::
+Here's the **full** declarative app::
 
     from cornice import Service
     from pyramid.config import Configurator
@@ -100,7 +102,7 @@ Here's the **full** app::
         return _quote['default']
 
 
-    @quote.post(validator=check_quote)
+    @quote.post(validators=check_quote)
     def post_quote(request):
         """Update the quote"""
         _quote['default'] = request.validated['quote']
@@ -130,6 +132,76 @@ And here's the **full** Sphinx doc example::
     .. cornice-autodoc::
        :modules: coolapp
        :service: quote
+
+Here's the **full** imperative app::
+
+    from cornice import Service
+    from pyramid.config import Configurator
+    import string
+
+
+    def check_quote(request):
+        """Makes sure the quote starts with a majuscule and ends with a dot"""
+        quote = request.body
+        if quote[0] not in string.ascii_uppercase:
+            request.errors.add('body', 'quote', 'Does not start with a majuscule')
+
+        if quote[-1] not in ('.', '?', '!'):
+            request.errors.add('body', 'quote', 'Does not end properly')
+
+        if len(request.errors) == 0:
+            request.validated['quote'] = quote
+
+
+    _quote = {}
+    _quote['default'] = "Not set, yet !"
+
+
+    def get_quote(request):
+        """Returns the quote"""
+        return _quote['default']
+
+
+    def post_quote(request):
+        """Update the quote"""
+        _quote['default'] = request.validated['quote']
+
+
+    def main(global_config, **settings):
+        config = Configurator(settings={})
+        config.include("cornice")
+        desc = "Service that maintains a quote."
+        quote = Service(name='quote', path='/quote', description=desc)
+        quote.add_view("GET", get_quote)
+        quote.add_view("POST", post_quote, validators=check_quote)
+        config.add_cornice_service(quote)
+        return config.make_wsgi_app()
+
+    if __name__ == '__main__':
+        from wsgiref.simple_server import make_server
+        app = main({})
+        httpd = make_server('', 6543, app)
+        print("Listening on port 6543....")
+        httpd.serve_forever()
+
+Client calls::
+
+    $ curl -X POST http://localhost:6543/quote -d Hansolohat.
+    null
+    $ curl -X GET http://localhost:6543/quote
+    "Hansolohat."
+
+And here's the **full** Sphinx doc example::
+
+    Welcome to coolapp's documentation!
+    ===================================
+
+    My **Cool** app provides a way to send cool quotes to the server !
+
+    .. cornice-autodoc::
+       :app: coolapp
+       :service: quote
+
 
 The resulting doc is:
 
