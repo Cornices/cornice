@@ -7,10 +7,11 @@ import warnings
 from pyramid import testing
 from webtest import TestApp
 
-from cornice.schemas import CorniceSchema
+from cornice import schemas
 from cornice.tests.validationapp import COLANDER
 from cornice.tests.support import TestCase, CatchErrors
 from cornice.service import Service
+
 
 if COLANDER:
     from cornice.tests.validationapp import FooBarSchema
@@ -65,11 +66,6 @@ if COLANDER:
 
         def tearDown(self):
             testing.tearDown()
-
-        def test_get_from_colander(self):
-            schema = CorniceSchema.from_colander(FooBarSchema)
-            attrs = schema.as_dict()
-            self.assertEqual(len(attrs), 6)
 
         def test_description_attached(self):
             # foobar should contain a schema argument containing the cornice
@@ -134,7 +130,7 @@ if COLANDER:
                                       status=400)
 
             self.assertEqual(resp.json, {
-                u'errors': [{u'description': u'foo is missing',
+                u'errors': [{u'description': u'Required',
                              u'location': u'body',
                              u'name': u'foo'}],
                 u'status': u'error'})
@@ -206,7 +202,7 @@ if COLANDER:
             resp = self.app.delete('/foobar', status=400)
             self.assertEqual(resp.json, {
                 u'errors': [
-                    {u'description': u'X-Qux is missing',
+                    {u'description': u'Required',
                      u'location': u'header',
                      u'name': u'X-Qux'}],
                 u'status': u'error'})

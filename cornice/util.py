@@ -12,7 +12,7 @@ from pyramid.response import Response
 
 
 __all__ = ['json_renderer', 'to_list', 'json_error', 'match_accept_header',
-           'extract_request_data']
+           'extract_request_body']
 
 
 PY3 = sys.version_info[0] == 3
@@ -148,7 +148,7 @@ def extract_form_urlencoded_data(request):
     return request.POST
 
 
-def extract_request_data(request):
+def extract_request_body(request):
     """extract the different parts of the data from the request, and return
     them as a tuple of (querystring, headers, body, path)
     """
@@ -163,8 +163,7 @@ def extract_request_data(request):
         body = deserializer(request)
     # otherwise, don't block but it will be an empty body, decode
     # on your own
-
-    return request.GET, request.headers, body, request.matchdict
+    return body
 
 
 def content_type_matches(request, content_types):
