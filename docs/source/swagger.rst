@@ -106,7 +106,7 @@ Resources and Services to generate a ``swagger.json`` Spec:
 
     @view_config(route_name='swagger_json', renderer='json')
     def swagger_json(request):
-        info = {'title': 'Joe's API', 'version': '0.1', 'contact': {
+        info = {'title': 'Joes API', 'version': '0.1', 'contact': {
                 'name': 'Joe Smith',
                 'email': 'joe.cool@swagger.com'}
                 }
