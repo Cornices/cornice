@@ -79,13 +79,13 @@ if COLANDER:
 
     class DefaultSchema(MappingSchema):
         foo = SchemaNode(String(), type='str', location="querystring",
-                         missing=drop, default='foo')
+                         missing='foo')
         bar = SchemaNode(String(), type='str', location="querystring",
                          default='bar')
 
     class DefaultValueSchema(MappingSchema):
         foo = SchemaNode(Int(), type="int")
-        bar = SchemaNode(Int(), type="int", default=10)
+        bar = SchemaNode(Int(), type="int", missing=10)
 
     class QsSchema(MappingSchema):
         foo = SchemaNode(String(), type='str', location="querystring",

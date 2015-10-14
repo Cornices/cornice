@@ -162,12 +162,15 @@ class TestResource(TestCase):
             User.schema = CorniceSchema.from_colander(
                 validationapp.FooBarSchema)
             result = self.patch("/users/1", status=400).json
-            self.assertEquals(
-                [(e['name'], e['description']) for e in result['errors']], [
-                    ('foo', 'foo is missing'),
-                    ('bar', 'bar is missing'),
-                    ('yeah', 'yeah is missing'),
-                ])
+            errors = sorted([
+                (e['name'], e['description']) for e in result['errors']
+            ])
+            expected = sorted([
+                ('foo', 'foo is missing'),
+                ('bar', 'bar is missing'),
+                ('yeah', 'yeah is missing'),
+            ])
+            self.assertEquals(errors, expected)
 
 
 class NonAutocommittingConfigurationTestResource(TestCase):
