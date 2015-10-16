@@ -76,7 +76,7 @@ def generate_swagger_spec(services, title, version, **kwargs):
 
     # Handle all the non-required args if passed per spec:
     # https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object-
-    for k, v in kwargs.iteritems():
+    for k, v in list(kwargs.items()):
         doc[k] = v
 
     # To control uniqueness of our tags, make a dict
@@ -204,7 +204,7 @@ def generate_swagger_spec(services, title, version, **kwargs):
         else:
             tags_dict[tag_name] = service_tag
     # Extract tags list from our dict
-    for k, v in tags_dict.iteritems():
+    for k, v in list(tags_dict.items()):
         doc["tags"].append(v)
     doc["definitions"] = definitions
     return doc
