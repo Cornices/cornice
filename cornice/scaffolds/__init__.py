@@ -19,3 +19,9 @@ class CorniceTemplate(PyramidTemplate):
     _template_dir = 'cornice'
     summary = "A Cornice application"
     template_renderer = staticmethod(paste_script_template_renderer)
+
+
+class CorniceSwaggerTemplate(PyramidTemplate):
+    _template_dir = 'cornice_swagger'
+    summary = "A Cornice swagger example application"
+    template_renderer = staticmethod(paste_script_template_renderer)
