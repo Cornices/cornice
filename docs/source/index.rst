@@ -12,7 +12,8 @@ Show me some code!
 ==================
 
 A **full** Cornice WGSI application looks like this (this example is taken from
-the `demoapp project <https://github.com/mozilla-services/demoapp>`_)::
+the `demoapp project <https://github.com/mozilla-services/demoapp>`_):
+.. code:: python
 
     from collections import defaultdict
 
@@ -101,6 +102,7 @@ Documentation content
    api
    internals
    spore
+   swagger
    faq
 
 

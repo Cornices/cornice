@@ -10,8 +10,8 @@ detailed documentation if needed.
 This module creates a `Swagger 2.0 compliant spec`_.
 
 Throughout this documentation, ``code-styled text`` indicates a sort of
-“proper noun” matching the official names used in related documentation
-(Swagger Spec, Cornice, Pyramid, Colander and SQLAlchemy primarily).
+"proper noun" matching the official names used in related documentation
+(Swagger Spec, Cornice, Pyramid, Colander).
 
 **Outline**
 
@@ -20,7 +20,8 @@ Throughout this documentation, ``code-styled text`` indicates a sort of
 3. Converters
 
    1. Colander for input parameters
-   2. SQLAlchemy for output responses
+
+4. Scaffold
 
 Description Docstrings
 ======================
@@ -90,7 +91,8 @@ Resources and Services to generate a ``swagger.json`` Spec:
                 'email': 'joe.cool@swagger.com'}
                 }
 
-        # Pretend our API is served on our host with a prefix, such as an API version number or a username
+        # Pretend our API is served on our host with a prefix, such as
+        # an API version number or a username
         base_path = '/jcool'
         security_definition = {
             "authId": {
@@ -102,9 +104,12 @@ Resources and Services to generate a ``swagger.json`` Spec:
 
         # Get our list of services
         services = service.get_services()
-        swagger_spec = generate_swagger_spec(services, info['title'], info['version'], info=info, basePath=base_path)
+        swagger_spec = generate_swagger_spec(services, info['title'], info['version'],
+                                             info=info, basePath=base_path)
 
-        # Extra Credit: We want to put paths in a special order with /cool endpoints first, and OrderedPaths act just like a dict as far ase the JSON parser is concerned.
+        # Extra Credit: We want to put paths in a special order with /cool
+        # endpoints first, and OrderedPaths act just like a dict as far ase
+        # the JSON parser is concerned.
         paths_dict = swagger_spec['paths']
         ordered_paths = OrderedDict()
         first_items = ['/tokens', '/tokens/{authId}']
@@ -120,12 +125,12 @@ Resources and Services to generate a ``swagger.json`` Spec:
 Converters
 ----------
 
-Ideally, we’d maximaize how much documentation comes from functional
-code. As we’re already using Cornice, we can leverage its operators
-internally to ``generate_swagger_spec()``. This only gets us so far, and
-currently only leverages the ``@resource`` decorator as it identifies
-services and provides some path info from which to gleen ``path``
-parameters and a description. For example, this code...
+Ideally, we’d maximaize how much documentation comes from functional code. As
+we’re already using Cornice, we can leverage its operators internally to
+``generate_swagger_spec()``. This only gets us so far, and currently only
+leverages the ``@resource`` decorator as it identifies services and provides
+some path info from which to gleen ``path`` parameters and a description. For
+example, this code...
 
 .. code:: python
 
@@ -134,13 +139,13 @@ parameters and a description. For example, this code...
         password = SchemaNode(colander.Password(), location="header")
 
     @resource(collection_path='/tokens', path='/tokens/{authId}',
-              description='quick token description', schema=FooSchema)
+              description='quick token description')
     class Token(object):
         """Authenticate by POSTing here"""
         def __init__(self, request):
             self.request = request
 
-        @view(schema=FooBarSchema)
+        @view(schema=FooSchema)
         def collection_post(self):
             """Get authKey here and use as X-Identity-Token for future calls"""
             ...
@@ -152,15 +157,27 @@ Colander
 ~~~~~~~~
 
 Since Cornice recommends Colander for validation, there are some handy
-converters to convert Colander ``Schemas Nodes`` to Swagger
-``Parameter Objects``.
+converters to convert Colander ``Schemas Nodes`` to Swagger ``Parameter
+Objects``.
 
-If you have defined Cornice ``Schema`` objects (comprised of
-``Schema Nodes``), you can pass it to ``schema_to_parameters`` which then
-converts the ``Schema`` to a list of ``Swagger Parameters``. Since
-``Schema Nodes`` take in a Colander type as an argument (``Tuple``,
-``Boolean``, etc) the Swagger ``Parameter Object`` "type" can be
-derived. This function is used by ``generate_swagger_spec`` to scan for
-Colander Schmas being decorated onto an ``Operation`` with the Cornice
-``@view(schema=MyCoolSchema`` decorator, and the create
-``Parameter Objects``
+If you have defined Cornice ``Schema`` objects (comprised of ``Schema Nodes``),
+you can pass it to ``schema_to_parameters`` which then converts the ``Schema``
+to a list of ``Swagger Parameters``. Since ``Schema Nodes`` take in a Colander
+type as an argument (``Tuple``, ``Boolean``, etc) the Swagger ``Parameter
+Object`` "type" can be derived. This function is used by
+``generate_swagger_spec`` to scan for Colander Schmas being decorated onto an
+``Operation`` with the Cornice ``@view(schema=MyCoolSchema`` decorator, and the
+create ``Parameter Objects``
+
+Scaffold
+--------
+
+There is a swagger scaffold to get startet.
+
+::
+
+   $ pcreate -t cornice_swagger swagger_demo
+   $ cd swagger_demo
+   $ pip install -e .
+   $ cd swagger_demo/static
+   $ bower install
