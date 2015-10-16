@@ -1,7 +1,9 @@
 1.2.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Swagger integration. (#, #285)
+- Define services, resources imperative (#335)
+- Adding tests for sphinx (#335)
 
 
 1.1.0 (2015-09-29)
