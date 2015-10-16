@@ -5,6 +5,8 @@ import sys
 
 import json
 import simplejson
+import inspect
+
 
 from pyramid import httpexceptions as exc
 from pyramid.renderers import IRendererFactory
@@ -206,6 +208,25 @@ def func_name(f):
         return '{0}.{1}'.format(f.im_class.__name__, f.__name__)
     else:
         return f.__name__
+
+
+def get_class_that_defined_method(meth):
+    if hasattr(meth, "im_class"):
+        return meth.im_class
+    if PY3:
+        if inspect.ismethod(meth):
+            for cls in inspect.getmro(meth.__self__.__class__):
+                if cls.__dict__.get(meth.__name__) is meth:
+                    return cls
+            # fallback to __qualname__ parsing
+            meth = meth.__func__
+        if inspect.isfunction(meth):
+            cls = getattr(
+                inspect.getmodule(meth),
+                meth.__qualname__.split('.<locals>', 1)[0].rsplit('.', 1)[0])
+            if isinstance(cls, type):
+                return cls
+    return None
 
 
 def trim(docstring):

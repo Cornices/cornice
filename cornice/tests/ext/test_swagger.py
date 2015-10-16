@@ -2,11 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 from cornice.resource import resource, view
-from cornice.service import (Service, clear_services, get_services,
-                             decorate_view, _UnboundView)
+from cornice.service import Service, clear_services, get_services
 from cornice.tests import validationapp
 from cornice.tests.support import TestCase
 from cornice.ext.swagger import generate_swagger_spec
+from cornice.util import PY3
 
 
 schema = validationapp.FooBarSchema
@@ -44,13 +44,26 @@ class TestSwaggerService(TestCase):
         service.add_view("get", "get_view", validators=_validator,
                          schema=schema)
         ret = _generate_swagger([service])
-        self.assertEqual(ret["info"], {'version': '0.1', 'contact': {'name': 'Joe Smith', 'email': 'joe.cool@swagger.com'}, 'title': 'Joes API'})
+        self.assertEqual(ret["info"], {
+            'version': '0.1',
+            'contact': {'name': 'Joe Smith', 'email': 'joe.cool@swagger.com'},
+            'title': 'Joes API'})
         self.assertEqual(ret["basePath"], '/jcool')
         self.assertEqual(ret["swagger"], '2.0')
         self.assertEqual(ret["tags"], [
             {'name': 'freshair', 'description': 'Temp class docstring'}])
-        self.assertEqual(ret["paths"], {'/freshair': {'head': {'tags': ['freshair'], 'summary': 'Temp view docstring', 'responses': {'default': {'description': 'UNDOCUMENTED RESPONSE'}}, 'parameters': [{'required': True, 'type': 'String', 'description': '', 'in': 'query', 'name': 'yeah'}, {'in': 'body', 'description': 'Defines a cornice schema', 'name': 'body', 'schema': {'$ref': '#/definitions/FooBarSchema'}}], 'produces': ['application/json']}, 'get': {'tags': ['freshair'], 'summary': 'Temp view docstring', 'responses': {'default': {'description': 'UNDOCUMENTED RESPONSE'}}, 'parameters': [{'required': True, 'type': 'String', 'description': '', 'in': 'query', 'name': 'yeah'}, {'in': 'body', 'description': 'Defines a cornice schema', 'name': 'body', 'schema': {'$ref': '#/definitions/FooBarSchema'}}], 'produces': ['application/json']}}})
-        self.assertEqual(ret["definitions"], {'FooBarSchema': {'required': ['foo', 'bar'], 'type': 'object', 'properties': {'baz': {'required': False, 'type': 'string', 'name': 'baz'}, 'foo': {'required': True, 'type': 'string', 'name': 'foo'}, 'bar': {'required': True, 'type': 'string', 'name': 'bar'}, 'integers': {'required': False, 'name': 'integers', 'schema': {'items': {'required': True, 'type': 'integer', 'name': 'integer'}, 'type': 'array'}}, 'ipsum': {'minimum': 0, 'required': False, 'type': 'integer', 'maximum': 3, 'name': 'ipsum'}}}})
+        self.assertEqual(ret["paths"]["/freshair"]["get"]["summary"],
+                         'Temp view docstring')
+        self.assertEqual(
+            ret["paths"]["/freshair"]["get"]['parameters'], [
+                {'required': True, 'type': 'String', 'description': '',
+                 'in': 'query', 'name': 'yeah'},
+                {'in': 'body', 'description': 'Defines a cornice schema',
+                 'name': 'body',
+                 'schema': {'$ref': '#/definitions/FooBarSchema'}}])
+        self.assertEqual(
+            sorted(ret["definitions"]['FooBarSchema']["required"]),
+            ['bar', 'foo'])
 
     def test_declerative(self):
         service = Service("TemperatureCooler", "/freshair")
@@ -64,9 +77,19 @@ class TestSwaggerService(TestCase):
 
         ret = _generate_swagger([service])
         self.assertEqual(ret["tags"], [
-            {'name': 'freshair'}])
-        self.assertEqual(ret["paths"], {'/freshair': {'head': {'tags': ['freshair'], 'summary': 'Temp view docstring', 'responses': {'default': {'description': 'UNDOCUMENTED RESPONSE'}}, 'parameters': [{'required': True, 'type': 'String', 'description': '', 'in': 'query', 'name': 'yeah'}, {'in': 'body', 'description': 'Defines a cornice schema', 'name': 'body', 'schema': {'$ref': '#/definitions/FooBarSchema'}}], 'produces': ['application/json']}, 'get': {'tags': ['freshair'], 'summary': 'Temp view docstring', 'responses': {'default': {'description': 'UNDOCUMENTED RESPONSE'}}, 'parameters': [{'required': True, 'type': 'String', 'description': '', 'in': 'query', 'name': 'yeah'}, {'in': 'body', 'description': 'Defines a cornice schema', 'name': 'body', 'schema': {'$ref': '#/definitions/FooBarSchema'}}], 'produces': ['application/json']}}})
-        self.assertEqual(ret["definitions"], {'FooBarSchema': {'required': ['foo', 'bar'], 'type': 'object', 'properties': {'baz': {'required': False, 'type': 'string', 'name': 'baz'}, 'foo': {'required': True, 'type': 'string', 'name': 'foo'}, 'bar': {'required': True, 'type': 'string', 'name': 'bar'}, 'integers': {'required': False, 'name': 'integers', 'schema': {'items': {'required': True, 'type': 'integer', 'name': 'integer'}, 'type': 'array'}}, 'ipsum': {'minimum': 0, 'required': False, 'type': 'integer', 'maximum': 3, 'name': 'ipsum'}}}})
+            {'name': 'freshair', 'description': ''}])
+        self.assertEqual(ret["paths"]["/freshair"]["get"]["summary"],
+                         'Temp view docstring')
+        self.assertEqual(
+            ret["paths"]["/freshair"]["get"]['parameters'], [
+                {'required': True, 'type': 'String', 'description': '',
+                 'in': 'query', 'name': 'yeah'},
+                {'in': 'body', 'description': 'Defines a cornice schema',
+                 'name': 'body',
+                 'schema': {'$ref': '#/definitions/FooBarSchema'}}])
+        self.assertEqual(
+            sorted(ret["definitions"]['FooBarSchema']["required"]),
+            ['bar', 'foo'])
 
     def test_imperative(self):
         service = Service("TemperatureCooler", "/freshair")
@@ -80,10 +103,24 @@ class TestSwaggerService(TestCase):
         service.add_view("GET", TemperatureCooler.view_get,
                          validators=_validator, schema=schema)
         ret = _generate_swagger([service])
-        self.assertEqual(ret["tags"], [
-            {'name': 'freshair', 'description': 'Temp class docstring'}])
-        self.assertEqual(ret["paths"], {'/freshair': {'head': {'tags': ['freshair'], 'summary': 'Temp view docstring', 'responses': {'default': {'description': 'UNDOCUMENTED RESPONSE'}}, 'parameters': [{'required': True, 'type': 'String', 'description': '', 'in': 'query', 'name': 'yeah'}, {'in': 'body', 'description': 'Defines a cornice schema', 'name': 'body', 'schema': {'$ref': '#/definitions/FooBarSchema'}}], 'produces': ['application/json']}, 'get': {'tags': ['freshair'], 'summary': 'Temp view docstring', 'responses': {'default': {'description': 'UNDOCUMENTED RESPONSE'}}, 'parameters': [{'required': True, 'type': 'String', 'description': '', 'in': 'query', 'name': 'yeah'}, {'in': 'body', 'description': 'Defines a cornice schema', 'name': 'body', 'schema': {'$ref': '#/definitions/FooBarSchema'}}], 'produces': ['application/json']}}})
-        self.assertEqual(ret["definitions"], {'FooBarSchema': {'required': ['foo', 'bar'], 'type': 'object', 'properties': {'baz': {'required': False, 'type': 'string', 'name': 'baz'}, 'foo': {'required': True, 'type': 'string', 'name': 'foo'}, 'bar': {'required': True, 'type': 'string', 'name': 'bar'}, 'integers': {'required': False, 'name': 'integers', 'schema': {'items': {'required': True, 'type': 'integer', 'name': 'integer'}, 'type': 'array'}}, 'ipsum': {'minimum': 0, 'required': False, 'type': 'integer', 'maximum': 3, 'name': 'ipsum'}}}})
+        if PY3:
+            self.assertEqual(ret["tags"], [
+                {'name': 'freshair', 'description': ''}])
+        else:
+            self.assertEqual(ret["tags"], [
+                {'name': 'freshair', 'description': 'Temp class docstring'}])
+        self.assertEqual(ret["paths"]["/freshair"]["get"]["summary"],
+                         'Temp view docstring')
+        self.assertEqual(
+            ret["paths"]["/freshair"]["get"]['parameters'], [
+                {'required': True, 'type': 'String', 'description': '',
+                 'in': 'query', 'name': 'yeah'},
+                {'in': 'body', 'description': 'Defines a cornice schema',
+                 'name': 'body',
+                 'schema': {'$ref': '#/definitions/FooBarSchema'}}])
+        self.assertEqual(
+            sorted(ret["definitions"]['FooBarSchema']["required"]),
+            ['bar', 'foo'])
 
 
 class TestSwaggerResource(TestCase):
@@ -109,4 +146,8 @@ class TestSwaggerResource(TestCase):
         services = get_services()
         ret = _generate_swagger(services)
 
-        self.assertEqual(ret["paths"], {'/users': {'head': {'summary': '', 'responses': {'default': {'description': 'UNDOCUMENTED RESPONSE'}}, 'tags': ['users'], 'produces': ['application/json']}, 'post': {'responses': {'default': {'description': 'UNDOCUMENTED RESPONSE'}}, 'parameters': [{'required': True, 'type': 'String', 'description': '', 'in': 'query', 'name': 'yeah'}, {'in': 'body', 'description': 'Defines a cornice schema', 'name': 'body', 'schema': {'$ref': '#/definitions/FooBarSchema'}}], 'produces': ['application/json'], 'tags': ['users'], 'consumes': ['application/json'], 'summary': ''}, 'get': {'summary': '', 'responses': {'default': {'description': 'UNDOCUMENTED RESPONSE'}}, 'tags': ['users'], 'produces': ['application/json']}}, '/coffee': {'head': {'summary': '', 'responses': {'default': {'description': 'UNDOCUMENTED RESPONSE'}}, 'tags': ['coffee'], 'produces': ['application/json']}, 'get': {'summary': '', 'responses': {'default': {'description': 'UNDOCUMENTED RESPONSE'}}, 'tags': ['coffee'], 'produces': ['application/json']}}, '/users/{id}': {'parameters': [{'required': True, 'type': 'string', 'name': 'id', 'in': 'path'}]}, '/coffee/{bar}/{id}': {'head': {'tags': ['coffee'], 'summary': '', 'responses': {'default': {'description': 'UNDOCUMENTED RESPONSE'}}, 'parameters': [{'required': True, 'type': 'string', 'name': 'bar', 'in': 'path'}, {'required': True, 'type': 'string', 'name': 'id', 'in': 'path'}], 'produces': ['application/json']}, 'parameters': [{'required': True, 'type': 'string', 'name': 'bar', 'in': 'path'}, {'required': True, 'type': 'string', 'name': 'id', 'in': 'path'}], 'get': {'tags': ['coffee'], 'summary': '', 'responses': {'default': {'description': 'UNDOCUMENTED RESPONSE'}}, 'parameters': [{'required': True, 'type': 'string', 'name': 'bar', 'in': 'path'}, {'required': True, 'type': 'string', 'name': 'id', 'in': 'path'}], 'produces': ['application/json']}}})
+        self.assertEqual(sorted(ret["paths"].keys()), [
+            '/coffee', '/coffee/{bar}/{id}', '/users', '/users/{id}'])
+        self.assertEqual(
+            sorted(ret["definitions"]['FooBarSchema']["required"]),
+            ['bar', 'foo'])

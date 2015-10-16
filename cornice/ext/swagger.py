@@ -55,6 +55,23 @@ def schema_to_parameters(schema, service=None):
     return ret, swag.models
 
 
+# At some point, we may have some operation parameters which we"d
+# like to update with a new (only if their names are the same
+# and in the same location)
+def _update_op_param(operation, new):
+    if "name" not in new or "in" not in new:
+        return None
+    for old in operation["parameters"]:
+        if "name" in old and new["name"] == old[
+                "name"] and "in" in old and new["in"] == old["in"]:
+            old.update(new.copy())
+            return True
+    # We've made it through the loop without finding a match, so
+    # add it
+    operation["parameters"].append(new.copy())
+    return False
+
+
 def generate_swagger_spec(services, title, version, **kwargs):
     """Utility to turn cornice web services into a Swagger-readable file.
 
@@ -124,11 +141,9 @@ def generate_swagger_spec(services, title, version, **kwargs):
                     docstring = cornice.util.trim(view_.__doc__ or "")
             else:
                 docstring = cornice.util.trim(view.__doc__ or "")
-
-            # XXX when the decorator is called the class doesn't exist yet
-            if hasattr(view, "im_class"):
+                ob = cornice.util.get_class_that_defined_method(view)
                 service_tag["description"] = cornice.util.trim(
-                    view.im_class.__doc__ or "")
+                    ob.__doc__ or "")
 
             operation = {
                 "responses": {
@@ -140,22 +155,6 @@ def generate_swagger_spec(services, title, version, **kwargs):
             # The Swagger "summary" will come from the docstring
             operation["summary"] = docstring
 
-            # At some point, we may have some operation parameters which we"d
-            # like to update with a new_param (only if their names are the same
-            # and in the same location)
-            def update_op_param(new_param):
-                if "name" not in new_param or "in" not in new_param:
-                    return None
-                for old_param in operation["parameters"]:
-                    if "name" in old_param and new_param["name"] == old_param[
-                            "name"] and "in" in old_param and new_param["in"] == old_param["in"]:
-                        old_param.update(new_param.copy())
-                        return True
-                # We've made it through the loop without finding a match, so
-                # add it
-                operation["parameters"].append(new_param.copy())
-                return False
-
             # Do we have paramters in the path?
             if "{" in service_path:
                 service_path_list = service_path.split("{")
@@ -166,8 +165,7 @@ def generate_swagger_spec(services, title, version, **kwargs):
                         parameter["in"] = "path"
                         parameter["required"] = True
                         parameter["type"] = "string"
-                        update_op_param(parameter)
-                        # operation["parameters"].append(parameter.copy())
+                        _update_op_param(operation, parameter)
 
             # What do we produce?
             if "json" in args["renderer"]:  # allows for "json" or "simplejson"
@@ -186,11 +184,10 @@ def generate_swagger_spec(services, title, version, **kwargs):
                 schema = args["schema"]
                 parameters, definition = schema_to_parameters(schema, service)
 
-                # pp.pprint(cornice.colanderutil.SchemaConverter().to_jsonschema(Schema()))
                 if definition:
                     definitions.update(definition)
                 for p in parameters:
-                    update_op_param(p)
+                    _update_op_param(operation, p)
 
             # Do some cleanup
             if len(operation["parameters"]) == 0:
