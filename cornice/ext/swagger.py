@@ -2,6 +2,8 @@
 
 import re
 import cornice.ext.swagger_model
+import cornice.service
+import cornice.util
 
 
 def schema_to_parameters(schema, service=None):
@@ -69,6 +71,7 @@ def generate_swagger_spec(services, title, version, **kwargs):
         "paths": {},
         "tags": [],
         "definitions": {},
+        "basePath": kwargs.get("base_path", "/")
     }
 
     # Handle all the non-required args if passed per spec:
@@ -90,7 +93,7 @@ def generate_swagger_spec(services, title, version, **kwargs):
 
         path = {"parameters": []}
 
-        # Get path parameters from looking at, ya know, the path
+        # Get path parameters from looking at the path
         service_path = service.path
         parameter = dict()
 
@@ -109,30 +112,23 @@ def generate_swagger_spec(services, title, version, **kwargs):
 
         # Loop through all our verb operations for this service
         for method, view, args in service.definitions:
+            if method == "HEAD" and not kwargs.get("head", True):
+                continue
 
-            if "klass" in args:
-                # if not isinstance(view, str):
-                #     continue
-
-                # Also, match our method and views (HEAD gets greedy with GET)
-                # if view.split("_")[0] != method.lower():
-                #     continue
-
-                # Get associated parent class for this operation
-                op_klass = args["klass"]
-                # Set our tag description while we"re here
-                if op_klass.__doc__ is not None:
-                    service_tag["description"] = op_klass.__doc__.strip()
-
-                # Get the method associated wtih this operation
-                op_method = op_klass.__dict__[
-                    view] if view in op_klass.__dict__ else None
-            # XXX when the decorator is called the class doesn"t exist yet
-            elif hasattr(view, "im_class"):
-                op_method = view
-                service_tag["description"] = view.im_class.__doc__.strip()
+            if cornice.util.is_string(view):
+                if 'klass' in args:
+                    ob = args['klass']
+                    view_ = getattr(ob, view.lower())
+                    service_tag["description"] = cornice.util.trim(
+                        ob.__doc__ or "")
+                    docstring = cornice.util.trim(view_.__doc__ or "")
             else:
-                op_method = view
+                docstring = cornice.util.trim(view.__doc__ or "")
+
+            # XXX when the decorator is called the class doesn't exist yet
+            if hasattr(view, "im_class"):
+                service_tag["description"] = cornice.util.trim(
+                    view.im_class.__doc__ or "")
 
             operation = {
                 "responses": {
@@ -140,6 +136,9 @@ def generate_swagger_spec(services, title, version, **kwargs):
                         "description": "UNDOCUMENTED RESPONSE"}},
                 "tags": [tag_name],
                 "parameters": []}
+
+            # The Swagger "summary" will come from the docstring
+            operation["summary"] = docstring
 
             # At some point, we may have some operation parameters which we"d
             # like to update with a new_param (only if their names are the same
@@ -177,12 +176,8 @@ def generate_swagger_spec(services, title, version, **kwargs):
                 operation["produces"] = ["text/xml"]
 
             # What do we consume?
-            if "accept" in args:
-                operation["consumes"] = [args["accept"]]
-
-            # The Swagger "summary" will come from the docstring
-            operation[
-                "summary"] = op_method.__doc__ if op_method is not None and op_method.__doc__ is not None else view
+            if "content_type" in args:
+                operation["consumes"] = [args["content_type"]]
 
             # A Colander Schema can be used to extract parameters.  If present,
             # it always updates discovered path parameters, yet is still
