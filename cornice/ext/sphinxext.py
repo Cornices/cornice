@@ -167,7 +167,7 @@ class ServiceDirective(Directive):
                 method_node += attrs_node
 
             for validator in args.get('validators', ()):
-                ob = args['klass']
+                ob = args.get('klass')
                 if is_string(validator) and ob is not None:
                     validator = getattr(ob, validator)
                 if validator.__doc__ is not None:

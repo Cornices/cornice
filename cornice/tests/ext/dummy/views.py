@@ -22,9 +22,14 @@ def get_info(request):
     return _USERS[username]
 
 
+def validate(request):
+    return request
+
+
 def includeme(config):
     # FIXME this should also work in includeme
-    user_info = Service(name='users', path='/{username}/info')
+    user_info = Service(name='users', path='/{username}/info',
+                        validators=('validate'))
     user_info.add_view('get', get_info)
     config.add_cornice_service(user_info)
 
