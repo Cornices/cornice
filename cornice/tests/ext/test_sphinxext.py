@@ -29,10 +29,10 @@ class TestServiceDirective(TestCase):
         self.directive.options['services'] = ['users', "thing_service"]
 
     def test_module_reload(self):
-        directive = ServiceDirective(
-            'test', [], {}, [], 1, 1, 'test', mock.Mock(), 1)
-        directive.options['modules'] = ['cornice']
-        ret = directive.run()
+        self.directive.options['app'] = None
+        self.directive.options['services'] = None
+        self.directive.options['modules'] = ['cornice']
+        ret = self.directive.run()
         self.assertEqual(ret, [])
 
     def test_dummy(self):
