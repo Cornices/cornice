@@ -100,10 +100,13 @@ class ServiceDirective(Directive):
     def _resolve_obj_to_docstring(self, obj, args):
         # Resolve a view or validator to an object if type string
         # and return docstring.
-        if is_string(obj) and 'klass' in args:
-            ob = args['klass']
-            obj_ = getattr(ob, obj.lower())
-            return format_docstring(obj_)
+        if is_string(obj):
+            if 'klass' in args:
+                ob = args['klass']
+                obj_ = getattr(ob, obj.lower())
+                return format_docstring(obj_)
+            else:
+                return ''
         else:
             return format_docstring(obj)
 
