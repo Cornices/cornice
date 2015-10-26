@@ -12,17 +12,18 @@ class ThingImp(object):
         self.context = context
 
     def collection_get(self):
-        """returns yay"""
+        """Returns yay."""
         return 'yay'
 
 
 def get_info(request):
-    "returns the user data"
+    """Returns the user data."""
     username = request.matchdict['username']
     return _USERS[username]
 
 
 def validate(request):
+    """Dummy validation."""
     return request
 
 

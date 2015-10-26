@@ -42,6 +42,8 @@ class TestServiceDirective(TestCase):
         self.assertIn('Thing_Service service at ', str(ret[1]))
 
     def test_string_validator_resolved(self):
-        # A validator defined as a string should be parsed as an obj.
+        # A validator defined as a string should be parsed as an obj,
+        # ensuring the docstring contains validator.__doc__ rather
+        # than str.__doc__.
         ret = self.directive.run()
         self.assertNotIn("str(object='') -> string", str(ret[0]))
