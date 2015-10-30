@@ -143,6 +143,8 @@ def validate_colander_schema(schema, request):
                             serialized = original.getall(attr.name)
                         else:
                             serialized = data[attr.name]
+                        if serialized is None:
+                            serialized = null
                         deserialized = attr.deserialize(serialized)
                 except Invalid as e:
                     # the struct is invalid
