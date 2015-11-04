@@ -121,7 +121,6 @@ class ServiceDirective(Directive):
             service_node += rst2node(trim(service.description))
 
         for method, view, args in service.definitions:
-
             if method == 'HEAD':
                 # Skip head - this is essentially duplicating the get docs.
                 continue
