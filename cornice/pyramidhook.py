@@ -183,6 +183,11 @@ def register_service_views(config, service):
     if hasattr(service, 'traverse'):
         route_args['traverse'] = service.traverse
 
+    routes = config.get_predlist('route')
+    for predicate in routes.sorter.names:
+        if hasattr(service, predicate):
+            route_args[predicate] = getattr(service, predicate)
+
     config.add_route(route_name, service.path, **route_args)
 
     # 2. register view(s)
@@ -213,6 +218,13 @@ def register_service_views(config, service):
         for attr in deprecated_attrs:
             if attr in args:
                 args.pop(attr)
+
+        # filter predicates defined on Resource
+        route_predicates = config.get_predlist('route').sorter.names
+        view_predicates = config.get_predlist('view').sorter.names
+        for pred in set(route_predicates).difference(view_predicates):
+            if pred in args:
+                args.pop(pred)
 
         # pop and compute predicates which get passed through to Pyramid 1:1
 
