@@ -7,6 +7,7 @@ CHANGELOG
 ==================
 
 - Adding the ability to define services imperatively. (#335)
+- Clean cornice/statics/ files. (#345)
 
 Bug fixes
 
