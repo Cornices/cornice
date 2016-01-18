@@ -1,7 +1,17 @@
-1.2.0 (unreleased)
+#########
+CHANGELOG
+#########
+
+
+1.2.0 (2016-01-18)
 ==================
 
-- Nothing changed yet.
+- Adding the ability to define services imperatively. (#335)
+
+Bug fixes
+
+- Convert None to null before calling deserialize. (#342)
+- Allow i18n of colander error messages (#206)
 
 
 1.1.0 (2015-09-29)
