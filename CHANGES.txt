@@ -11,7 +11,7 @@ CHANGELOG
 
 Bug fixes
 
-- Convert None to null before calling deserialize. (#342)
+- Convert ``None`` to ``colander.null``  before calling colander's ``deserialize`` function. (#342)
 - Allow i18n of colander error messages (#206)
 
 
