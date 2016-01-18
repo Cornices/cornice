@@ -148,11 +148,13 @@ def validate_colander_schema(schema, request):
                         deserialized = attr.deserialize(serialized)
                 except Invalid as e:
                     # the struct is invalid
+                    translate = request.localizer.translate
+                    error_dict = e.asdict(translate=translate)
                     try:
                         request.errors.add(location, attr.name,
-                                           e.asdict()[attr.name])
+                                           error_dict[attr.name])
                     except KeyError:
-                        for k, v in e.asdict().items():
+                        for k, v in error_dict.items():
                             if k.startswith(attr.name):
                                 request.errors.add(location, k, v)
                 else:

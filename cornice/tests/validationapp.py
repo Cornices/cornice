@@ -218,6 +218,6 @@ def includeme(config):
 
 
 def main(global_config, **settings):
-    config = Configurator(settings={})
+    config = Configurator(settings=settings)
     config.include(includeme)
     return CatchErrors(config.make_wsgi_app())

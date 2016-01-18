@@ -201,6 +201,10 @@ before passing the result to Colander.
 View-specific deserializers have priority over global content-type
 deserializers.
 
+To enable localization of Colander error messages, you must set
+`available_languages <http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/i18n.html#detecting-available-languages>`_ in your settings.
+You may also set `pyramid.default_locale_name <http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/environment.html#default-locale-name-setting>`_.
+
 
 Using formencode
 ~~~~~~~~~~~~~~~~
