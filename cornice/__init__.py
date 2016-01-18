@@ -16,7 +16,6 @@ from cornice.pyramidhook import (
 )
 from cornice.util import ContentTypePredicate
 from pyramid.events import BeforeRender, NewRequest
-from pyramid.i18n import get_localizer
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.security import NO_PERMISSION_REQUIRED
 
@@ -52,8 +51,6 @@ def set_localizer_for_languages(event, available_languages,
         accepted = request.accept_language
         locale = accepted.best_match(available_languages, default_locale_name)
         request._LOCALE_ = locale
-    localizer = get_localizer(request)
-    request.localizer = localizer
 
 
 def setup_localization(config):
