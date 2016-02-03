@@ -20,7 +20,7 @@ Let's suppose you have this service definition::
             request.errors.add('body', 'paid', 'You must pay!')
 
 
-    @service.get(validator=has_payed)
+    @service.get(validators=has_payed)
     def get1(request):
         return {"test": "succeeded"}
 
