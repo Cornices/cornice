@@ -1,7 +1,5 @@
 .tox
 .hg*
-.venv*
-.idea
 *.pyc
 *.mako.py
 lib
