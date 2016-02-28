@@ -7,6 +7,7 @@ CHANGELOG
 ==================
 
 - Nothing changed yet.
+- Properly handle content_type callables returning a single internet media type as scalar (#343)
 
 
 1.2.0 (2016-01-18)
