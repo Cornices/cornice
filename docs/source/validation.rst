@@ -130,6 +130,9 @@ If you want to access the ``request`` within the schema nodes during validation,
 you can use the `deferred feature of Colander <http://docs.pylonsproject.org/projects/colander/en/latest/binding.html>`_,
 since Cornice binds the schema with the current request::
 
+    from colander import deferred
+
+    @deferred
     def deferred_validator(node, kw):
         request = kw['request']
         if request['x-foo'] == 'version_a':
