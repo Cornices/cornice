@@ -94,6 +94,16 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         response = app.get('/service3', headers={'Accept': 'text/*'})
         self.assertEqual(response.content_type, "text/json")
 
+        # test that using a callable to define what's accepted works as well
+        # now, the callable returns a scalar instead of a list
+        response = app.put('/service3', headers={'Accept': 'audio/*'},
+                           status=406)
+        error_description = response.json['errors'][0]['description']
+        self.assertIn('text/json', error_description)
+
+        response = app.put('/service3', headers={'Accept': 'text/*'})
+        self.assertEqual(response.content_type, "text/json")
+
         # if we are not asking for a particular content-type,
         # we should get one of the two types that the service supports.
         response = app.get('/service2')
@@ -243,7 +253,14 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         self.assertTrue('text/xml' in error_description)
         self.assertTrue('application/json' in error_description)
 
-        app.post('/service6', headers={'Content-Type': 'text/xml'})
+    def test_content_type_with_callable_returning_scalar(self):
+        # test that using a callable for content_type works as well
+        # now, the callable returns a scalar instead of a list
+        app = TestApp(main({}))
+        response = app.put('/service6', headers={'Content-Type': 'audio/*'},
+                           status=415)
+        error_description = response.json['errors'][0]['description']
+        self.assertIn('text/xml', error_description)
 
     def test_accept_and_content_type(self):
         # tests that giving both Accept and Content-Type

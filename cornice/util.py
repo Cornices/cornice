@@ -111,15 +111,15 @@ def match_accept_header(func, context, request):
         The callable returning the list of acceptable content-types,
         given a request. It should accept a "request" argument.
     """
-    acceptable = func(request)
     # attach the accepted egress content types to the request
+    acceptable = to_list(func(request))
     request.info['acceptable'] = acceptable
     return request.accept.best_match(acceptable) is not None
 
 
 def match_content_type_header(func, context, request):
-    supported_contenttypes = func(request)
     # attach the accepted ingress content types to the request
+    supported_contenttypes = to_list(func(request))
     request.info['supported_contenttypes'] = supported_contenttypes
     return content_type_matches(request, supported_contenttypes)
 
