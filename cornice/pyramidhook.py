@@ -219,7 +219,8 @@ def register_service_views(config, service):
         predicate_definitions = _pop_complex_predicates(args)
 
         if predicate_definitions:
-            for predicate_list in predicate_definitions:
+            extra_empty_ctype = [({'kind': 'content_type', 'value': ''},)]
+            for predicate_list in predicate_definitions + extra_empty_ctype:
                 args = dict(args)  # make a copy of the dict to not modify it
 
                 # prepare view args by evaluating complex predicates
