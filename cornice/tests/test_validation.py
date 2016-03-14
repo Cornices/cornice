@@ -59,9 +59,9 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         error_description = response.json['errors'][0]['description']
         self.assertEquals('header', error_location)
         self.assertEquals('Accept', error_name)
-        self.assertTrue('application/json' in error_description)
-        self.assertTrue('text/json' in error_description)
-        self.assertTrue('text/plain' in error_description)
+        self.assertIn('application/json', error_description)
+        self.assertIn('text/json', error_description)
+        self.assertIn('text/plain', error_description)
 
         # requesting a supported type should give an appropriate response type
         response = app.get('/service2', headers={'Accept': 'application/*'})
@@ -89,13 +89,13 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         response = app.get('/service3', headers={'Accept': 'audio/*'},
                            status=406)
         error_description = response.json['errors'][0]['description']
-        self.assertTrue('text/json' in error_description)
+        self.assertIn('text/json', error_description)
 
         response = app.get('/service3', headers={'Accept': 'text/*'})
         self.assertEqual(response.content_type, "text/json")
 
-        # test that using a callable to define what's accepted works as well
-        # now, the callable returns a scalar instead of a list
+        # Test that using a callable to define what's accepted works as well.
+        # Now, the callable returns a scalar instead of a list.
         response = app.put('/service3', headers={'Accept': 'audio/*'},
                            status=406)
         error_description = response.json['errors'][0]['description']
@@ -104,11 +104,11 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         response = app.put('/service3', headers={'Accept': 'text/*'})
         self.assertEqual(response.content_type, "text/json")
 
-        # if we are not asking for a particular content-type,
+        # If we are not asking for a particular content-type,
         # we should get one of the two types that the service supports.
         response = app.get('/service2')
-        self.assertTrue(response.content_type
-                        in ("application/json", "text/plain"))
+        self.assertIn(response.content_type,
+                      ("application/json", "text/plain"))
 
     def test_accept_issue_113_text_star(self):
         app = TestApp(main({}))
@@ -131,8 +131,8 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
     def test_accept_issue_113_text_html_not_acceptable(self):
         app = TestApp(main({}))
 
-        # requesting an unsupported content type should return a HTTP 406 (Not
-        # Acceptable)
+        # Requesting an unsupported content type should
+        # return HTTP response "406 Not Acceptable".
         app.get('/service3', headers={'Accept': 'text/html'}, status=406)
 
     def test_accept_issue_113_audio_or_text(self):
@@ -143,15 +143,15 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         })
         self.assertEqual(response.content_type, "text/plain")
 
-        # if we are not asking for a particular content-type,
+        # If we are not asking for a particular content-type,
         # we should get one of the two types that the service supports.
         response = app.get('/service2')
-        self.assertTrue(response.content_type
-                        in ("application/json", "text/plain"))
+        self.assertIn(response.content_type,
+                      ("application/json", "text/plain"))
 
     def test_override_default_accept_issue_252(self):
-        # override default acceptable content_types for interoperate with
-        # legacy applications i.e. ExtJS 3
+        # Override default acceptable content_types for interoperate with
+        # legacy applications i.e. ExtJS 3.
         from cornice.util import _JsonRenderer
         _JsonRenderer.acceptable += ('text/html',)
 
@@ -187,75 +187,78 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         # test that a Content-Type request headers is present
         app = TestApp(main({}))
 
-        # requesting without a Content-Type header should return a 415 ...
+        # Requesting without a Content-Type header should
+        # return "415 Unsupported Media Type" ...
         request = app.RequestClass.blank('/service5', method='POST')
         response = app.do_request(request, 415, True)
 
-        # ... with an appropriate json error structure
+        # ... with an appropriate json error structure.
         error_location = response.json['errors'][0]['location']
         error_name = response.json['errors'][0]['name']
         error_description = response.json['errors'][0]['description']
         self.assertEqual('header', error_location)
         self.assertEqual('Content-Type', error_name)
-        self.assertTrue('application/json' in error_description)
+        self.assertIn('application/json', error_description)
 
     def test_content_type_wrong_single(self):
-        # tests that the Content-Type request header satisfies the requirement
+        # Tests that the Content-Type request header satisfies the requirement.
         app = TestApp(main({}))
 
-        # requesting the wrong Content-Type header should return a 415 ...
+        # Requesting the wrong Content-Type header should
+        # return "415 Unsupported Media Type" ...
         response = app.post('/service5',
                             headers={'Content-Type': 'text/plain'},
                             status=415)
 
-        # ... with an appropriate json error structure
+        # ... with an appropriate json error structure.
         error_description = response.json['errors'][0]['description']
-        self.assertTrue('application/json' in error_description)
+        self.assertIn('application/json', error_description)
 
     def test_content_type_wrong_multiple(self):
-        # tests that the Content-Type request header satisfies the requirement
+        # Tests that the Content-Type request header satisfies the requirement.
         app = TestApp(main({}))
 
-        # requesting the wrong Content-Type header should return a 415 ...
+        # Requesting without a Content-Type header should
+        # return "415 Unsupported Media Type" ...
         response = app.put('/service5',
                            headers={'Content-Type': 'text/xml'},
                            status=415)
 
-        # ... with an appropriate json error structure
+        # ... with an appropriate json error structure.
         error_description = response.json['errors'][0]['description']
-        self.assertTrue('text/plain' in error_description)
-        self.assertTrue('application/json' in error_description)
+        self.assertIn('text/plain', error_description)
+        self.assertIn('application/json', error_description)
 
     def test_content_type_correct(self):
-        # tests that the Content-Type request header satisfies the requirement
+        # Tests that the Content-Type request header satisfies the requirement.
         app = TestApp(main({}))
 
-        # requesting with one of the allowed Content-Type headers should work,
-        # even when having a charset parameter as suffix
+        # Requesting with one of the allowed Content-Type headers should work,
+        # even when having a charset parameter as suffix.
         response = app.put('/service5', headers={
             'Content-Type': 'text/plain; charset=utf-8'
         })
         self.assertEqual(response.json, "some response")
 
     def test_content_type_on_get(self):
-        # test that a Content-Type request header is not
-        # checked on GET requests, they don't usually have a body
+        # Test that a Content-Type request header is not
+        # checked on GET requests, they don't usually have a body.
         app = TestApp(main({}))
         response = app.get('/service5')
         self.assertEqual(response.json, "some response")
 
     def test_content_type_with_callable(self):
-        # test that using a callable for content_type works as well
+        # Test that using a callable for content_type works as well.
         app = TestApp(main({}))
         response = app.post('/service6', headers={'Content-Type': 'audio/*'},
                             status=415)
         error_description = response.json['errors'][0]['description']
-        self.assertTrue('text/xml' in error_description)
-        self.assertTrue('application/json' in error_description)
+        self.assertIn('text/xml', error_description)
+        self.assertIn('application/json', error_description)
 
     def test_content_type_with_callable_returning_scalar(self):
-        # test that using a callable for content_type works as well
-        # now, the callable returns a scalar instead of a list
+        # Test that using a callable for content_type works as well.
+        # Now, the callable returns a scalar instead of a list.
         app = TestApp(main({}))
         response = app.put('/service6', headers={'Content-Type': 'audio/*'},
                            status=415)
@@ -263,8 +266,8 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         self.assertIn('text/xml', error_description)
 
     def test_accept_and_content_type(self):
-        # tests that giving both Accept and Content-Type
-        # request headers satisfy the requirement
+        # Tests that using both the "Accept" and "Content-Type"
+        # request headers satisfy the requirement.
         app = TestApp(main({}))
 
         # POST endpoint just has one accept and content_type definition

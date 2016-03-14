@@ -104,21 +104,41 @@ def json_error(errors):
 
 def match_accept_header(func, context, request):
     """
-    Return True if the request matches the values returned by the given :param:
-    func callable.
+    Return True if the request ``Accept`` header match
+    the list returned by the callable specified in :param:func.
+
+    Also attach the total list of possible accepted
+    egress media types to the request.
+
+    Utility function for performing content negotiation.
 
     :param func:
-        The callable returning the list of acceptable content-types,
-        given a request. It should accept a "request" argument.
+        The callable returning the list of acceptable
+        internet media types for content negotiation.
+        It obtains the request object as single argument.
     """
-    # attach the accepted egress content types to the request
     acceptable = to_list(func(request))
     request.info['acceptable'] = acceptable
     return request.accept.best_match(acceptable) is not None
 
 
 def match_content_type_header(func, context, request):
-    # attach the accepted ingress content types to the request
+    """
+    Return True if the request ``Content-Type`` header match
+    the list returned by the callable specified in :param:func.
+
+    Also attach the total list of possible accepted
+    ingress media types to the request.
+
+    Utility function for performing request body
+    media type checks.
+
+    :param func:
+        The callable returning the list of acceptable
+        internet media types for request body
+        media type checks.
+        It obtains the request object as single argument.
+    """
     supported_contenttypes = to_list(func(request))
     request.info['supported_contenttypes'] = supported_contenttypes
     return content_type_matches(request, supported_contenttypes)

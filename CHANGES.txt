@@ -8,6 +8,7 @@ CHANGELOG
 
 - Nothing changed yet.
 - Properly handle content_type callables returning a single internet media type as scalar (#343)
+- Improve documentation regarding content type negotiation and media type validation (#91, #343, #350)
 
 
 1.2.0 (2016-01-18)

@@ -26,23 +26,27 @@ Authorization can be done using the `acl` parameter. If the authentication or
 the authorization fails at this stage, a 401 or 403 error is returned,
 depending on the cases.
 
-Content Types (ingress)
-=======================
+Content negotiation
+===================
 
-Each method can specify a list of content types it can receive. Per default,
-any content type is allowed. In the case the client sends a request with an
-invalid `Content-Type` header, cornice will return a
-`415 Unsupported Media Type` with an error message containing the list of
-valid request content types for the particular URI and method.
+This relates to **response body** internet media types aka. egress content types.
 
-Content Types (egress)
-======================
-
-Each method can specify a list of content types it can respond with.
+Each method can specify a list of internet media types it can **respond** with.
 Per default, `text/html` is assumed. In the case the client requests an
-invalid content type via `Accept` header, cornice will return a
+invalid media type via `Accept` header, cornice will return a
 `406 Not Acceptable` with an error message containing the list of available
 response content types for the particular URI and method.
+
+Request media type
+==================
+
+This relates to **request body** internet media types aka. ingress content types.
+
+Each method can specify a list of internet media types it accepts as **request**
+body format. Per default, any media type is allowed. In the case the client
+sends a request with an invalid `Content-Type` header, cornice will return a
+`415 Unsupported Media Type` with an error message containing the list of available
+request content types for the particular URI and method.
 
 Warning when returning JSON lists
 =================================
