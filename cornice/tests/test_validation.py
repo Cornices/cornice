@@ -208,7 +208,9 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
 
         # requesting without a Content-Type header nor a body should
         # return a 200.
-        app.post('/service5', status=200)
+        request = app.RequestClass.blank('/service5', method='POST')
+        response = app.do_request(request, 200, True)
+        self.assertEqual(response.status_code, 200)
 
     def test_content_type_wrong_single(self):
         # Tests that the Content-Type request header satisfies the requirement.
