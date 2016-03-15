@@ -189,8 +189,10 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
 
         # Requesting without a Content-Type header should
         # return "415 Unsupported Media Type" ...
-        request = app.RequestClass.blank('/service5', method='POST')
+        request = app.RequestClass.blank('/service5', method='POST',
+                                         POST="some data")
         response = app.do_request(request, 415, True)
+        self.assertEqual(response.status_code, 415)
 
         # ... with an appropriate json error structure.
         error_location = response.json['errors'][0]['location']
@@ -199,6 +201,16 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         self.assertEqual('header', error_location)
         self.assertEqual('Content-Type', error_name)
         self.assertIn('application/json', error_description)
+
+    def test_content_type_missing_with_no_body_should_pass(self):
+        # test that a Content-Type request headers is present
+        app = TestApp(main({}))
+
+        # requesting without a Content-Type header nor a body should
+        # return a 200.
+        request = app.RequestClass.blank('/service5', method='POST')
+        response = app.do_request(request, 200, True)
+        self.assertEqual(response.status_code, 200)
 
     def test_content_type_wrong_single(self):
         # Tests that the Content-Type request header satisfies the requirement.
