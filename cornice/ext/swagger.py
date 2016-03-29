@@ -31,7 +31,8 @@ def schema_to_parameters(schema, service=None):
                 parameter["name"] = name
                 if hasattr(attr, "description"):
                     parameter["description"] = getattr(attr, "description")
-                parameter["required"] = getattr(attr, "required")
+                missing = getattr(attr, 'missing')
+                parameter['required'] = False if (missing == drop or isinstance(missing, deferred)) else True
 
                 type_ = ""
                 if hasattr(attr, "typ"):
@@ -113,19 +114,6 @@ def generate_swagger_spec(services, title, version, **kwargs):
         # Get path parameters from looking at the path
         service_path = service.path
         parameter = dict()
-
-        # Do we have parameters in the path?
-        if "{" in service_path:
-            service_path_list = service_path.split("{")
-            for part in service_path_list:
-                match = re.search("(.*)\}", part)
-                if match is not None:
-                    parameter["name"] = match.group(1)
-                    parameter["in"] = "path"
-                    parameter["required"] = True
-                    # TODO: Make a way to set the type
-                    parameter["type"] = "string"
-                    path["parameters"].append(parameter.copy())
 
         # Loop through all our verb operations for this service
         for method, view, args in service.definitions:
