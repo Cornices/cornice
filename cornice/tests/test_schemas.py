@@ -55,6 +55,10 @@ if COLANDER:
     class InheritedSchema(TestingSchema):
         foo = SchemaNode(Int(), missing=1)
 
+    class TestNoneSchema(MappingSchema):
+        foo = SchemaNode(String())
+        bar = SchemaNode(Sequence(), SchemaNode(String()), missing=None)
+
     class ToBoundSchema(TestingSchema):
         foo = SchemaNode(Int(), missing=1)
         bazinga = SchemaNode(String(), type='str', location="body",
@@ -232,6 +236,15 @@ if COLANDER:
 
             dummy_request = get_mock_request('{"bar": "some data"}')
             validate_colander_schema(schema, dummy_request)
+
+        def test_sequence_with_null(self):
+            # null can be passed to a sequence field
+            schema = CorniceSchema.from_colander(TestNoneSchema)
+
+            dummy_request = get_mock_request('{"foo": "abc", "bar": null}')
+            validate_colander_schema(schema, dummy_request)
+            self.assertEqual(len(dummy_request.errors), 0)
+            self.assertIsNone(dummy_request.validated['bar'])
 
         def test_colander_schema_using_drop(self):
             """

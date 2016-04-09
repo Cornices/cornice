@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import logging
+import pkg_resources
+from functools import partial
 
 from cornice import util
 from cornice.errors import Errors  # NOQA
@@ -14,12 +16,13 @@ from cornice.pyramidhook import (
     register_resource_views,
 )
 from cornice.util import ContentTypePredicate
-
+from pyramid.events import BeforeRender, NewRequest
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.security import NO_PERMISSION_REQUIRED
 
 logger = logging.getLogger('cornice')
-__version__ = "0.18"
+# Module version, as defined in PEP-0396.
+__version__ = pkg_resources.get_distribution(__package__).version
 
 
 def add_renderer_globals(event):
@@ -33,11 +36,51 @@ def add_apidoc(config, pattern, func, service, **kwargs):
     info['func'] = func
 
 
+def set_localizer_for_languages(event, available_languages,
+                                default_locale_name):
+    """
+    Sets the current locale based on the incoming Accept-Language header, if
+    present, and sets a localizer attribute on the request object based on
+    the current locale.
+
+    To be used as an event handler, this function needs to be partially applied
+    with the available_languages and default_locale_name arguments. The
+    resulting function will be an event handler which takes an event object as
+    its only argument.
+    """
+    request = event.request
+    if request.accept_language:
+        accepted = request.accept_language
+        locale = accepted.best_match(available_languages, default_locale_name)
+        request._LOCALE_ = locale
+
+
+def setup_localization(config):
+    """
+    Setup localization based on the available_languages and
+    pyramid.default_locale_name settings.
+
+    These settings are named after suggestions from the "Internationalization
+    and Localization" section of the Pyramid documentation.
+    """
+    try:
+        config.add_translation_dirs('colander:locale/')
+        settings = config.get_settings()
+        available_languages = settings['available_languages'].split()
+        default_locale_name = settings.get('pyramid.default_locale_name', 'en')
+        set_localizer = partial(set_localizer_for_languages,
+                                available_languages=available_languages,
+                                default_locale_name=default_locale_name)
+        config.add_subscriber(set_localizer, NewRequest)
+    except ImportError:
+        # add_translation_dirs raises an ImportError if colander is not
+        # installed
+        pass
+
+
 def includeme(config):
     """Include the Cornice definitions
     """
-    from pyramid.events import BeforeRender, NewRequest
-
     # attributes required to maintain services
     config.registry.cornice_services = {}
 
@@ -61,3 +104,6 @@ def includeme(config):
                         permission=NO_PERMISSION_REQUIRED)
         config.add_view(handle_exceptions, context=HTTPForbidden,
                         permission=NO_PERMISSION_REQUIRED)
+
+    if settings.get('available_languages'):
+        setup_localization(config)

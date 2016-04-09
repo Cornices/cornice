@@ -18,21 +18,32 @@ class TestUtil(TestCase):
 
 class TestServiceDirective(TestCase):
 
+    def setUp(self):
+        super(TestServiceDirective, self).setUp()
+        param = mock.Mock()
+        param.document.settings.env.new_serialno.return_value = 1
+
+        self.directive = ServiceDirective(
+            'test', [], {}, [], 1, 1, 'test', param, 1)
+        self.directive.options['app'] = 'cornice.tests.ext.dummy'
+        self.directive.options['services'] = ['users', "thing_service"]
+
     def test_module_reload(self):
-        directive = ServiceDirective(
-            'test', [], {}, [], 1, 1, 'test', mock.Mock(), 1)
-        directive.options['modules'] = ['cornice']
-        ret = directive.run()
+        self.directive.options['app'] = None
+        self.directive.options['services'] = None
+        self.directive.options['modules'] = ['cornice']
+        ret = self.directive.run()
         self.assertEqual(ret, [])
 
     def test_dummy(self):
-        param = mock.Mock()
-        param.document.settings.env.new_serialno.return_value = 1
-        directive = ServiceDirective(
-            'test', [], {}, [], 1, 1, 'test', param, 1)
-        directive.options['app'] = 'cornice.tests.ext.dummy'
-        directive.options['services'] = ['users', "thing_service"]
-        ret = directive.run()
+        ret = self.directive.run()
         self.assertEqual(len(ret), 2)
-        self.assertTrue('Users service at' in str(ret[0]))
-        self.assertTrue('Thing_Service service at ' in str(ret[1]))
+        self.assertIn('Users service at', str(ret[0]))
+        self.assertIn('Thing_Service service at ', str(ret[1]))
+
+    def test_string_validator_resolved(self):
+        # A validator defined as a string should be parsed as an obj,
+        # ensuring the docstring contains validator.__doc__ rather
+        # than str.__doc__.
+        ret = self.directive.run()
+        self.assertNotIn("str(object='') -> string", str(ret[0]))

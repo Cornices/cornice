@@ -9,6 +9,7 @@ from cornice.tests.support import CatchErrors
 import json
 
 
+# Service for testing callback-based validators.
 service = Service(name="service", path="/service")
 
 
@@ -50,6 +51,7 @@ def post1(request):
     return {"body": request.body}
 
 
+# Service for testing the "accept" parameter (scalar and list).
 service2 = Service(name="service2", path="/service2")
 
 
@@ -59,14 +61,12 @@ def get2(request):
     return {"body": "yay!"}
 
 
+# Service for testing the "accept" parameter (callable).
 service3 = Service(name="service3", path="/service3")
 
 
-def _accept(request):
-    return ('application/json', 'text/json')
-
-
-@service3.get(accept=_accept)
+@service3.get(accept=lambda request: ('application/json', 'text/json'))
+@service3.put(accept=lambda request: 'text/json')
 def get3(request):
     return {"body": "yay!"}
 
@@ -107,7 +107,8 @@ filtered_service = Service(name="filtered", path="/filtered", filters=_filter)
 def get4(request):
     return "unfiltered"  # should be overwritten on GET
 
-# test the "content_type" parameter (scalar)
+
+# Service for testing the "content_type" parameter (scalar and list).
 service5 = Service(name="service5", path="/service5")
 
 
@@ -117,19 +118,18 @@ service5 = Service(name="service5", path="/service5")
 def post5(request):
     return "some response"
 
-# test the "content_type" parameter (callable)
+
+# Service for testing the "content_type" parameter (callable).
 service6 = Service(name="service6", path="/service6")
 
 
-def _content_type(request):
-    return ('text/xml', 'application/json')
-
-
-@service6.post(content_type=_content_type)
+@service6.post(content_type=lambda request: ('text/xml', 'application/json'))
+@service6.put(content_type=lambda request: 'text/xml')
 def post6(request):
     return {"body": "yay!"}
 
-# test a mix of "accept" and "content_type" parameters
+
+# Service for testing a mix of "accept" and "content_type" parameters.
 service7 = Service(name="service7", path="/service7")
 
 
@@ -218,6 +218,6 @@ def includeme(config):
 
 
 def main(global_config, **settings):
-    config = Configurator(settings={})
+    config = Configurator(settings=settings)
     config.include(includeme)
     return CatchErrors(config.make_wsgi_app())

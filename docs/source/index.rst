@@ -79,8 +79,7 @@ What Cornice will do for you here is:
   to it, resulting in a *406 Not Acceptable* with the list of acceptable ones
   if it can't answer.
 
-You can also have a complete overview of the builtin validations provided by
-cornice in :doc:`builtin-features`
+Please follow up with :doc:`exhaustive_list` to get the picture.
 
 
 Documentation content
@@ -94,7 +93,7 @@ Documentation content
    config
    resources
    validation
-   builtin_validation
+   builtin-validation
    sphinx
    testing
    exhaustive_list

@@ -146,8 +146,11 @@ class TestSwaggerResource(TestCase):
         services = get_services()
         ret = _generate_swagger(services)
 
-        self.assertEqual(sorted(ret["paths"].keys()), [
-            '/coffee', '/coffee/{bar}/{id}', '/users', '/users/{id}'])
+        self.assertEqual(sorted(ret["paths"].keys()),
+                         ['/coffee', '/coffee/{bar}/{id}',
+                          '/thing', '/thing/{id}', '/users',
+                          '/users/{id}', '/{username}/info'])
+
         self.assertEqual(
             sorted(ret["definitions"]['FooBarSchema']["required"]),
             ['bar', 'foo'])

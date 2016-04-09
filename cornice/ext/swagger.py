@@ -5,6 +5,11 @@ import cornice.ext.swagger_model
 import cornice.service
 import cornice.util
 
+try:
+    from colander import drop, deferred
+except:
+    deferred, drop = "GET_COLANDER_DROP", "GET_COLANDER_DEFFERED"
+
 
 def schema_to_parameters(schema, service=None):
     """ Convert Colander Schema object to a Swagger Parameter dict.

@@ -96,6 +96,19 @@ class ServiceDirective(Directive):
 
         return [self._render_service(s) for s in services]
 
+    def _resolve_obj_to_docstring(self, obj, args):
+        # Resolve a view or validator to an object if type string
+        # and return docstring.
+        if is_string(obj):
+            if 'klass' in args:
+                ob = args['klass']
+                obj_ = getattr(ob, obj.lower())
+                return format_docstring(obj_)
+            else:
+                return ''
+        else:
+            return format_docstring(obj)
+
     def _render_service(self, service):
         service_id = "service-%d" % self.env.new_serialno('service')
         service_node = nodes.section(ids=[service_id])
@@ -114,13 +127,7 @@ class ServiceDirective(Directive):
             method_node = nodes.section(ids=[method_id])
             method_node += nodes.title(text=method)
 
-            if is_string(view):
-                if 'klass' in args:
-                    ob = args['klass']
-                    view_ = getattr(ob, view.lower())
-                    docstring = trim(view_.__doc__ or "") + '\n'
-            else:
-                docstring = trim(view.__doc__ or "") + '\n'
+            docstring = self._resolve_obj_to_docstring(view, args)
 
             if 'schema' in args:
                 schema = args['schema']
@@ -166,8 +173,7 @@ class ServiceDirective(Directive):
                 method_node += attrs_node
 
             for validator in args.get('validators', ()):
-                if validator.__doc__ is not None:
-                    docstring += trim(validator.__doc__)
+                docstring += self._resolve_obj_to_docstring(validator, args)
 
             if 'accept' in args:
                 accept = to_list(args['accept'])
@@ -202,11 +208,15 @@ class ServiceDirective(Directive):
             method_node += response
 
             service_node += method_node
-
         return service_node
 
 
 # Utils
+
+def format_docstring(obj):
+    """Return trimmed docstring with newline from object."""
+    return trim(obj.__doc__ or "") + '\n'
+
 
 class _HTMLFragmentTranslator(HTMLTranslator):
     def __init__(self, document):
