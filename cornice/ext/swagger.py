@@ -37,7 +37,8 @@ def schema_to_parameters(schema, service=None):
                 if hasattr(attr, "description"):
                     parameter["description"] = getattr(attr, "description")
                 missing = getattr(attr, 'missing')
-                parameter['required'] = False if (missing == drop or isinstance(missing, deferred)) else True
+                parameter['required'] = False if (
+                    missing == drop or isinstance(missing, deferred)) else True
 
                 type_ = ""
                 if hasattr(attr, "typ"):
