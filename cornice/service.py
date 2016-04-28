@@ -148,7 +148,7 @@ class Service(object):
         here.
 
     See
-    http://readthedocs.org/docs/pyramid/en/1.0-branch/glossary.html#term-acl
+    https://pyramid.readthedocs.io/en/1.0-branch/glossary.html#term-acl
     for more information about ACLs.
 
     Service cornice instances also have methods :meth:`~get`, :meth:`~post`,

@@ -40,7 +40,7 @@ class _JsonRenderer(object):
 
       .. _`[1]`: https://github.com/mozilla-services/cornice/pull/116 \
                  #issuecomment-14355865
-      .. _`[2]`: http://pyramid.readthedocs.org/en/latest/narr/renderers.html \
+      .. _`[2]`: http://pyramid.readthedocs.io/en/latest/narr/renderers.html \
                  #serializing-custom-objects
     """
     acceptable = ('application/json', 'text/json', 'text/plain')
