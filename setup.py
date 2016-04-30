@@ -14,8 +14,10 @@ requires = ['pyramid',  'simplejson']
 entry_points = """\
 [paste.paster_create_template]
 cornice=cornice.scaffolds:CorniceTemplate
+cornice_swagger=cornice.scaffolds:CorniceSwaggerTemplate
 [pyramid.scaffold]
 cornice=cornice.scaffolds:CorniceTemplate
+cornice_swagger=cornice.scaffolds:CorniceSwaggerTemplate
 """
 
 package_data = {

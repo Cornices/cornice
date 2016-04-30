@@ -28,7 +28,9 @@ For example, let's define a service where you can **GET** and **POST** a value
 at **/values/{value}**, where *value* is an ascii value representing the
 name of the value.
 
-The :file:`views` module can look like this::
+The :file:`views` module can look like this:
+
+.. code:: python
 
     from cornice import Service
 

@@ -1,0 +1,12 @@
+Documentation
+=============
+
+Install::
+
+   $ cd {{project}}
+   $ pip install -e .
+
+Install swagger-ui::
+
+   $ cd {{project}}/{{project}}/static
+   $ bower install

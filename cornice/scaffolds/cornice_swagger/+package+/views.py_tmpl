@@ -1,0 +1,139 @@
+""" Cornice services.
+"""
+from cornice import Service
+from cornice.service import get_services
+from cornice.ext.swagger import generate_swagger_spec
+from pyramid.view import view_config
+from cornice.resource import resource
+from cornice.resource import view
+
+import colander
+
+
+USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
+
+
+def validate_bar(node, value):
+    if value != "open":
+        raise colander.Invalid(node, "The bar is not open.")
+
+
+class Integers(colander.SequenceSchema):
+    integer = colander.SchemaNode(colander.Integer())
+
+
+class FooSchema(colander.MappingSchema):
+    # {{project}} and bar are required, baz is optional
+    {{project}} = colander.SchemaNode(
+        colander.String(),
+    )
+    bar = colander.SchemaNode(
+        colander.String(),
+        validator=validate_bar
+    )
+    baz = colander.SchemaNode(
+        colander.String(),
+        missing=None,
+        location="header",
+    )
+    afe = colander.SchemaNode(
+        colander.String(),
+        missing=None,
+        location="querystring",
+    )
+    integers = Integers()
+
+
+class Key(colander.Schema):
+    place = colander.SchemaNode(colander.String())
+
+
+class Person(colander.Schema):
+    name = colander.SchemaNode(colander.String())
+    age = colander.SchemaNode(colander.Integer(),
+                              validator=colander.Range(0, 200))
+    key = Key()
+
+
+class Bus(colander.Schema):
+    type = colander.SchemaNode(colander.String())
+    age = colander.SchemaNode(colander.Integer(),
+                              validator=colander.Range(0, 200))
+
+
+class People(colander.SequenceSchema):
+    person = Person()
+
+
+class Schema(colander.Schema):
+    ort = colander.SchemaNode(colander.String(), required=False,
+                              location="header")
+    people = People(validator=colander.Length(min=1, max=4))
+    bus = Bus()
+
+hello = Service(name="hello",
+                path="/{hans}",
+                description="Complex app")
+person = Service(name="person",
+                 path="/{pers_id}/bla/{car_id}",
+                 description="Complex ** 2")
+
+
+@hello.post(schema=FooSchema)
+def get_info(request):
+    """Returns Hello in JSON."""
+    return {"Hello": "World"}
+
+
+@person.post(schema=Schema)
+def post_person(request):
+    """Returns Person in JSON."""
+    return {"Hello": "Person"}
+
+
+@resource(collection_path='/users', path='/users/{id}',
+          name='user_service')
+class User(object):
+
+    def __init__(self, request, context=None):
+        self.request = request
+        self.context = context
+
+    def collection_get(self):
+        return {'users': list(USERS.keys())}
+
+    @view(renderer='json')
+    def get(self):
+        return USERS.get(int(self.request.matchdict['id']))
+
+    @view(renderer='json', content_type='application/json', schema=FooSchema)
+    def collection_post(self):
+        return {'test': 'yeah'}
+
+    def patch(self):
+        return {'test': 'yeah'}
+
+    def collection_patch(self):
+        return {'test': 'yeah'}
+
+    def put(self):
+        return dict(type=repr(self.context))
+
+
+@view_config(route_name="swagger", renderer="templates/index.pt")
+def swagger(request):
+    return {"request": request}
+
+
+@view_config(route_name="swagger_json", renderer="json")
+def swagger_json(request):
+    info = {"title": "Joes API", "version": "0.1", "contact": {
+            "name": "Joe Smith",
+            "email": "joe.cool@swagger.com"}
+            }
+    base_path = "/"
+    services = get_services()
+    spec = generate_swagger_spec(services, info["title"],
+                                 info["version"], info=info,
+                                 base_path=base_path, head=False)
+    return spec

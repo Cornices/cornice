@@ -5,7 +5,9 @@ Cornice is also able to handle rest "resources" for you. You can declare
 a class with some put, post, get etc. methods (the HTTP verbs) and they will be
 registered as handlers for the appropriate methods / services.
 
-Here is how you can register a resource::
+Here is how you can register a resource:
+
+.. code:: python
 
     from cornice.resource import resource, view
 
@@ -30,7 +32,9 @@ Here is how you can register a resource::
             _USERS[len(_USERS) + 1] = self.request.json_body
             return True
 
-Here is an example of how to define cornice resources in an imperative way::
+Here is an example of how to define cornice resources in an imperative way:
+
+.. code:: python
 
     from cornice import resource
 
@@ -61,7 +65,9 @@ validators and filters
 ======================
 
 You also can register validators and filters that are defined in your
-`@resource` decorated class, like this::
+`@resource` decorated class, like this:
+
+.. code:: python
 
     @resource(path='/users/{id}')
     class User(object):

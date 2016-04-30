@@ -1,0 +1,13 @@
+.. _api:
+
+{{project}} API
+=======
+
+API
+---
+
+Following the {{project}} REST API:
+
+.. cornice-autodoc::
+   :modules: {{project}}.views
+   :services: hello, person, user_service, collection_user_service
