@@ -182,3 +182,19 @@ def validate_colander_schema(schema, request):
         for param in set(params) - set([attr.name for attr in attrs]):
             request.errors.add('body' if param in body else 'querystring',
                                param, msg % param)
+
+    if schema.colander_schema.validator:
+        try:
+            schema.colander_schema.validator(
+                schema.colander_schema,
+                request.validated
+            )
+        except Invalid as errors:
+            for error in errors.children:
+                # import ipdb; ipdb.set_trace()
+                request.errors.add(
+                    getattr(error.node, 'location', 'body'),
+                    error.node.name,
+                    '\n '.join(error.messages())
+                )
+
