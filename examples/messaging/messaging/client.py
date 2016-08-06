@@ -1,36 +1,45 @@
 import threading
-import urllib2
+import requests
+from requests import Request, Session
+from requests.auth import HTTPBasicAuth
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from requests import RequestException
+
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 import json
 import time
 import curses
 
+import logging
+FORMAT = "%(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s"
+logging.basicConfig(format=FORMAT)
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
 
 _SERVER = 'http://localhost:6543'
 
-
 def post(message, token):
-    headers = {'X-Messaging-Token': token}
-    req = urllib2.Request(_SERVER, headers=headers)
-    req.get_method = lambda: 'POST'
-    message = {'text': message}
-    req.add_data(json.dumps(message))
-    urllib2.urlopen(req)
-
+    data = {'text': message}
+    s = Session()
+    req = Request('POST', _SERVER, json=data)
+    prepped = s.prepare_request(req)
+    prepped.headers['X-Messaging-Token'] = token
+    resp = s.send(prepped)
 
 def register(name):
     url = _SERVER + '/users'
-    req = urllib2.Request(url)
-    req.add_data(name)
     try:
-        res = urllib2.urlopen(req)
-    except urllib2.HTTPError:
+        s = Session()
+        req = Request('POST', url, data=name)
+        prepped = s.prepare_request(req)    
+        resp = s.send(prepped)
+    except RequestException:
         return False
 
-    if res.getcode() != 200:
+    if resp.status_code != 200:
         return False
 
-    return json.loads(res.read())['token']
-
+    return json.loads(resp.text)['token']
 
 class UpdateThread(threading.Thread):
     def __init__(self, server, token, scr):
@@ -43,12 +52,15 @@ class UpdateThread(threading.Thread):
 
     def run(self):
         self.updating = True
-        headers = {'X-Messaging-Token': self.token}
-        req = urllib2.Request(self.server, headers=headers)
+        s = Session()
+        req = Request('GET', self.server)
+        prepped = s.prepare_request(req)
+        prepped.headers['X-Messaging-Token'] = self.token
+        resp = s.send(prepped)
 
         while self.updating:
-            res = urllib2.urlopen(req)
-            result = json.loads(res.read())
+            r = s.get(self.server)
+            result = json.loads(resp.text)
             if result == []:
                 continue
 
@@ -105,3 +117,5 @@ def shell():
 
 if __name__ == '__main__':
     shell()
+
+
