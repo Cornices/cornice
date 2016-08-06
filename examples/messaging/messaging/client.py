@@ -10,12 +10,6 @@ import json
 import time
 import curses
 
-import logging
-FORMAT = "%(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s"
-logging.basicConfig(format=FORMAT)
-LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.INFO)
-
 _SERVER = 'http://localhost:6543'
 
 def post(message, token):

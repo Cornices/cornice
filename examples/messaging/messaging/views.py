@@ -7,11 +7,6 @@ import json
 
 from webob import Response, exc
 from cornice import Service
-import logging
-FORMAT = "%(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s"
-logging.basicConfig(format=FORMAT)
-LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.INFO)
 
 users = Service(name='users', path='/users', description="Users")
 messages = Service(name='messages', path='/', description="Messages")
@@ -35,10 +30,8 @@ class _401(exc.HTTPError):
 
 
 def valid_token(request):
-    LOG.info('valid_token: {0}'.format(str(request.headers)))
     header = 'X-Messaging-Token'
     htoken = request.headers.get(header)
-    LOG.info('htoken: {0}'.format(str(htoken)))
     if htoken is None:
         raise _401()
     try:
@@ -62,7 +55,6 @@ def unique(request):
         request.validated['user'] = user
 
 def valid_message(request):
-    LOG.info('valid_message: {0}'.format(request))
     try:
         message = json.loads(request.body.decode('utf-8'))
     except ValueError:
@@ -88,8 +80,6 @@ def valid_message(request):
 @users.get(validators=valid_token)
 def get_users(request):
     """Returns a list of all users."""
-    LOG.info('_USERS: {0}'.format(_USERS.keys()))
-
     return {'users': list(_USERS.keys())}
 
 
@@ -100,7 +90,6 @@ def create_user(request):
     
     name = user['name'].decode('utf-8') # decode from bytes to utf-8
     _USERS[name] = user['token']
-    LOG.info('_USERS: {0}'.format(_USERS))
     return {'token': '%s-%s' % (name, user['token'])}
 
 
@@ -124,5 +113,4 @@ def get_messages(request):
 def post_message(request):
     """Adds a message"""
     _MESSAGES.insert(0, request.validated['message'])
-    LOG.info('_MESSAGES: {0}'.format(_MESSAGES))
     return {'status': 'added'}
