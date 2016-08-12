@@ -14,7 +14,7 @@ from pyramid.response import Response
 __all__ = ['json_renderer', 'to_list', 'json_error', 'match_accept_header',
            'extract_request_data']
 
-
+PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
 
 if PY3:
@@ -147,13 +147,22 @@ def match_content_type_header(func, context, request):
 def extract_json_data(request):
     if request.body:
         try:
-            body = simplejson.loads(request.body)
+            body_str = request.body
+            if PY2 and isinstance(body_str, str):
+                body_str = body_str.decode('utf-8')
+            body = simplejson.loads(body_str)
             if isinstance(body, dict):
                 return body
             request.errors.add(
                 'body', None,
                 "Invalid JSON: Should be a JSON object, got %s" % body
             )
+            return {}
+        except UnicodeDecodeError as e:
+            # Ref https://tools.ietf.org/html/rfc7159#section-8.1
+            request.errors.add(
+                'body', None,
+                "Invalid JSON must be UTF-8 encoded: %s" % e)
             return {}
         except ValueError as e:
             request.errors.add(
