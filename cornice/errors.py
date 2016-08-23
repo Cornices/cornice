@@ -10,8 +10,7 @@ except ImportError:
 class Errors(list):
     """Holds Request errors
     """
-    def __init__(self, request=None, status=400):
-        self.request = request
+    def __init__(self, status=400):
         self.status = status
         super(Errors, self).__init__()
 
