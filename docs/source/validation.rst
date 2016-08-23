@@ -1,9 +1,10 @@
 Validation features
 ###################
 
-Cornice provides a way to to control the request before it's passed to the
-code. A validator is a simple callable that gets the request object and fills
-**request.errors** in case the request isn't valid.
+Cornice provides a way to control the request before it's passed to the
+code. A validator is a simple callable that gets the request object and
+some keywords arguments, and fills **request.errors** in case the request
+isn't valid.
 
 Validators can also convert values and saves them so they can be reused
 by the code. This is done by filling the **request.validated** dictionary.
@@ -11,6 +12,7 @@ by the code. This is done by filling the **request.validated** dictionary.
 Once the request had been sent to the view, you can filter the results using so
 called filters. This document describe both concepts, and how to deal with
 them.
+
 
 Disabling or adding filters/validators
 ======================================
@@ -31,6 +33,7 @@ parameter::
 You also can add or remove filters and validators for a particular service. To
 do that, you need to define its `default_validators` and `default_filters`
 class parameters.
+
 
 Dealing with errors
 ===================
@@ -85,158 +88,8 @@ Configure your views by passing your handler as ``error_handler``:
 Validators
 ==========
 
-Schema validation
------------------
-
-You can do schema validation using either libraries or custom code. However,
-Cornice integrates better when using Colander for instance, and will be able
-to generate the documentation and describe the variables needed if you use it.
-
-Using Colander
-~~~~~~~~~~~~~~
-
-Colander (http://docs.pylonsproject.org/projects/colander/en/latest/) is a
-validation framework from the Pylons project that can be used with Cornice's
-validation hook to control a request and deserialize its content into
-objects.
-
-To describe a schema, using Colander and Cornice, here is how you can do::
-
-    from cornice import Service
-    from cornice.schemas import CorniceSchema
-    from colander import MappingSchema, SchemaNode, String, drop
-
-
-    foobar = Service(name="foobar", path="/foobar")
-
-
-    class FooBarSchema(MappingSchema):
-        # foo and bar are required in the body (json), baz is optional
-        # yeah is required, but in the querystring.
-        foo = SchemaNode(String(), location="body", type='str')
-        bar = SchemaNode(String(), location="body", type='str')
-        baz = SchemaNode(String(), location="body", type='str', missing=drop)
-        yeah = SchemaNode(String(), location="querystring", type='str')
-
-
-    @foobar.post(schema=FooBarSchema)
-    def foobar_post(request):
-        return {"test": "succeeded"}
-
-You can even use Schema-Inheritance as introduced by Colander 0.9.9.
-
-
-If you want to access the ``request`` within the schema nodes during validation,
-you can use the `deferred feature of Colander <http://docs.pylonsproject.org/projects/colander/en/latest/binding.html>`_,
-since Cornice binds the schema with the current request::
-
-    from colander import deferred
-
-    @deferred
-    def deferred_validator(node, kw):
-        request = kw['request']
-        if request['x-foo'] == 'version_a':
-            return OneOf(['a', 'b'])
-        else:
-            return OneOf(['c', 'd'])
-
-    class FooBarSchema(MappingSchema):
-        choice = SchemaNode(String(), validator=deferred_validator)
-
-.. note::
-
-    Since binding on request has a cost, it can be disabled
-    by specifying ``bind_request`` as ``False``::
-
-        @property
-        def schema(self):
-            return CorniceSchema.from_colander(FooBarSchema(),
-                                               bind_request=False)
-
-
-If you want the schema to be dynamic, i.e. you want to choose which one to use
-per request, you can define it as a property on your class and it will be used
-instead. For example::
-
-    @property
-    def schema(self):
-        if self.request.method == 'POST':
-            schema = foo_schema
-        elif self.request.method == 'PUT':
-            schema = bar_schema
-        schema = CorniceSchema.from_colander(schema)
-        # Custom additional context
-        schema = schema.bind(context=self.context)
-        return schema
-
-
-Cornice provides built-in support for JSON and HTML forms
-(``application/x-www-form-urlencoded``) input validation using Colander. If
-you need to validate other input formats, such as XML, you can provide callable
-objects taking a ``request`` argument and returning a Python data structure
-that Colander can understand::
-
-    def dummy_deserializer(request):
-        return parse_my_input_format(request.body)
-
-
-You can then instruct a specific view to use with the ``deserializer``
-parameter::
-
-    @foobar.post(schema=FooBarSchema, deserializer=dummy_deserializer)
-    def foobar_post(request):
-        return {"test": "succeeded"}
-
-
-If you'd like to configure deserialization globally, you can use the
-``add_cornice_deserializer`` configuration directive in your app configuration
-code to tell Cornice which deserializer to use for a given content
-type::
-
-    config = Configurator(settings={})
-    # ...
-    config.add_cornice_deserializer('text/dummy', dummy_deserializer)
-
-With this configuration, when a request comes with a Content-Type header set to
-``text/dummy``, Cornice will call ``dummy_deserializer`` on the ``request``
-before passing the result to Colander.
-
-View-specific deserializers have priority over global content-type
-deserializers.
-
-To enable localization of Colander error messages, you must set
-`available_languages <http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/i18n.html#detecting-available-languages>`_ in your settings.
-You may also set `pyramid.default_locale_name <http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/environment.html#default-locale-name-setting>`_.
-
-
-Using formencode
-~~~~~~~~~~~~~~~~
-
-FormEncode (http://www.formencode.org/en/latest/index.html) is yet another
-validation system that can be used with Cornice.
-
-For example, if you want to make sure the optional query option **max**
-is an integer, and convert it, you can use FormEncode in a Cornice validator
-like this::
-
-
-    from cornice import Service
-    from formencode import validators
-
-    foo = Service(name='foo', path='/foo')
-    validator = validators.Int()
-
-    def validate(request):
-        try:
-            request.validated['max'] = validator.to_python(request.GET['max'])
-        except formencode.Invalid, e:
-            request.errors.add('url', 'max', e.message)
-
-    @foo.get(validators=(validate,))
-    def get_value(request):
-        """Returns the value.
-        """
-        return 'Hello'
+Cornice provide a simple mechanism to let you validate incoming requests
+before they are processed by your views.
 
 
 Validation using custom callables
@@ -251,7 +104,7 @@ Let's take an example: we want to make sure the incoming request has an
     foo = Service(name='foo', path='/foo')
 
 
-    def has_paid(request):
+    def has_paid(request, **kw):
         if not 'X-Verified' in request.headers:
             request.errors.add('header', 'X-Verified', 'You need to provide a token')
 
@@ -296,7 +149,7 @@ This means something like this::
         def __init__(self, request):
             self.request = request
 
-        def validate_it(request):
+        def validate_it(self, request, **kw):
             # pseudo-code validation logic
             if whatever is wrong:
                 request.errors.add('something')
@@ -347,6 +200,7 @@ made of internet media type(s) or a callable returning the same.
 
 Using callables
 ~~~~~~~~~~~~~~~
+
 When a callable is specified, it is called *before* the
 request is passed to the destination function, with the `request` object as
 an argument.
@@ -390,12 +244,15 @@ When using the default json `error_handler`, the response might look like this::
 
 Request media type
 ------------------
+
 Validate the ``Content-Type`` header in http requests
 against a defined or computed list of internet media types.
 Otherwise, signal ``415 Unsupported Media Type`` to the client.
 
+
 Basics
 ~~~~~~
+
 By passing the `content_type` argument to the service definition decorator,
 we define the media types we accept as http **request** bodies::
 
@@ -410,8 +267,10 @@ with a http status of ``415 Unsupported Media Type``.
 The `content_type` argument can either be a string or a list of accepted values
 made of internet media type(s) or a callable returning the same.
 
+
 Using callables
 ~~~~~~~~~~~~~~~
+
 When a callable is specified, it is called *before* the
 request is passed to the destination function, with the `request` object as
 an argument.
@@ -434,8 +293,10 @@ additional parameters like ``charset=utf-8`` or the like.
 
     `WebOb documentation: Return the content type, but leaving off any parameters <http://docs.webob.org/en/latest/api/request.html#webob.request.BaseRequest.content_type>`_
 
+
 Error responses
 ~~~~~~~~~~~~~~~
+
 When requests are rejected, an appropriate error response
 is sent to the client using the configured `error_handler`.
 To give the service consumer a hint about the valid internet

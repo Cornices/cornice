@@ -168,7 +168,7 @@ def register_service_views(config, service):
 
     # Cornice-specific arguments that pyramid does not know about
     cornice_parameters = ('filters', 'validators', 'schema', 'klass',
-                          'error_handler', 'deserializer') + CORS_PARAMETERS
+                          'error_handler') + CORS_PARAMETERS
 
     # 1. register route
 
@@ -325,17 +325,6 @@ def _mungle_view_args(args, predicate_list):
         else:
             # otherwise argument value is just a scalar
             args[kind] = value
-
-
-def add_deserializer(config, content_type, deserializer):
-    registry = config.registry
-
-    def callback():
-        if not hasattr(registry, 'cornice_deserializers'):
-            registry.cornice_deserializers = {}
-        registry.cornice_deserializers[content_type] = deserializer
-
-    config.action(content_type, callable=callback)
 
 
 def register_resource_views(config, resource):

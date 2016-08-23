@@ -2,14 +2,12 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-from pyramid.config import Configurator
 import simplejson as json
-
 from webtest import TestApp
 
 from cornice.errors import Errors
-from cornice.tests.validationapp import main, includeme, dummy_deserializer
-from cornice.tests.support import LoggingCatcher, TestCase, CatchErrors
+from cornice.tests.validationapp import main
+from cornice.tests.support import LoggingCatcher, TestCase
 
 
 class TestServiceDefinition(LoggingCatcher, TestCase):
@@ -178,11 +176,6 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         self.assertEquals(b'{"field": ["5", "2"]}',
                           app.get('/foobaz?field=5&field=2').body)
 
-    def test_email_field(self):
-        app = TestApp(main({}))
-        content = {'email': 'alexis@notmyidea.org'}
-        app.post_json('/newsletter', params=content)
-
     def test_content_type_missing(self):
         # test that a Content-Type request headers is present
         app = TestApp(main({}))
@@ -202,15 +195,52 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         self.assertEqual('Content-Type', error_name)
         self.assertIn('application/json', error_description)
 
+    def test_validated_body_content_from_schema(self):
+        app = TestApp(main({}))
+        content = {'email': 'alexis@notmyidea.org'}
+        response = app.post_json('/newsletter', params=content)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['body'], content)
+
+    def test_validated_querystring_content_from_schema(self):
+        app = TestApp(main({}))
+        response = app.post_json('/newsletter?ref=3')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['querystring'], {"ref": 3})
+
+    def test_validated_querystring_and_schema_from_same_schema(self):
+        app = TestApp(main({}))
+        content = {'email': 'alexis@notmyidea.org'}
+        response = app.post_json('/newsletter?ref=20', params=content)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['body'], content)
+        self.assertEqual(response.json['querystring'], {"ref": 20})
+
+        response = app.post_json('/newsletter?ref=2', params=content,
+                                 status=400)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json['errors'][0]['description'],
+                         'Invalid email length')
+
+    def test_content_type_with_no_body_should_pass(self):
+        app = TestApp(main({}))
+
+        request = app.RequestClass.blank('/newsletter', method='POST',
+                                         headers={'Content-Type':
+                                                  'application/json'})
+        response = app.do_request(request, 200, True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['body'], {})
+
     def test_content_type_missing_with_no_body_should_pass(self):
-        # test that a Content-Type request headers is present
         app = TestApp(main({}))
 
         # requesting without a Content-Type header nor a body should
         # return a 200.
-        request = app.RequestClass.blank('/service5', method='POST')
+        request = app.RequestClass.blank('/newsletter', method='POST')
         response = app.do_request(request, 200, True)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['body'], {})
 
     def test_content_type_wrong_single(self):
         # Tests that the Content-Type request header satisfies the requirement.
@@ -333,12 +363,6 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
     def make_ordinary_app(self):
         return TestApp(main({}))
 
-    def make_app_with_deserializer(self, deserializer):
-        config = Configurator(settings={})
-        config.include(includeme)
-        config.add_cornice_deserializer('text/dummy', deserializer)
-        return TestApp(CatchErrors(config.make_wsgi_app()))
-
     def test_valid_json(self):
         app = self.make_ordinary_app()
         response = app.post_json('/foobar?yeah=test', {
@@ -375,28 +399,6 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
             'bar': 'open',
             'yeah': 'man',
         })
-        self.assertEqual(response.json['test'], 'succeeded')
-
-    def test_deserializer_from_global_config(self):
-        app = self.make_app_with_deserializer(dummy_deserializer)
-        response = app.post('/foobar?yeah=test', "hello,open,yeah",
-                            headers={'content-type': 'text/dummy'})
-        self.assertEqual(response.json['test'], 'succeeded')
-
-    def test_deserializer_from_view_config(self):
-        app = self.make_ordinary_app()
-        response = app.post('/custom_deserializer?yeah=test',
-                            "hello,open,yeah",
-                            headers={'content-type': 'text/dummy'})
-        self.assertEqual(response.json['test'], 'succeeded')
-
-    def test_view_config_has_priority_over_global_config(self):
-        def low_priority_deserializer(request):
-            return "we don't want this"
-        app = self.make_app_with_deserializer(low_priority_deserializer)
-        response = app.post('/custom_deserializer?yeah=test',
-                            "hello,open,yeah",
-                            headers={'content-type': 'text/dummy'})
         self.assertEqual(response.json['test'], 'succeeded')
 
 

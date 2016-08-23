@@ -11,16 +11,15 @@ from pyramid.renderers import IRendererFactory
 from pyramid.response import Response
 
 
-__all__ = ['json_renderer', 'to_list', 'json_error', 'match_accept_header',
-           'extract_request_data']
+__all__ = ['json_renderer', 'to_list', 'json_error', 'match_accept_header']
 
 
 PY3 = sys.version_info[0] == 3
 
 if PY3:
-    string_types = str,
+    string_types = str,         # noqa
 else:
-    string_types = basestring,
+    string_types = basestring,  # noqa
 
 
 def is_string(s):
@@ -166,25 +165,6 @@ def extract_json_data(request):
 
 def extract_form_urlencoded_data(request):
     return request.POST
-
-
-def extract_request_data(request):
-    """extract the different parts of the data from the request, and return
-    them as a tuple of (querystring, headers, body, path)
-    """
-    body = {}
-    content_type = getattr(request, 'content_type', None)
-    registry = request.registry
-    if hasattr(request, 'deserializer'):
-        body = request.deserializer(request)
-    elif (hasattr(registry, 'cornice_deserializers') and
-          content_type in registry.cornice_deserializers):
-        deserializer = registry.cornice_deserializers[content_type]
-        body = deserializer(request)
-    # otherwise, don't block but it will be an empty body, decode
-    # on your own
-
-    return request.GET, request.headers, body, request.matchdict
 
 
 def content_type_matches(request, content_types):

@@ -82,7 +82,7 @@ def _get_method(request):
     return method
 
 
-def ensure_origin(service, request, response=None):
+def ensure_origin(service, request, response=None, **kwargs):
     """Ensure that the origin header is set and allowed."""
     response = response or request.response
 

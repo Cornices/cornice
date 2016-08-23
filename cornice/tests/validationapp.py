@@ -13,12 +13,12 @@ import json
 service = Service(name="service", path="/service")
 
 
-def has_payed(request):
+def has_payed(request, **kw):
     if 'paid' not in request.GET:
         request.errors.add('body', 'paid', 'You must pay!')
 
 
-def foo_int(request):
+def foo_int(request, **kw):
     if 'foo' not in request.GET:
         return
     try:
@@ -38,7 +38,7 @@ def get1(request):
     return res
 
 
-def _json(request):
+def _json(request, **kw):
     """The request body should be a JSON object."""
     try:
         request.validated['json'] = json.loads(request.body.decode('utf-8'))
@@ -78,7 +78,7 @@ def _filter(response):
 service4 = Service(name="service4", path="/service4")
 
 
-def fail(request):
+def fail(request, **kw):
     request.errors.add('body', 'xml', 'Not XML')
 
 
@@ -149,8 +149,13 @@ try:
         String,
         Integer,
         Range,
-        Email
+        Email,
+        drop,
+        null
     )
+
+    from cornice.validators import colander_validator
+
     COLANDER = True
 except ImportError:
     COLANDER = False
@@ -163,53 +168,78 @@ if COLANDER:
     class Integers(SequenceSchema):
         integer = SchemaNode(Integer(), type='int')
 
-    class FooBarSchema(MappingSchema):
+    class BodySchema(MappingSchema):
         # foo and bar are required, baz is optional
         foo = SchemaNode(String(), type='str')
         bar = SchemaNode(String(), type='str', validator=validate_bar)
         baz = SchemaNode(String(), type='str', missing=None)
-        yeah = SchemaNode(String(), location="querystring", type='str')
         ipsum = SchemaNode(Integer(), type='int', missing=1,
                            validator=Range(0, 3))
-        integers = Integers(location="body", type='list', missing=())
+        integers = Integers(type='list', missing=())
+
+    class Query(MappingSchema):
+        yeah = SchemaNode(String(), type='str')
+
+    class RequestSchema(MappingSchema):
+        body = BodySchema()
+        querystring = Query()
+
+        def deserialize(self, cstruct):
+            if 'body' in cstruct and cstruct['body'] == b'hello,open,yeah':
+                values = cstruct['body'].decode().split(',')
+                cstruct['body'] = dict(zip(['foo', 'bar', 'yeah'], values))
+
+            return MappingSchema.deserialize(self, cstruct)
 
     foobar = Service(name="foobar", path="/foobar")
     foobaz = Service(name="foobaz", path="/foobaz")
 
-    @foobar.post(schema=FooBarSchema)
+    @foobar.post(schema=RequestSchema, validators=(colander_validator,))
     def foobar_post(request):
-        return {"test": "succeeded"}
-
-    custom_deserializer_service = Service(name="custom_deserializer_service",
-                                          path="/custom_deserializer")
-
-    def dummy_deserializer(request):
-        values = request.body.decode().split(',')
-        return dict(zip(['foo', 'bar', 'yeah'], values))
-
-    @custom_deserializer_service.post(schema=FooBarSchema,
-                                      deserializer=dummy_deserializer)
-    def custom_deserializer_service_post(request):
         return {"test": "succeeded"}
 
     class StringSequence(SequenceSchema):
         _ = SchemaNode(String())
 
     class ListQuerystringSequence(MappingSchema):
-        field = StringSequence(location="querystring")
+        field = StringSequence()
 
-    @foobaz.get(schema=ListQuerystringSequence)
+        def deserialize(self, cstruct):
+            if 'field' in cstruct and not isinstance(cstruct['field'], list):
+                cstruct['field'] = [cstruct['field']]
+            return MappingSchema.deserialize(self, cstruct)
+
+    class QSSchema(MappingSchema):
+        querystring = ListQuerystringSequence()
+
+    @foobaz.get(schema=QSSchema, validators=(colander_validator,))
     def foobaz_get(request):
-        return {"field": request.validated['field']}
+        return {"field": request.validated['querystring']['field']}
 
     class NewsletterSchema(MappingSchema):
-        email = SchemaNode(String(), validator=Email())
+        email = SchemaNode(String(), validator=Email(), missing=drop)
+
+    class RefererSchema(MappingSchema):
+        ref = SchemaNode(Integer(), missing=drop)
+
+    class NewsletterPayload(MappingSchema):
+        body = NewsletterSchema()
+        querystring = RefererSchema()
+
+        def deserialize(self, cstruct=null):
+            appstruct = super(NewsletterPayload, self).deserialize(cstruct)
+            email = appstruct['body'].get('email')
+            ref = appstruct['querystring'].get('ref')
+            if email and ref and len(email) != ref:
+                self.raise_invalid('Invalid email length')
+            return appstruct
 
     email_service = Service(name='newsletter', path='/newsletter')
 
-    @email_service.post(schema=NewsletterSchema)
+    @email_service.post(schema=NewsletterPayload,
+                        validators=(colander_validator,))
     def newsletter(request):
-        return "ohyeah"
+        return request.validated
 
 
 def includeme(config):

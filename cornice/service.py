@@ -3,14 +3,11 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import functools
 import warnings
-
 from pyramid.response import Response
-
 from cornice.validators import (
     DEFAULT_VALIDATORS,
     DEFAULT_FILTERS,
 )
-from cornice.schemas import CorniceSchema, validate_colander_schema
 from cornice.util import is_string, to_list, json_error, func_name
 
 try:
@@ -119,7 +116,7 @@ class Service(object):
 
     :param cors_origins:
         The list of origins for CORS. You can use wildcards here if needed,
-        e.g. ('list', 'of', '*.domain').
+        e.g. ('list', 'of', '\*.domain').
 
     :param cors_headers:
         The list of headers supported for the services.
@@ -171,7 +168,6 @@ class Service(object):
         self.path = path
         self.description = description
         self.cors_expose_all_headers = True
-        self._schemas = {}
         self._cors_enabled = None
 
         if cors_policy:
@@ -245,11 +241,6 @@ class Service(object):
                 value.extend(to_list(conf.pop(arg)))
             arguments[arg] = value
 
-        # schema validation handling
-        if 'schema' in conf:
-            arguments['schema'] = (
-                CorniceSchema.from_colander(conf.pop('schema')))
-
         # Allow custom error handler
         arguments['error_handler'] = conf.pop('error_handler',
                                               getattr(self, 'error_handler',
@@ -307,12 +298,6 @@ class Service(object):
             warnings.warn(msg, DeprecationWarning)
 
         method = method.upper()
-        if 'schema' in kwargs:
-            # this is deprecated and unusable because multiple schema
-            # definitions for the same method will overwrite each other.
-            # still here for legacy reasons: you'll get a warning if you try to
-            # use it.
-            self._schemas[method] = kwargs['schema']
 
         if 'klass' in kwargs and not callable(view):
             view = _UnboundView(kwargs['klass'], view)
@@ -400,26 +385,6 @@ class Service(object):
                     if validator not in validators:
                         validators.append(validator)
         return validators
-
-    def schemas_for(self, method):
-        """Returns a list of schemas defined for a given HTTP method.
-
-        A tuple is returned, containing the schema and the arguments relative
-        to it.
-        """
-        schemas = []
-        for meth, view, args in self.definitions:
-            if meth.upper() == method.upper() and 'schema' in args:
-                schemas.append((args['schema'], args))
-        return schemas
-
-    @property
-    def schemas(self):
-        """Here for backward compatibility with the old API."""
-        msg = "'Service.schemas' is deprecated. Use 'Service.definitions' "\
-              "instead."
-        warnings.warn(msg, DeprecationWarning)
-        return self._schemas
 
     @property
     def cors_enabled(self):
@@ -544,16 +509,6 @@ def decorate_view(view, args, method):
             elif isinstance(view, _UnboundView):
                 view_ = view.make_bound_view(ob)
 
-        # set data deserializer
-        if 'deserializer' in args:
-            request.deserializer = args['deserializer']
-
-        # do schema validation
-        if 'schema' in args:
-            validate_colander_schema(args['schema'], request)
-        elif hasattr(ob, 'schema'):
-            validate_colander_schema(ob.schema, request)
-
         # the validators can either be a list of callables or contain some
         # non-callable values. In which case we want to resolve them using the
         # object if any
@@ -561,7 +516,7 @@ def decorate_view(view, args, method):
         for validator in validators:
             if is_string(validator) and ob is not None:
                 validator = getattr(ob, validator)
-            validator(request)
+            validator(request, **args)
 
         # only call the view if we don't have validation errors
         if len(request.errors) == 0:

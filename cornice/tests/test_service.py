@@ -4,7 +4,6 @@
 from cornice.resource import resource
 from cornice.service import (Service, get_services, clear_services,
                              decorate_view, _UnboundView)
-from cornice.tests import validationapp
 from cornice.tests.support import TestCase, DummyRequest
 from cornice.util import func_name
 
@@ -231,16 +230,6 @@ class TestService(TestCase):
         service.add_view('GET', lambda x: 'ok', validators=(validator2))
         self.assertEqual(service.get_validators('GET'),
                          [validator, validator2])
-
-    if validationapp.COLANDER:
-        def test_schemas_for(self):
-            schema = validationapp.FooBarSchema
-            service = Service("color", "/favorite-color")
-            service.add_view("GET", lambda x: "red", schema=schema)
-            self.assertEqual(len(service.schemas_for("GET")), 1)
-            service.add_view("GET", lambda x: "red", validators=_validator,
-                             schema=schema)
-            self.assertEqual(len(service.schemas_for("GET")), 2)
 
     def test_class_parameters(self):
         # when passing a "klass" argument, it gets registered. It also tests
