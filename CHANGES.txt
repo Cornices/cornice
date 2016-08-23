@@ -10,6 +10,8 @@ Breaking changes
 
 - Get rid of Buildout files (#369)
 - Errors list ``request.errors`` has no ``request`` anymore (fixes #328)
+- ``request.errors.add()`` now only accepts one of ``header``, ``body``, ``url``,
+  ``path``, ``querystring``, ``cookies`` or ``method`` as first argument (fixes #99)
 
 Bug fixes
 

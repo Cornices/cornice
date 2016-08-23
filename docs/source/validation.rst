@@ -153,7 +153,7 @@ This means something like this::
         def validate_it(self, request, **kw):
             # pseudo-code validation logic
             if whatever is wrong:
-                request.errors.add('something')
+                request.errors.add('body', description="Something is wrong")
 
     @service.get(klass=MyClass, validators=('validate_it',))
     def view(request):
