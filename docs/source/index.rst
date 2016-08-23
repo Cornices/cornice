@@ -99,7 +99,6 @@ Documentation content
    exampledoc
    api
    internals
-   spore
    faq
 
 
