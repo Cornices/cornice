@@ -1,5 +1,5 @@
 [app:main]
-use = egg:{{package}}
+use = egg:{{project}}
 
 pyramid.reload_templates = true
 pyramid.debug_authorization = false
@@ -16,7 +16,7 @@ port = 6543
 # Begin logging configuration
 
 [loggers]
-keys = root, {{package}}
+keys = root, {{project}}
 
 [handlers]
 keys = console
@@ -28,7 +28,7 @@ keys = generic
 level = INFO
 handlers = console
 
-[logger_{{package}}]
+[logger_{{project}}]
 level = DEBUG
 handlers =
 qualname = {{package}}
