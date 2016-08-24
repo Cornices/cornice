@@ -18,6 +18,8 @@ from cornice.util import ContentTypePredicate
 from pyramid.events import BeforeRender, NewRequest
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.security import NO_PERMISSION_REQUIRED
+from pyramid.settings import aslist, asbool
+
 
 logger = logging.getLogger('cornice')
 # Module version, as defined in PEP-0396.
@@ -65,7 +67,7 @@ def setup_localization(config):
     try:
         config.add_translation_dirs('colander:locale/')
         settings = config.get_settings()
-        available_languages = settings['available_languages'].split()
+        available_languages = aslist(settings['available_languages'])
         default_locale_name = settings.get('pyramid.default_locale_name', 'en')
         set_localizer = partial(set_localizer_for_languages,
                                 available_languages=available_languages,
@@ -92,7 +94,7 @@ def includeme(config):
     config.add_view_predicate('content_type', ContentTypePredicate)
 
     settings = config.get_settings()
-    if settings.get('handle_exceptions', True):
+    if asbool(settings.get('handle_exceptions', True)):
         config.add_view(handle_exceptions, context=Exception,
                         permission=NO_PERMISSION_REQUIRED)
         config.add_view(handle_exceptions, context=HTTPNotFound,
