@@ -69,10 +69,6 @@ class ServiceDirective(Directive):
         self.env = self.state.document.settings.env
 
     def run(self):
-        # clear the SERVICES variable, which will allow to use this
-        # directive multiple times
-        clear_services()
-
         app_name = self.options.get('app')
         if app_name:
             app = import_module(app_name)
@@ -94,6 +90,10 @@ class ServiceDirective(Directive):
         # filter the services according to the options we got
         services = get_services(names=names or None,
                                 exclude=self.options.get('exclude'))
+
+        # clear the SERVICES variable, which will allow to use this
+        # directive multiple times
+        clear_services()
 
         return [self._render_service(s) for s in services]
 
