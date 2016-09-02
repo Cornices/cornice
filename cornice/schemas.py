@@ -95,7 +95,7 @@ class CorniceSchema(object):
 
 def validate_colander_schema(schema, request):
     """Validates that the request is conform to the given schema"""
-    from colander import Invalid, Sequence, drop, null, Mapping
+    from colander import Invalid, Sequence, drop, required, null, Mapping
 
     # CorniceSchema.colander_schema guarantees that we have a colander
     #  instance and not a class so we should use `typ` and not
@@ -133,7 +133,9 @@ def validate_colander_schema(schema, request):
             else:
                 try:
                     if attr.name not in data:
-                        if attr.default != null:
+                        if attr.missing is not required:
+                            deserialized = attr.missing
+                        elif attr.default is not null:
                             deserialized = attr.deserialize(attr.serialize())
                         else:
                             deserialized = attr.deserialize()
