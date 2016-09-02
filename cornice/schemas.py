@@ -182,3 +182,28 @@ def validate_colander_schema(schema, request):
         for param in set(params) - set([attr.name for attr in attrs]):
             request.errors.add('body' if param in body else 'querystring',
                                param, msg % param)
+
+
+def validate_matchdict(matchdict_types):
+    """Validates types of request.matchdict through matchdict_types
+    dictionary.
+
+    matchdict_types dictionary should have its values defined as
+    callable type. Here's an example::
+
+        @view(
+            ...
+            validators=( validate_matchdict( {'id': int} ), ),
+            ...
+        )
+    """
+    def wrapper(request):
+        matchdict = request.matchdict
+        for name, typ in matchdict_types.iteritems():
+            if name in matchdict.keys():
+                item = matchdict.get(name)
+                try:
+                    typ(item)
+                except Exception as e:
+                    request.errors.add('path', name, str(e))
+    return wrapper

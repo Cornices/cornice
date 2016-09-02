@@ -239,6 +239,111 @@ like this::
         return 'Hello'
 
 
+Using WTForms
+~~~~~~~~~~~~~
+
+For using WTForms schema see :ref:`WTForms integration <wtforms>`.
+
+
+Validation of request.matchdict
+-------------------------------
+
+Sometimes it can be useful to validate types of variables passed through 
+**request.matchdict** e.g. when you have a Service method that depends upon 
+proper type of this variable.
+
+For example in CRUD-like services you often define methods (GET/PUT/DELETE) 
+whose URI includes an **id** that is used for querying the object. To ensure
+that your code doesn't break, you can validate coercion of the specified 
+**request.matchdict** variable to given type. For example::
+
+    from cornice import Service
+
+    USERS = {}
+    
+    user = Service(name='user', path='/user/{id}')
+    
+    @user.get(validators=validate_matchdict({'id' : int}))
+    def get_user(request):
+        """Returns user by id.
+        """
+        user_id = int(request.matchdict.get('id'))
+        return USERS[user_id]
+
+The **validate_matchdict** method ensures that **{id}** specified in the path
+for this service properly coerces to **int**. 
+
+**validate_matchdict** method takes coercion dictionary with it's key as the 
+name of request.matchdict key and value as type matchdict's variable should
+coerce to. If you have an URI that looks like this::
+
+    /users/{id}/friend/{name}
+
+the dictionary passed as argument to **validate_matchdict** could look like 
+this::
+
+    { 'id': int, 'name': str }
+
+Dictionary values doesn't have to be a builtin Python type, but can be any
+callable that performs coercion or raise an **Exception** when the coercion
+fails. Here's a simple example for coercing email in matchdict::
+
+    from cornice import Service
+    import re
+	
+    FOO = {}
+	
+    foo = Service(name='foo', path='/foo/{id}')
+    
+    
+    def coerce_email(value):
+        """Try to coerce value to email.
+        """
+        value = str(value)
+        match = re.match("^[a-zA-Z0-9._%-+]+@[a-zA-Z0-9._%-]+.[a-zA-Z]{2,6}$", 
+                         value)
+        if match is None:
+            raise Exception('Value "{email}" is not proper email!'.format(
+                            email=value))
+    
+    
+    @foo.get(validators=validate_matchdict({'email' : coerce_email}))
+    def get_foo(request):
+        """Returns foo value by email.
+        """
+        email = request.matchdict.get('email')
+        return FOO[email]
+
+
+Here's another example for validating UUID in matchdict::
+
+    from cornice import Service
+    from uuid import UUID
+	
+    FOO = {}
+	
+    foo = Service(name='foo', path='/foo/{uuid}')
+    
+    
+    def coerce_uuid(value):
+        """Try to coerce value to UUID.
+        """
+        try:
+            UUID(str(value), version=4)
+        except:
+            raise Exception('Value {uuid_name} is not proper UUID!'.format(
+                            uuid_name=value))
+    
+    
+    @foo.get(validators=validate_matchdict({'uuid' : coerce_uuid}))
+    def get_foo(request):
+        """Returns foo value by UUID.
+        """
+        uuid = request.matchdict.get('uuid')
+        return FOO[uuid]
+    
+
+
 Validation using custom callables
 ---------------------------------
 
