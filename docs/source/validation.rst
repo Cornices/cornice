@@ -64,7 +64,8 @@ with an XML document as its payload:
 
 .. code-block:: python
 
-    def xml_error(errors):
+    def xml_error(request):
+        errors = request.errors
         lines = ['<errors>']
         for error in errors:
             lines.append('<error>'

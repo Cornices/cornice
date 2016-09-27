@@ -536,7 +536,7 @@ def decorate_view(view, args, method):
             # We already checked for CORS, but since the response is created
             # again, we want to do that again before returning the response.
             request.info['cors_checked'] = False
-            return args['error_handler'](request.errors)
+            return args['error_handler'](request)
 
         # if the view returns its own response, cors headers need to be set
         if isinstance(response, Response):

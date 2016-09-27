@@ -82,7 +82,8 @@ def fail(request, **kw):
     request.errors.add('body', 'xml', 'Not XML')
 
 
-def xml_error(errors):
+def xml_error(request):
+    errors = request.errors
     lines = ['<errors>']
     for error in errors:
         lines.append('<error>'
