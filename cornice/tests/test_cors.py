@@ -67,7 +67,7 @@ def moar_spam(request):
     return 'moar spam'
 
 
-def is_bacon_good(request):
+def is_bacon_good(request, **kwargs):
     if not request.matchdict['type'].endswith('good'):
         request.errors.add('querystring', 'type', 'should be better!')
 

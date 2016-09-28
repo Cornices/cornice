@@ -12,7 +12,6 @@ from cornice.pyramidhook import (
     wrap_request,
     register_service_views,
     handle_exceptions,
-    add_deserializer,
     register_resource_views,
 )
 from cornice.util import ContentTypePredicate
@@ -87,14 +86,10 @@ def includeme(config):
     # config.add_directive('add_apidoc', add_apidoc)
     config.add_directive('add_cornice_service', register_service_views)
     config.add_directive('add_cornice_resource', register_resource_views)
-    config.add_directive('add_cornice_deserializer', add_deserializer)
     config.add_subscriber(add_renderer_globals, BeforeRender)
     config.add_subscriber(wrap_request, NewRequest)
     config.add_renderer('simplejson', util.json_renderer)
     config.add_view_predicate('content_type', ContentTypePredicate)
-    config.add_cornice_deserializer('application/x-www-form-urlencoded',
-                                    util.extract_form_urlencoded_data)
-    config.add_cornice_deserializer('application/json', util.extract_json_data)
 
     settings = config.get_settings()
     if settings.get('handle_exceptions', True):

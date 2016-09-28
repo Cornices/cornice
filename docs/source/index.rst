@@ -93,6 +93,7 @@ Documentation content
    resources
    validation
    builtin-validation
+   schema
    sphinx
    testing
    exhaustive_list

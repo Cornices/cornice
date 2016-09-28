@@ -67,7 +67,7 @@ class TemperatureCooler(object):
         response.text = u'fresh ' + response.text
         return response
 
-    def check_temperature(self, request):
+    def check_temperature(self, request, **kw):
         if not 'X-Temperature' in request.headers:
             request.errors.add('header', 'X-Temperature')
 

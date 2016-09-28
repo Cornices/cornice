@@ -135,6 +135,11 @@ class ServiceDirective(Directive):
 
                 attrs_node = nodes.inline()
                 for location in ('header', 'querystring', 'body'):
+
+                    # XXX to be ported
+                    if not hasattr(schema, 'get_attributes'):
+                        continue
+
                     attributes = schema.get_attributes(location=location)
                     if attributes:
                         attrs_node += nodes.inline(
@@ -249,7 +254,7 @@ def trim(docstring):
         trimmed.pop(0)
     # Return a single string:
     res = '\n'.join(trimmed)
-    if not PY3 and not isinstance(res, unicode):
+    if not PY3 and not isinstance(res, unicode):    # noqa
         res = res.decode('utf8')
     return res
 
