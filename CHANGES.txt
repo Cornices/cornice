@@ -8,6 +8,7 @@ CHANGELOG
 
 Breaking changes
 
+- Drop Spore support (``cornice.ext.spore``)
 - Get rid of Buildout files (#369)
 - Errors list ``request.errors`` has no ``request`` anymore (fixes #328)
 
