@@ -94,13 +94,11 @@ Documentation content
    validation
    builtin-validation
    schema
-   sphinx
    testing
    exhaustive_list
    exampledoc
    api
    internals
-   spore
    faq
 
 
