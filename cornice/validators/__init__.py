@@ -2,7 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 from webob.multidict import MultiDict
-from cornice.validators._colander import validator as colander_validator  # noqa
+from cornice.validators._colander import (
+    validator as colander_validator,
+    body_validator as colander_body_validator)  # flake8: noqa
 
 DEFAULT_VALIDATORS = []
 DEFAULT_FILTERS = []

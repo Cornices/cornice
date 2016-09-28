@@ -18,7 +18,7 @@ The `cornice.validators.filter_json_xsrf` filter checks out the views response,
 looking for json objects returning lists.
 
 It happens that json lists are subject to cross request forgery attacks (XSRF)
-when returning lists (see http://wiki.pylonshq.com/display/pylonsfaq/Warnings), 
+when returning lists (see http://wiki.pylonshq.com/display/pylonsfaq/Warnings),
 so cornice will drop a warning in case you're doing so.
 
 Built-in validators
@@ -56,7 +56,7 @@ cornice should look in the request for this argument.
 Route factory support
 =====================
 
-When defining a service or a resource, you can provide a `route factory 
+When defining a service or a resource, you can provide a `route factory
 <http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/urldispatch.html#route-factories>`_,
 just like when defining a pyramid route. Cornice will then pass its result
 into the ``__init__`` of your service.

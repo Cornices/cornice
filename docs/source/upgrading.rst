@@ -25,7 +25,7 @@ Before:
         if 'paid' not in request.GET:
             request.errors.add('body', 'paid', 'You must pay!')
 
-After:
+Now:
 
 .. code-block:: python
 
@@ -38,9 +38,48 @@ After:
 Colander validation
 -------------------
 
-Colander schema validation now requires an explicit validator, and an additional
-level of mapping for ``body``, ``querystring`` or ``headers`` instead of the former
-``location`` attribute. The ``request.validated`` hences reflects this additional level.
+Colander schema validation now requires an explicit validator on the service
+view definition.
+
+Before:
+
+.. code-block:: python
+
+    class SignupSchema(colander.MappingSchema):
+        username = colander.SchemaNode(colander.String())
+
+    @signup.get(schema=SignupSchema)
+    def signup_get(request):
+        username = request.validated['username']
+        return {'success': True}
+
+Now:
+
+.. code-block:: python
+
+    from cornice.validators import colander_body_validator
+
+    class SignupSchema(colander.MappingSchema):
+        username = colander.SchemaNode(colander.String())
+
+    @signup.get(schema=SignupSchema, validators=(colander_body_validator,))
+    def signup_get(request):
+        username = request.validated['username']
+        return {'success': True}
+
+This makes declarations a bit more verbose, but decorrelates Cornice from Colander.
+Now any validation library can be used.
+
+
+Complex Colander validation
+---------------------------
+
+If you have complex use-cases where data has to be validated accross several location
+of the request (like querystring, body etc.), Cornice provides a validator that
+takes an additionnal level of mapping for ``body``, ``querystring``, ``path`` or ``headers``]
+instead of the former ``location`` attribute.
+
+The ``request.validated`` hences reflects this additional level.
 
 Before:
 
@@ -57,7 +96,7 @@ Before:
         referrer = request.validated['referrer']
         return {'success': True}
 
-After:
+Now:
 
 .. code-block:: python
 
@@ -81,6 +120,23 @@ After:
         referrer = request.validated['querystring']['referrer']
         return {'success': True}
 
+This allows to have validation at the schema level that validates data from several
+locations:
+
+.. code-block:: python
+
+    class SignupSchema(colander.MappingSchema):
+        body = Payload()
+        querystring = Querystring()
+
+        def deserialize(self, cstruct=colander.null):
+            appstruct = super(SignupSchema, self).deserialize(cstruct)
+            username = appstruct['body']['username']
+            referrer = appstruct['querystring'].get('referrer')
+            if username == referred:
+                self.raise_invalid('Referrer cannot be the same as username')
+            return appstruct
+
 
 Error handler
 -------------
@@ -95,7 +151,7 @@ Before:
         request = errors.request
         ...
 
-After:
+Now:
 
 .. code-block:: python
 
@@ -124,7 +180,7 @@ Before:
 
     schema = service.schemas_for(method="POST")
 
-After:
+Now:
 
 .. code-block:: python
 
