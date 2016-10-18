@@ -57,7 +57,9 @@ We provide a `Cookiecutter <https://cookiecutter.readthedocs.io>`_ template you
 can use to create a new application::
 
     $ bin/pip install cookiecutter
-    $ bin/cookiecutter gh:Cornices/cookiecutter-cornice -o messaging
+    $ bin/cookiecutter gh:Cornices/cookiecutter-cornice
+    repo_name [myapp]: messaging
+    project_title [My Cornice application.]: Cornice tutorial
 
 Once your application is generated, go there and call *develop* against it::
 
