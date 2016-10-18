@@ -19,3 +19,4 @@ nosetests.xml
 man
 .channel
 dist/
+.venv/

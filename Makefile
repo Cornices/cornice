@@ -1,5 +1,5 @@
 HERE = $(shell pwd)
-VENV = $(HERE)/venv
+VENV = $(HERE)/.venv
 BIN = $(VENV)/bin
 PYTHON = $(BIN)/python
 VIRTUALENV = virtualenv
