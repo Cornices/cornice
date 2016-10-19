@@ -11,17 +11,8 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
 
 requires = ['pyramid',  'simplejson']
 
-entry_points = """\
-[paste.paster_create_template]
-cornice=cornice.scaffolds:CorniceTemplate
-[pyramid.scaffold]
-cornice=cornice.scaffolds:CorniceTemplate
-"""
-
-package_data = {
-    "cornice.scaffolds": [
-        "cornice/*.*",
-        "cornice/+package+/*.*"]}
+entry_points = ""
+package_data = {}
 
 setup(name='cornice',
       version='1.3.0.dev0',

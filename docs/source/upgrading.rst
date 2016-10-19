@@ -4,6 +4,14 @@ Upgrading
 1.X to 2.X
 ==========
 
+Project template
+----------------
+
+We now rely on `Cookiecutter <https://cookiecutter.readthedocs.io>`_ instead of
+the deprecated Pyramid scaffolding feature::
+
+    $ cookiecutter gh:Cornices/cookiecutter-cornice
+
 Validators
 ----------
 
@@ -122,4 +130,3 @@ After:
 
     schema = [kwargs['schema'] for method, view, kwargs in service.definitions
               if method == "POST"][0]
-

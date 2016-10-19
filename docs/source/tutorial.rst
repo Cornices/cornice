@@ -53,29 +53,13 @@ Once you have it, install Cornice in it with Pip::
 
     $ bin/pip install cornice
 
-Cornice provides a Paster Template you can use to create a new
-application::
+We provide a `Cookiecutter <https://cookiecutter.readthedocs.io>`_ template you
+can use to create a new application::
 
-    $ bin/pcreate -t cornice messaging
-    Creating directory <...path ...>/messaging
-      Recursing into +package+
-        Creating <...path ...>/messaging/messaging/
-        Copying __init__.py_tmpl to <...path ...>/messaging/messaging/__init__.py
-        Copying views.py_tmpl to <...path ...>/messaging/messaging/views.py
-      Copying +package+.ini_tmpl to <...path ...>/messaging/messaging.ini
-      Copying README.rst_tmpl to <...path ...>/messaging/README.rst
-      Copying setup.py_tmpl to <...path ...>/messaging/setup.py
-
-    ===============================================================================
-    Tutorials: http://docs.pylonsproject.org/projects/pyramid_tutorials
-    Documentation: http://docs.pylonsproject.org/projects/pyramid
-
-    Twitter (tips & updates): http://twitter.com/pylons
-    Mailing List: http://groups.google.com/group/pylons-discuss
-
-    Welcome to Pyramid.  Sorry for the convenience.
-    ===============================================================================
-
+    $ bin/pip install cookiecutter
+    $ bin/cookiecutter gh:Cornices/cookiecutter-cornice
+    repo_name [myapp]: messaging
+    project_title [My Cornice application.]: Cornice tutorial
 
 Once your application is generated, go there and call *develop* against it::
 

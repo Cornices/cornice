@@ -9,9 +9,9 @@ To use Cornice, install it::
     $ pip install cornice
 
 
-That'll give you a Paster template to use::
+You can use a `Cookiecutter <https://cookiecutter.readthedocs.io>`_ project template::
 
-    $ pcreate -t cornice project
+    $ cookiecutter gh:Cornices/cookiecutter-cornice
     ...
 
 The template creates a working Cornice application.
