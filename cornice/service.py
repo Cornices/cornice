@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import functools
-import warnings
 from pyramid.response import Response
 from cornice.validators import (
     DEFAULT_VALIDATORS,
@@ -278,25 +277,6 @@ class Service(object):
         :param **kwargs: additional configuration for this view,
                         including `permission`.
         """
-
-        if 'acl' in kwargs:
-            kwargs.pop('acl')
-            msg = ("Warning: Using acl in method definitions is deprecated."
-                   "Use service or resource instead.")
-            warnings.warn(msg, DeprecationWarning)
-
-        if 'factory' in kwargs:
-            kwargs.pop('factory')
-            msg = ("Warning: Using acl in method definitions is deprecated."
-                   "Use service or resource instead.")
-            warnings.warn(msg, DeprecationWarning)
-
-        if 'traverse' in kwargs:
-            kwargs.pop('traverse')
-            msg = ("Warning: Using traverse in method definitions is "
-                   "deprecated. Use service or resource instead.")
-            warnings.warn(msg, DeprecationWarning)
-
         method = method.upper()
 
         if 'klass' in kwargs and not callable(view):
@@ -397,15 +377,6 @@ class Service(object):
     def cors_enabled(self, value):
         self._cors_enabled = value
 
-    @property
-    def cors_supported_headers(self):
-        """Backward compatibility for ``cors_supported_headers_for``."""
-        msg = "The '{0}' property is deprecated. Please start using '{1}' "\
-              "instead.".format('cors_supported_headers',
-                                'cors_supported_headers_for()')
-        warnings.warn(msg, DeprecationWarning)
-        return self.cors_supported_headers_for()
-
     def cors_supported_headers_for(self, method=None):
         """Return an iterable of supported headers for this service.
 
@@ -449,14 +420,6 @@ class Service(object):
         if not origins:
             origins = self.cors_origins
         return origins
-
-    def cors_support_credentials(self, method=None):
-        """Backward compatibility for ``cors_support_credentials_for``."""
-        msg = "The '{0}' property is deprecated. Please start using '{1}' "\
-              "instead.".format('cors_support_credentials',
-                                'cors_support_credentials_for()')
-        warnings.warn(msg, DeprecationWarning)
-        return self.cors_supported_headers_for()
 
     def cors_support_credentials_for(self, method=None):
         """Returns if the given method support credentials.
