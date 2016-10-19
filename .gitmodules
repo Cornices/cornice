@@ -1,6 +1,3 @@
-[submodule "examples/demoapp"]
-	path = examples/demoapp
-	url = git@github.com:mozilla-services/demoapp.git
 [submodule "docs/source/_themes/mozilla"]
 	path = docs/source/_themes/mozilla
 	url = https://github.com/ametaireau/mozilla-sphinx-theme.git
