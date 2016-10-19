@@ -16,6 +16,11 @@ class Errors(list):
 
     def add(self, location, name=None, description=None, **kw):
         """Registers a new error."""
+        allowed = ('body', 'querystring', 'url', 'header', 'path',
+                   'cookies', 'method')
+        if location != '' and location not in allowed:
+            raise ValueError('%r not in %s' % (location, allowed))
+
         self.append(dict(
             location=location,
             name=name,
