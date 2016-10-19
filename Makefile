@@ -1,12 +1,10 @@
 HERE = $(shell pwd)
-VENV = $(HERE)/venv
+VENV = $(HERE)/.venv
 BIN = $(VENV)/bin
 PYTHON = $(BIN)/python
 VIRTUALENV = virtualenv
-INSTALL = $(BIN)/pip install --no-deps
-DOC_STAMP = $(VENV)/.doc_env_installed.stamp
 
-.PHONY: all test docs build_extras
+.PHONY: all test docs
 
 all: build
 
@@ -19,11 +17,14 @@ build: $(PYTHON)
 clean:
 	rm -rf $(VENV)
 
-test_dependencies:
+test_dependencies: build
 	$(BIN)/pip install tox
 
-test: build test_dependencies
+test: test_dependencies
 	$(BIN)/tox
 
-docs:
+docs_dependencies: $(PYTHON)
+	$(BIN)/pip install -r docs/requirements.txt
+
+docs: docs_dependencies
 	cd docs && $(MAKE) html SPHINXBUILD=$(VENV)/bin/sphinx-build
