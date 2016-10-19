@@ -71,7 +71,7 @@ def get_fallback_view(service):
                         'Accept header should be one of {0}'.format(
                             acceptable).encode('ascii'))
                     request.errors.status = HTTPNotAcceptable.code
-                    error = service.error_handler(request.errors)
+                    error = service.error_handler(request)
                     raise error
 
             if 'content_type' in args:
@@ -89,7 +89,7 @@ def get_fallback_view(service):
                         'Content-Type header should be one of {0}'.format(
                             supported_contenttypes).encode('ascii'))
                     request.errors.status = HTTPUnsupportedMediaType.code
-                    error = service.error_handler(request.errors)
+                    error = service.error_handler(request)
                     raise error
 
         # In the absence of further information about what went wrong,
