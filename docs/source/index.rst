@@ -100,6 +100,7 @@ Documentation content
    api
    internals
    faq
+   upgrading
 
 
 Contribution & Feedback
