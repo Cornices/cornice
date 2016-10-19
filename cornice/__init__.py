@@ -15,24 +15,15 @@ from cornice.pyramidhook import (
     register_resource_views,
 )
 from cornice.util import ContentTypePredicate
-from pyramid.events import BeforeRender, NewRequest
+from pyramid.events import NewRequest
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.security import NO_PERMISSION_REQUIRED
+from pyramid.settings import aslist, asbool
+
 
 logger = logging.getLogger('cornice')
 # Module version, as defined in PEP-0396.
 __version__ = pkg_resources.get_distribution(__package__).version
-
-
-def add_renderer_globals(event):
-    event['util'] = util
-
-
-def add_apidoc(config, pattern, func, service, **kwargs):
-    apidocs = config.registry.settings.setdefault('apidocs', {})
-    info = apidocs.setdefault(pattern, kwargs)
-    info['service'] = service
-    info['func'] = func
 
 
 def set_localizer_for_languages(event, available_languages,
@@ -65,7 +56,7 @@ def setup_localization(config):
     try:
         config.add_translation_dirs('colander:locale/')
         settings = config.get_settings()
-        available_languages = settings['available_languages'].split()
+        available_languages = aslist(settings['available_languages'])
         default_locale_name = settings.get('pyramid.default_locale_name', 'en')
         set_localizer = partial(set_localizer_for_languages,
                                 available_languages=available_languages,
@@ -83,16 +74,14 @@ def includeme(config):
     # attributes required to maintain services
     config.registry.cornice_services = {}
 
-    # config.add_directive('add_apidoc', add_apidoc)
     config.add_directive('add_cornice_service', register_service_views)
     config.add_directive('add_cornice_resource', register_resource_views)
-    config.add_subscriber(add_renderer_globals, BeforeRender)
     config.add_subscriber(wrap_request, NewRequest)
     config.add_renderer('simplejson', util.json_renderer)
     config.add_view_predicate('content_type', ContentTypePredicate)
 
     settings = config.get_settings()
-    if settings.get('handle_exceptions', True):
+    if asbool(settings.get('handle_exceptions', True)):
         config.add_view(handle_exceptions, context=Exception,
                         permission=NO_PERMISSION_REQUIRED)
         config.add_view(handle_exceptions, context=HTTPNotFound,
