@@ -74,10 +74,10 @@ Now any validation library can be used.
 Complex Colander validation
 ---------------------------
 
-If you have complex use-cases where data has to be validated accross several location
+If you have complex use-cases where data has to be validated accross several locations
 of the request (like querystring, body etc.), Cornice provides a validator that
-takes an additionnal level of mapping for ``body``, ``querystring``, ``path`` or ``headers``]
-instead of the former ``location`` attribute.
+takes an additionnal level of mapping for ``body``, ``querystring``, ``path`` or ``headers``
+instead of the former ``location`` attribute on schema fields.
 
 The ``request.validated`` hences reflects this additional level.
 
@@ -120,7 +120,7 @@ Now:
         referrer = request.validated['querystring']['referrer']
         return {'success': True}
 
-This allows to have validation at the schema level that validates data from several
+This now allows to have validation at the schema level that validates data from several
 locations:
 
 .. code-block:: python
