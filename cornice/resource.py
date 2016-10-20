@@ -52,7 +52,10 @@ def add_resource(klass, depth=1, **kw):
         Keyword arguments configuring the resource.
 
 
-    Here is an example::
+    Here is an example:
+
+    .. code-block:: python
+
         class User(object):
             pass
 
@@ -149,19 +152,21 @@ def add_view(func, **kw):
 
     Example:
 
-    class User(object):
+    .. code-block:: python
 
-        def __init__(self, request):
-            self.request = request
+        class User(object):
 
-        def collection_get(self):
-            return {'users': _USERS.keys()}
+            def __init__(self, request):
+                self.request = request
 
-        def get(self):
-            return _USERS.get(int(self.request.matchdict['id']))
+            def collection_get(self):
+                return {'users': _USERS.keys()}
 
-    add_view(User.get, renderer='json')
-    add_resource(User, collection_path='/users', path='/users/{id}')
+            def get(self):
+                return _USERS.get(int(self.request.matchdict['id']))
+
+        add_view(User.get, renderer='json')
+        add_resource(User, collection_path='/users', path='/users/{id}')
     """
     # XXX needed in py2 to set on instancemethod
     if hasattr(func, '__func__'):

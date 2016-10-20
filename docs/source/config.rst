@@ -12,5 +12,5 @@ Setting name (default value)    What does it do?
 =============================   ============================================
 route_prefix (``)               Sets a prefix for all your routes. For
                                 instance, if you want to prefix all your
-                                URIs by /1.0/, you can set it up here.
+                                URIs by ``/v1/``, you can set it up here.
 =============================   ============================================

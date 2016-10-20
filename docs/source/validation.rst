@@ -21,7 +21,9 @@ Some validators and filters are activated by default, for all the services. In
 case you want to disable them, or if you
 
 You can register a filter for all the services by tweaking the `DEFAULT_FILTER`
-parameter::
+parameter:
+
+.. code-block:: python
 
     from cornice.validators import DEFAULT_FILTERS
 
@@ -97,15 +99,16 @@ Validation using custom callables
 ---------------------------------
 
 Let's take an example: we want to make sure the incoming request has an
-**X-Verified** header. If not, we want the server to return a 400::
+**X-Verified** header. If not, we want the server to return a 400:
 
+.. code-block:: python
 
     from cornice import Service
 
     foo = Service(name='foo', path='/foo')
 
 
-    def has_paid(request, **kw):
+    def has_paid(request, **kwargs):
         if not 'X-Verified' in request.headers:
             request.errors.add('header', 'X-Verified', 'You need to provide a token')
 
@@ -127,7 +130,9 @@ Changing the status code from validators
 ----------------------------------------
 
 You also can change the status code returned from your validators. Here is an
-example of this::
+example of this:
+
+.. code-block:: python
 
     def user_exists(request):
         if not request.POST['userid'] in userids:
@@ -144,7 +149,9 @@ representing the name of the method you want to invoke on validation.
 Take care, though, because this only works if the class you are using has  an
 `__init__` method which takes a `request` as the first argument.
 
-This means something like this::
+This means something like this:
+
+.. code-block:: python
 
     class MyClass(object):
         def __init__(self, request):
@@ -207,7 +214,9 @@ request is passed to the destination function, with the `request` object as
 an argument.
 
 The callable obtains the request object and returns a list or a single scalar
-value of accepted media types::
+value of accepted media types:
+
+.. code-block:: python
 
     def _accept(request):
         # interact with request if needed
@@ -255,7 +264,9 @@ Basics
 ~~~~~~
 
 By passing the `content_type` argument to the service definition decorator,
-we define the media types we accept as http **request** bodies::
+we define the media types we accept as http **request** bodies:
+
+.. code-block:: python
 
     @service.post(content_type="application/json")
     def foo(request):
@@ -277,7 +288,9 @@ request is passed to the destination function, with the `request` object as
 an argument.
 
 The callable obtains the request object and returns a list or a single scalar
-value of accepted media types::
+value of accepted media types:
+
+.. code-block:: python
 
     def _content_type(request):
         # interact with request if needed
@@ -323,7 +336,9 @@ Managing ACLs
 
 You can also specify a way to deal with ACLs: pass in a function that takes
 a request and returns an ACL, and that ACL will be applied to all views
-in the service::
+in the service:
+
+.. code-block:: python
 
     foo = Service(name='foo', path='/foo', acl=_check_acls)
 
@@ -334,11 +349,15 @@ Filters
 Cornice can also filter the response returned by your views. This can be
 useful if you want to add some behaviour once a response has been issued.
 
-Here is how to define a validator for a service::
+Here is how to define a validator for a service:
+
+.. code-block:: python
 
     foo = Service(name='foo', path='/foo', filters=your_callable)
 
-You can just add the filter for a specific method::
+You can just add the filter for a specific method:
+
+.. code-block:: python
 
     @foo.get(filters=your_callable)
     def foo_get(request):
@@ -346,6 +365,8 @@ You can just add the filter for a specific method::
         pass
 
 In case you would like to register a filter for all the services but one, you
-can use the `exclude` parameter. It works either on services or on methods::
+can use the `exclude` parameter. It works either on services or on methods:
+
+.. code-block:: python
 
     @foo.get(exclude=your_callable)

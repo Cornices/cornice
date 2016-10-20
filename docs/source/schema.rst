@@ -21,16 +21,13 @@ Here's a dummy example:
 
 .. code-block:: python
 
-
-    def my_validator(request, \*\*kw):
-        schema = kw['schema']
+    def my_validator(request, **kwargs):
+        schema = kwargs['schema']
         # do something with the schema
-
 
     schema = {'id': int, 'name': str}
 
-
-    @service.post(validators=my_validator, schema=schema)
+    @service.post(schema=schema, validators=(my_validator,))
     def post(request):
         return {'OK': 1}
 
@@ -41,7 +38,7 @@ provide the schema in the keywords.
 
 
 Using Colander
-~~~~~~~~~~~~~~
+==============
 
 Colander (http://docs.pylonsproject.org/projects/colander/en/latest/) is a
 validation framework from the Pylons project that can be used with Cornice's
@@ -50,38 +47,33 @@ objects.
 
 Cornice provides a helper to ease Colander integration.
 
-To describe a schema, using Colander and Cornice, here is how you can do::
+To describe a schema, using Colander and Cornice, here is how you can do:
+
+.. code-block:: python
+
+    import colander
 
     from cornice import Service
-    from cornice.validators import colander_validator
-    from colander import MappingSchema, SchemaNode, String, drop
+    from cornice.validators import colander_body_validator
 
+    class SignupSchema(colander.MappingSchema):
+        username = colander.SchemaNode(colander.String())
 
-    foobar = Service(name="foobar", path="/foobar")
+    @signup.post(schema=SignupSchema, validators=(colander_body_validator,))
+    def signup_post(request):
+        username = request.validated['username']
+        return {'success': True}
 
-
-    class FooBarSchema(MappingSchema):
-        # foo and bar are required in the body (json), baz is optional
-        # yeah is required, but in the querystring.
-        foo = SchemaNode(String(), location="body", type='str')
-        bar = SchemaNode(String(), location="body", type='str')
-        baz = SchemaNode(String(), location="body", type='str', missing=drop)
-        yeah = SchemaNode(String(), location="querystring", type='str')
-
-
-    @foobar.post(schema=FooBarSchema, validator=colander_validator)
-    def foobar_post(request):
-        return {"test": "succeeded"}
-
-You can even use Schema-Inheritance as introduced by Colander 0.9.9.
-
+Dynamic schemas
+~~~~~~~~~~~~~~~
 
 If you want to do specific things with the schema at validation step,
 like having a schema per request method, you can provide whatever
 you want as the schema key and built a custom validator.
 
-Example::
+Example:
 
+.. code-block:: python
 
     def dynamic_schema(request):
         if request.method == 'POST':
@@ -91,65 +83,131 @@ Example::
         return schema
 
 
-    def my_validator(request, **kw):
-        kw['schema'] = dynamic_schema(request)
-        return colander_validator(request, **kw)
+    def my_validator(request, **kwargs):
+        kwargs['schema'] = dynamic_schema(request)
+        return colander_body_validator(request, **kwargs)
 
 
-    @service.post(validators=my_validator, schema=schema)
+    @service.post(validators=(my_validator,))
     def post(request):
-        return {'OK': 1}
+        return request.validated
+
+
+Multiple request attributes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+If you have complex use-cases where data has to be validated accross several locations
+of the request (like querystring, body etc.), Cornice provides a validator that
+takes an additionnal level of mapping for ``body``, ``querystring``, ``path`` or ``headers``
+instead of the former ``location`` attribute on schema fields.
+
+The ``request.validated`` hences reflects this additional level.
+
+.. code-block:: python
+
+    from cornice.validators import colander_validator
+
+    class Querystring(colander.MappingSchema):
+        referrer = colander.SchemaNode(colander.String(), missing=colander.drop)
+
+    class Payload(colander.MappingSchema):
+        username = colander.SchemaNode(colander.String())
+
+    class SignupSchema(colander.MappingSchema):
+        body = Payload()
+        querystring = Querystring()
+
+    signup = cornice.Service()
+
+    @signup.post(schema=SignupSchema, validators=(colander_validator,))
+    def signup_post(request):
+        username = request.validated['body']['username']
+        referrer = request.validated['querystring']['referrer']
+        return {'success': True}
+
+This allows to have validation at the schema level that validates data from several
+places on the request:
+
+.. code-block:: python
+
+    class SignupSchema(colander.MappingSchema):
+        body = Payload()
+        querystring = Querystring()
+
+        def deserialize(self, cstruct=colander.null):
+            appstruct = super(SignupSchema, self).deserialize(cstruct)
+            username = appstruct['body']['username']
+            referrer = appstruct['querystring'].get('referrer')
+            if username == referred:
+                self.raise_invalid('Referrer cannot be the same as username')
+            return appstruct
 
 
 Cornice provides built-in support for JSON and HTML forms
-(``application/x-www-form-urlencoded``) input validation using
-``colander_validator``.
+(``application/x-www-form-urlencoded``) input validation using the provided
+colander validators.
 
 If you need to validate other input formats, such as XML, you need to
 implement your own deserializer and pass it to the service.
 
-The general pattern in this case is::
+The general pattern in this case is:
 
+.. code-block:: python
 
-    from cornice.validators import colander_validator
+    from cornice.validators import colander_body_validator
 
     def my_deserializer(request):
         return extract_data_somehow(request)
 
 
-    @service.post(validators=my_validator, schema=MySchema,
-                  deserializer=my_deserializer)
+    @service.post(schema=MySchema,
+                  deserializer=my_deserializer,
+                  validators=(colander_body_validator,))
     def post(request):
         return {'OK': 1}
 
 
 Using formencode
-~~~~~~~~~~~~~~~~
+================
 
 FormEncode (http://www.formencode.org/en/latest/index.html) is yet another
 validation system that can be used with Cornice.
 
 For example, if you want to make sure the optional query option **max**
 is an integer, and convert it, you can use FormEncode in a Cornice validator
-like this::
+like this:
 
+.. code-block:: python
 
-    from cornice import Service
     from formencode import validators
 
+    from cornice import Service
+    from cornice.validators import extract_cstruct
+
     foo = Service(name='foo', path='/foo')
-    validator = validators.Int()
 
-    def validate(request, **kw):
+    def form_validator(request, **kwargs):
+        data = extract_cstruct(request)
+        validator = validators.Int()
         try:
-            request.validated['max'] = validator.to_python(request.GET['max'])
+            max = data['querystring'].get('max')
+            request.validated['max'] = validator.to_python(max)
         except formencode.Invalid, e:
-            request.errors.add('url', 'max', e.message)
+            request.errors.add('querystring', 'max', e.message)
 
-    @foo.get(validators=(validate,))
+    @foo.get(validators=(form_validator,))
     def get_value(request):
         """Returns the value.
         """
-        return 'Hello'
+        return {'posted': request.validated}
 
+See also
+========
 
+Several libraries exist in the wild to validate data in Python and that can easily
+be plugged with Cornice.
+
+* JSONSchema (https://pypi.python.org/pypi/jsonschema)
+* Cerberus (https://pypi.python.org/pypi/Cerberus)
+* marshmallow (https://pypi.python.org/pypi/marshmallow)
