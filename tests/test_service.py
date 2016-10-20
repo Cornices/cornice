@@ -4,8 +4,9 @@
 from cornice.resource import resource
 from cornice.service import (Service, get_services, clear_services,
                              decorate_view, _UnboundView)
-from cornice.tests.support import TestCase, DummyRequest
 from cornice.util import func_name
+
+from .support import TestCase, DummyRequest
 
 
 def _validator(req):

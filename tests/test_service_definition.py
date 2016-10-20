@@ -6,7 +6,8 @@ from pyramid import testing
 from webtest import TestApp
 
 from cornice import Service
-from cornice.tests.support import TestCase, CatchErrors
+
+from .support import TestCase, CatchErrors
 
 
 service1 = Service(name="service1", path="/service1")
@@ -34,7 +35,7 @@ class TestServiceDefinition(TestCase):
     def setUp(self):
         self.config = testing.setUp()
         self.config.include("cornice")
-        self.config.scan("cornice.tests.test_service_definition")
+        self.config.scan("tests.test_service_definition")
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
 
     def tearDown(self):
@@ -56,7 +57,7 @@ class TestServiceDefinition(TestCase):
         # with the one already in place.
         config2 = testing.setUp()
         config2.include("cornice")
-        config2.scan("cornice.tests.test_service_definition")
+        config2.scan("tests.test_service_definition")
 
         # Calling the new configurator works as expected.
         app = TestApp(CatchErrors(config2.make_wsgi_app()))

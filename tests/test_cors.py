@@ -12,7 +12,8 @@ from zope.interface import implementer
 from webtest import TestApp
 
 from cornice.service import Service
-from cornice.tests.support import TestCase, CatchErrors
+
+from .support import TestCase, CatchErrors
 
 
 squirel = Service(path='/squirel', name='squirel', cors_origins=('foobar',))
@@ -101,7 +102,7 @@ class TestCORS(TestCase):
         self.config = testing.setUp()
         self.config.include('cornice')
         self.config.add_route('noservice', '/noservice')
-        self.config.scan('cornice.tests.test_cors')
+        self.config.scan('tests.test_cors')
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
 
     def tearDown(self):
@@ -334,7 +335,7 @@ class TestAuthenticatedCORS(TestCase):
         self.config.set_authentication_policy(BasicAuthAuthenticationPolicy(
             check_cred))
         self.config.set_default_permission('readwrite')
-        self.config.scan('cornice.tests.test_cors')
+        self.config.scan('tests.test_cors')
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
 
     def tearDown(self):

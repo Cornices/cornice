@@ -13,10 +13,9 @@ from pyramid.httpexceptions import (
 from webtest import TestApp
 import mock
 
-from cornice.resource import resource
-from cornice.resource import view
-from cornice.tests.support import TestCase, CatchErrors
-from cornice.tests.support import dummy_factory
+from cornice.resource import resource, view
+
+from .support import TestCase, CatchErrors, dummy_factory
 
 
 USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
@@ -95,7 +94,7 @@ class TestResource(TestCase):
 
         self.authn_policy = AuthTktAuthenticationPolicy('$3kr1t')
         self.config.set_authentication_policy(self.authn_policy)
-        self.config.scan("cornice.tests.test_resource")
+        self.config.scan("tests.test_resource")
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
 
     def tearDown(self):
@@ -167,7 +166,7 @@ class NonAutocommittingConfigurationTestResource(TestCase):
         self.config = testing.setUp(autocommit=False)
         self.config.add_renderer('jsonp', JSONP(param_name='callback'))
         self.config.include("cornice")
-        self.config.scan("cornice.tests.test_resource")
+        self.config.scan("tests.test_resource")
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
 
     def tearDown(self):

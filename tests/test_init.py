@@ -5,7 +5,7 @@ from pyramid import testing
 from webtest import TestApp
 import mock
 
-from cornice.tests.support import TestCase, CatchErrors
+from .support import TestCase, CatchErrors
 
 
 class TestCorniceSetup(TestCase):
@@ -22,7 +22,7 @@ class TestCorniceSetup(TestCase):
 
     def _get_app(self):
         self.config.include('cornice')
-        self.config.scan("cornice.tests.test_init")
+        self.config.scan("tests.test_init")
         return TestApp(CatchErrors(self.config.make_wsgi_app()))
 
     def test_exception_handling_is_included_by_default(self):

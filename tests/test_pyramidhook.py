@@ -4,8 +4,9 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import logging
 import mock
+from mock import MagicMock
 from pyramid.interfaces import IDebugLogger
-from cornice.tests.support import TestCase
+from tests.support import TestCase
 
 from pyramid import testing
 from pyramid.httpexceptions import (
@@ -21,13 +22,11 @@ import colander
 from webtest import TestApp
 
 from cornice import Service
-from cornice.tests.support import CatchErrors
-from cornice.tests.support import dummy_factory
-
 from cornice.pyramidhook import register_service_views
 from cornice.util import func_name
 
-from mock import MagicMock
+from .support import CatchErrors, dummy_factory
+
 
 def my_acl(request):
     return [(Allow, 'alice', 'read'),
@@ -96,8 +95,8 @@ class TestService(TestCase):
         self.authn_policy = AuthTktAuthenticationPolicy('$3kr1t')
         self.config.set_authentication_policy(self.authn_policy)
 
-        self.config.scan("cornice.tests.test_service")
-        self.config.scan("cornice.tests.test_pyramidhook")
+        self.config.scan("tests.test_service")
+        self.config.scan("tests.test_pyramidhook")
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
         register_service_views(self.config, service)
 
@@ -184,7 +183,7 @@ class TestServiceWithWrapper(TestCase):
     def setUp(self):
         self.config = testing.setUp()
         self.config.include("cornice")
-        self.config.scan("cornice.tests.test_pyramidhook")
+        self.config.scan("tests.test_pyramidhook")
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
 
     def tearDown(self):
@@ -229,7 +228,7 @@ class TestRouteWithTraverse(TestCase):
         config.route_prefix = '/prefix'
         config.registry.cornice_services = {}
         config.add_directive('add_cornice_service', register_service_views)
-        config.scan("cornice.tests.test_pyramidhook")
+        config.scan("tests.test_pyramidhook")
 
         services = config.registry.cornice_services
         self.assertTrue('/prefix/wrapperservice' in services)

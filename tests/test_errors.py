@@ -1,6 +1,6 @@
-from cornice.tests.support import TestCase
-
 from cornice.errors import Errors
+
+from .support import TestCase
 
 
 class TestErrorsHelper(TestCase):
