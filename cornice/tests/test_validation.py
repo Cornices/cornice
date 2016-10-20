@@ -365,17 +365,15 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
 
     def test_valid_json(self):
         app = self.make_ordinary_app()
-        response = app.post_json('/foobar?yeah=test', {
-            'foo': 'hello',
-            'bar': 'open',
-            'yeah': 'man',
+        response = app.post_json('/signup', {
+            'username': 'man',
         })
-        self.assertEqual(response.json['test'], 'succeeded')
+        self.assertEqual(response.json['username'], 'man')
 
     def test_invalid_json(self):
         app = self.make_ordinary_app()
-        response = app.post('/foobar?yeah=test',
-                            "invalid json input",
+        response = app.post('/signup',
+                            '{"foo": "bar"',
                             headers={'content-type': 'application/json'},
                             status=400)
         self.assertEqual(response.json['status'], 'error')
@@ -384,7 +382,7 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
 
     def test_json_text(self):
         app = self.make_ordinary_app()
-        response = app.post('/foobar?yeah=test',
+        response = app.post('/signup',
                             '"invalid json input"',
                             headers={'content-type': 'application/json'},
                             status=400)
@@ -394,12 +392,11 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
 
     def test_www_form_urlencoded(self):
         app = self.make_ordinary_app()
-        response = app.post('/foobar?yeah=test', {
-            'foo': 'hello',
-            'bar': 'open',
-            'yeah': 'man',
-        })
-        self.assertEqual(response.json['test'], 'succeeded')
+        headers = {'content-type': 'application/x-www-form-urlencoded'}
+        response = app.post('/signup',
+                            'username=man',
+                            headers=headers)
+        self.assertEqual(response.json['username'], 'man')
 
 
 class TestErrorMessageTranslation(TestCase):

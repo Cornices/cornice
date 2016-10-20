@@ -155,13 +155,23 @@ try:
         null
     )
 
-    from cornice.validators import colander_validator
+    from cornice.validators import colander_validator, colander_body_validator
 
     COLANDER = True
 except ImportError:
     COLANDER = False
 
 if COLANDER:
+
+    signup = Service(name="signup", path="/signup")
+
+    class SignupSchema(MappingSchema):
+        username = SchemaNode(String())
+
+    @signup.post(schema=SignupSchema, validators=(colander_body_validator,))
+    def signup_post(request):
+        return request.validated
+
     def validate_bar(node, value):
         if value != 'open':
             raise Invalid(node, "The bar is not open.")
@@ -171,12 +181,12 @@ if COLANDER:
 
     class BodySchema(MappingSchema):
         # foo and bar are required, baz is optional
-        foo = SchemaNode(String(), type='str')
-        bar = SchemaNode(String(), type='str', validator=validate_bar)
-        baz = SchemaNode(String(), type='str', missing=None)
-        ipsum = SchemaNode(Integer(), type='int', missing=1,
+        foo = SchemaNode(String())
+        bar = SchemaNode(String(), validator=validate_bar)
+        baz = SchemaNode(String(), missing=None)
+        ipsum = SchemaNode(Integer(), missing=1,
                            validator=Range(0, 3))
-        integers = Integers(type='list', missing=())
+        integers = Integers(missing=())
 
     class Query(MappingSchema):
         yeah = SchemaNode(String(), type='str')
@@ -193,7 +203,6 @@ if COLANDER:
             return MappingSchema.deserialize(self, cstruct)
 
     foobar = Service(name="foobar", path="/foobar")
-    foobaz = Service(name="foobaz", path="/foobaz")
 
     @foobar.post(schema=RequestSchema, validators=(colander_validator,))
     def foobar_post(request):
@@ -212,6 +221,8 @@ if COLANDER:
 
     class QSSchema(MappingSchema):
         querystring = ListQuerystringSequence()
+
+    foobaz = Service(name="foobaz", path="/foobaz")
 
     @foobaz.get(schema=QSSchema, validators=(colander_validator,))
     def foobaz_get(request):

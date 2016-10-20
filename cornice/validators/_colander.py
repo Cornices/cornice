@@ -1,12 +1,26 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-from colander import Invalid
+import colander
+
+
+def body_validator(request, **kwargs):
+    schema = kwargs.get('schema')
+    if schema:
+        class RequestSchema(colander.MappingSchema):
+            body = schema()
+
+            def deserialize(self, cstruct=colander.null):
+                appstruct = super(RequestSchema, self).deserialize(cstruct)
+                return appstruct['body']
+        kwargs['schema'] = RequestSchema
+    return validator(request, **kwargs)
 
 
 def validator(request, deserializer=None, **kw):
+    from cornice.validators import extract_cstruct
+
     if deserializer is None:
-        from cornice.validators import extract_cstruct
         deserializer = extract_cstruct
 
     schema = kw.get('schema')
@@ -19,7 +33,7 @@ def validator(request, deserializer=None, **kw):
     try:
         deserialized = schema.deserialize(cstruct)
         request.validated.update(deserialized)
-    except Invalid as e:
+    except colander.Invalid as e:
         translate = request.localizer.translate
         error_dict = e.asdict(translate=translate)
         for name, msg in error_dict.items():
