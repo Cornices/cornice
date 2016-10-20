@@ -11,11 +11,11 @@ just setup ``tox`` and run it inside the toplevel project directory::
 
 To run a single test inside a specific Python environment, do e.g.::
 
-    tox -e py27 cornice/tests/test_validation.py:TestServiceDefinition.test_content_type_missing
+    tox -e py27 tests/test_validation.py:TestServiceDefinition.test_content_type_missing
 
 or::
 
-    tox -e py27 cornice.tests.test_validation:TestServiceDefinition.test_content_type_missing
+    tox -e py27 tests.test_validation:TestServiceDefinition.test_content_type_missing
 
 
 Testing cornice services
@@ -31,7 +31,6 @@ Let's suppose you have this service definition:
     from pyramid.config import Configurator
 
     from cornice import Service
-    from cornice.tests.support import CatchErrors
 
     service = Service(name="service", path="/service")
 
@@ -54,7 +53,7 @@ Let's suppose you have this service definition:
     def main(global_config, **settings):
         config = Configurator(settings={})
         config.include(includeme)
-        return CatchErrors(config.make_wsgi_app())
+        return config.make_wsgi_app()
 
 
 We have done three things here:

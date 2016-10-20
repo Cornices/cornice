@@ -6,8 +6,9 @@ import simplejson as json
 from webtest import TestApp
 
 from cornice.errors import Errors
-from cornice.tests.validationapp import main
-from cornice.tests.support import LoggingCatcher, TestCase
+
+from .validationapp import main
+from .support import LoggingCatcher, TestCase
 
 
 class TestServiceDefinition(LoggingCatcher, TestCase):

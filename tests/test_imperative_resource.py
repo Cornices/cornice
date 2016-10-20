@@ -13,10 +13,9 @@ from pyramid.httpexceptions import (
 from webtest import TestApp
 import mock
 
-from cornice.resource import add_resource
-from cornice.resource import add_view
-from cornice.tests.support import TestCase, CatchErrors
-from cornice.tests.support import dummy_factory
+from cornice.resource import add_resource, add_view
+
+from .support import TestCase, CatchErrors, dummy_factory
 
 
 USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
