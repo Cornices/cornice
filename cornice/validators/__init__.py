@@ -7,7 +7,11 @@ from cornice.validators._colander import (
     body_validator as colander_body_validator)
 
 
-__all__ = ['colander_validator', 'colander_body_validator', 'extract_cstruct']
+__all__ = ['colander_validator',
+           'colander_body_validator',
+           'extract_cstruct',
+           'DEFAULT_VALIDATORS',
+           'DEFAULT_FILTERS']
 
 
 DEFAULT_VALIDATORS = []
