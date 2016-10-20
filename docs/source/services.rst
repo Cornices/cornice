@@ -81,6 +81,10 @@ There are also a number of parameters that are related to the support of
 CORS (Cross Origin Resource Sharing). You can read the CORS specification
 at http://www.w3.org/TR/cors/ and see :class:`the exhaustive list of options in Cornice <cornice.service.Service>`.
 
+.. seealso::
+
+    https://blog.mozilla.org/services/2013/02/04/implementing-cross-origin-resource-sharing-cors-for-cornice/
+
 
 Route factory support
 =====================
