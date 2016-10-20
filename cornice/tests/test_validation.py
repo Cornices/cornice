@@ -373,7 +373,7 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
     def test_invalid_json(self):
         app = self.make_ordinary_app()
         response = app.post('/signup',
-                            "invalid json input",
+                            '{"foo": "bar"',
                             headers={'content-type': 'application/json'},
                             status=400)
         self.assertEqual(response.json['status'], 'error')
