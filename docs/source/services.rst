@@ -39,6 +39,28 @@ Here is an example of how to define cornice services in an imperative way:
         # or
         config.scan("PATH_TO_THIS_MODULE")
 
+
+Custom error handler
+====================
+
+.. code-block:: python
+
+    from pyramid.httpexceptions import HTTPBadRequest
+
+    def my_error_handler(request):
+        first_error = request.errors[0]
+        body = {'description': first_error['description']}
+
+        response = HTTPBadRequest()
+        response.body = json.dumps(body).encode("utf-8")
+        response.content_type = 'application/json'
+        return response
+
+    flush = Service(name='flush',
+                    path='/__flush__',
+                    error_handler=my_error_handler)
+
+
 .. _service-cors:
 
 CORS
