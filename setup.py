@@ -38,5 +38,4 @@ setup(name='cornice',
       package_data=package_data,
       include_package_data=True,
       zip_safe=False,
-      install_requires=requires,
-      paster_plugins=['pyramid'])
+      install_requires=requires)
