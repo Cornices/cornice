@@ -61,3 +61,15 @@ however prevent you from returning the array.
 
 This behaviour can be disabled if needed (it can be removed from the list of
 default filters)
+
+
+URL prefix
+==========
+
+It is possible to set a prefix for all your routes. For instance, if you want to
+prefix all your URIs by ``/v1/``.
+
+.. code-block:: python
+
+    config.route_prefix = 'v2'
+    config.include("cornice")
