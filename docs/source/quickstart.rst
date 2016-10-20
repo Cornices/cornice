@@ -1,3 +1,5 @@
+.. _quickstart:
+
 QuickStart for people in a hurry
 ================================
 
