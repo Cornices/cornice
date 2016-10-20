@@ -12,6 +12,32 @@ the deprecated Pyramid scaffolding feature::
 
     $ cookiecutter gh:Cornices/cookiecutter-cornice
 
+Sphinx documentation
+--------------------
+
+The Sphinx extension now lives in a separate package, that must be installed::
+
+    pip install cornice_sphinx
+
+Before in your :file:`docs/conf.py`:
+
+.. code-block: python
+
+    import cornice
+
+    sys.path.insert(0, os.path.abspath(cornice.__file__))
+    extensions = ['cornice.ext.sphinxext']
+
+Now:
+
+.. code-block: python
+
+    import cornice_sphinx
+
+    sys.path.insert(0, os.path.abspath(cornice_sphinx.__file__))
+    extensions = ['cornice_sphinx']
+
+
 Validators
 ----------
 
