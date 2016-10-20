@@ -1,6 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+import json
 import logging
 import logging.handlers
 import weakref
@@ -34,6 +35,12 @@ class DummyRequest(testing.DummyRequest):
         self.context = DummyContext()
         self.errors = Errors()
         self.content_type = None
+
+
+def get_request(body):
+    body = json.dumps(body)
+    json_body = json.loads(body)
+    return DummyRequest(body=body, json_body=json_body)
 
 
 def dummy_factory(request):
