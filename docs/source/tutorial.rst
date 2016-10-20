@@ -1,3 +1,5 @@
+.. _tutorial:
+
 Full tutorial
 =============
 
@@ -39,9 +41,7 @@ We'll provide a single CLI client in Python, using Curses.
 Setting up the development environment
 --------------------------------------
 
-To create this application, we'll use Python 2.7. Make sure you
-have it on your system, then install **virtualenv** (see
-http://pypi.python.org/pypi/virtualenv).
+Make sure you have **virtualenv** (see http://pypi.python.org/pypi/virtualenv).
 
 Create a new directory and a virtualenv in it::
 
@@ -67,7 +67,7 @@ Once your application is generated, go there and call *develop* against it::
     $ ../bin/python setup.py develop
     ...
 
-The application can now be launched via embedded Pyramid pserve, it provides a default "Hello"
+The application can now be launched via embedded Pyramid ``pserve``, it provides a default "Hello"
 service check::
 
     $ ../bin/pserve messaging.ini
@@ -113,11 +113,14 @@ Users management
 
 
 We're going to get rid of the Hello service, and change this file in order
-to add our first service - the users management ::
+to add our first service - the users management
+
+.. code-block:: python
 
     from cornice import Service
 
     _USERS = {}
+
     users = Service(name='users', path='/users', description="User registration")
 
     @users.get(validators=valid_token)
@@ -133,7 +136,7 @@ to add our first service - the users management ::
         return {'token': '%s-%s' % (user['name'], user['token'])}
 
     @users.delete(validators=valid_token)
-    def del_user(request):
+    def delete_user(request):
         """Removes the user."""
         name = request.validated['user']
         del _USERS[name]
@@ -159,47 +162,32 @@ Remarks:
 Validators are filling the **request.validated** mapping, the service can
 then use.
 
-Here's their code::
+.. code-block:: python
 
     import os
     import binascii
-    import json
 
-    from webob import Response, exc
+    from pyramid.httpexceptions import HTTPUnauthorized
     from cornice import Service
 
-    users = Service(name='users', path='/users', description="Users")
-    _USERS = {}
 
-
-    #
-    # Helpers
-    #
     def _create_token():
         return binascii.b2a_hex(os.urandom(20))
-
-
-    class _401(exc.HTTPError):
-        def __init__(self, msg='Unauthorized'):
-            body = {'status': 401, 'message': msg}
-            Response.__init__(self, json.dumps(body))
-            self.status = 401
-            self.content_type = 'application/json'
 
 
     def valid_token(request):
         header = 'X-Messaging-Token'
         htoken = request.headers.get(header)
         if htoken is None:
-            raise _401()
+            raise HTTPUnauthorized()
         try:
             user, token = htoken.split('-', 1)
         except ValueError:
-            raise _401()
+            raise HTTPUnauthorized()
 
         valid = user in _USERS and _USERS[user] == token
         if not valid:
-            raise _401()
+            raise HTTPUnauthorized()
 
         request.validated['user'] = user
 
@@ -211,31 +199,6 @@ Here's their code::
         else:
             user = {'name': name, 'token': _create_token()}
             request.validated['user'] = user
-
-
-    #
-    # Services - User Management
-    #
-    @users.get(validators=valid_token)
-    def get_users(request):
-        """Returns a list of all users."""
-        return {'users': _USERS.keys()}
-
-
-    @users.post(validators=unique)
-    def create_user(request):
-        """Adds a new user."""
-        user = request.validated['user']
-        _USERS[user['name']] = user['token']
-        return {'token': '%s-%s' % (user['name'], user['token'])}
-
-
-    @users.delete(validators=valid_token)
-    def del_user(request):
-        """Removes the user."""
-        name = request.validated['user']
-        del _USERS[name]
-        return {'Goodbye': name}
 
 
 When the validator finds errors, it adds them to the **request.errors**
@@ -262,13 +225,13 @@ Messages management
 :::::::::::::::::::
 
 Now that we have users, let's post and get messages. This is done via two very
-simple functions we're adding in the :file:`views.py` file::
+simple functions we're adding in the :file:`views.py` file:
 
-
-    messages = Service(name='messages', path='/', description="Messages")
+.. code-block:: python
 
     _MESSAGES = []
 
+    messages = Service(name='messages', path='/', description="Messages")
 
     @messages.get()
     def get_messages(request):
@@ -295,7 +258,11 @@ The **POST** uses two validators:
   POST body, and puts it in the validated dict.
 
 
-Here's the :func:`valid_message` function::
+Here's the :func:`valid_message` function:
+
+.. code-block:: python
+
+    import json
 
     def valid_message(request):
         try:

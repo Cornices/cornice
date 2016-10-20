@@ -1,13 +1,15 @@
 Defining resources
 ##################
 
-Cornice is also able to handle rest "resources" for you. You can declare
+Cornice is also able to handle REST "resources" for you. You can declare
 a class with some put, post, get etc. methods (the HTTP verbs) and they will be
 registered as handlers for the appropriate methods / services.
 
-Here is how you can register a resource::
+Here is how you can register a resource:
 
-    from cornice.resource import resource, view
+.. code-block:: python
+
+    from cornice.resource import resource
 
     _USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
 
@@ -20,17 +22,20 @@ Here is how you can register a resource::
         def collection_get(self):
             return {'users': _USERS.keys()}
 
-        @view(renderer='json')
         def get(self):
             return _USERS.get(int(self.request.matchdict['id']))
 
-        @view(renderer='json', accept='text/json')
         def collection_post(self):
             print(self.request.json_body)
             _USERS[len(_USERS) + 1] = self.request.json_body
             return True
 
-Here is an example of how to define cornice resources in an imperative way::
+Imperatively
+============
+
+Here is an example of how to define cornice resources in an imperative way:
+
+.. code-block:: python
 
     from cornice import resource
 
@@ -57,11 +62,15 @@ As you can see, you can define methods for the collection (it will use the
 **path** argument of the class decorator. When defining collection_* methods, the
 path defined in the **collection_path** will be used.
 
-validators and filters
+Validators and filters
 ======================
 
 You also can register validators and filters that are defined in your
-`@resource` decorated class, like this::
+`@resource` decorated class, like this:
+
+.. code-block:: python
+
+    from cornice.resource import resource, view
 
     @resource(path='/users/{id}')
     class User(object):
@@ -76,10 +85,29 @@ You also can register validators and filters that are defined in your
         def validate_req(self, request):
             # validate the request
 
+
 Registered routes
 =================
 
 Cornice uses a default convention for the names of the routes it registers.
 
-When defining resources, the pattern used is `collection_<service_name>` (it
+When defining resources, the pattern used is ``collection_<service_name>`` (it
 prepends ``collection_`` to the service name) for the collection service.
+
+
+Route factory support
+=====================
+
+When defining a resource, you can provide a `route factory
+<http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/urldispatch.html#route-factories>`_,
+just like when defining a pyramid route. Cornice will then pass its result
+into the ``__init__`` of your service.
+
+For example::
+
+    @resource(path='/users', factory=user_factory)
+    class User(object):
+
+        def __init__(self, request, context=None):
+            self.request = request
+            self.user = context

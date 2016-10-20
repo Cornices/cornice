@@ -13,6 +13,8 @@ Sometimes, you will need to register your own exception handlers, and Cornice
 might get on your way.
 
 You can disable the exception handling by using the `handle_exceptions`
-setting in your configuration file or in your main app::
+setting in your configuration file or in your main app:
+
+.. code-block:: python
 
     config.add_settings(handle_exceptions=False)
