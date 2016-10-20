@@ -122,9 +122,6 @@ Let's take an example: we want to make sure the incoming request has an
 Notice that you can chain the validators by passing a sequence
 to the **validators** option.
 
-When using validation, Cornice will try to extract information coming from
-the validation functions and use them in the generated documentation.
-Refer to :doc:`sphinx` for more information about automatic generated documentation.
 
 Changing the status code from validators
 ----------------------------------------

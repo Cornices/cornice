@@ -90,7 +90,7 @@ class Service(object):
         given request). Exclusive with the 'factory' option.
 
     :param permission:
-        As for :ref:`pyramid.config.Configurator.add_view`.
+        As for ``pyramid.config.Configurator.add_view()``.
         Note: `acl` and `permission` can also be applied
         to instance method decorators such as :meth:`~get` and :meth:`~put`.
 

@@ -82,7 +82,7 @@ Documentation content
 
    quickstart
    tutorial
-   config
+   services
    resources
    validation
    schema

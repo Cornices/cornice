@@ -30,6 +30,9 @@ Here is how you can register a resource:
             _USERS[len(_USERS) + 1] = self.request.json_body
             return True
 
+Imperatively
+============
+
 Here is an example of how to define cornice resources in an imperative way:
 
 .. code-block:: python
@@ -59,7 +62,7 @@ As you can see, you can define methods for the collection (it will use the
 **path** argument of the class decorator. When defining collection_* methods, the
 path defined in the **collection_path** will be used.
 
-validators and filters
+Validators and filters
 ======================
 
 You also can register validators and filters that are defined in your
@@ -95,7 +98,7 @@ prepends ``collection_`` to the service name) for the collection service.
 Route factory support
 =====================
 
-When defining a service or a resource, you can provide a `route factory
+When defining a resource, you can provide a `route factory
 <http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/urldispatch.html#route-factories>`_,
 just like when defining a pyramid route. Cornice will then pass its result
 into the ``__init__`` of your service.
@@ -105,6 +108,6 @@ For example::
     @resource(path='/users', factory=user_factory)
     class User(object):
 
-        def __init__(self, context, request):
+        def __init__(self, request, context=None):
             self.request = request
             self.user = context

@@ -15,8 +15,8 @@ def resource(depth=2, **kw):
     """Class decorator to declare resources.
 
     All the methods of this class named by the name of HTTP resources
-    will be used as such. You can also prefix them by "collection_" and they
-    will be treated as HTTP methods for the given collection path
+    will be used as such. You can also prefix them by ``"collection_"`` and
+    they will be treated as HTTP methods for the given collection path
     (collection_path), if any.
 
     :param depth:
@@ -38,8 +38,8 @@ def add_resource(klass, depth=1, **kw):
     """Function to declare resources of a Class.
 
     All the methods of this class named by the name of HTTP resources
-    will be used as such. You can also prefix them by "collection_" and they
-    will be treated as HTTP methods for the given collection path
+    will be used as such. You can also prefix them by ``"collection_"`` and
+    they will be treated as HTTP methods for the given collection path
     (collection_path), if any.
 
     :param klass:

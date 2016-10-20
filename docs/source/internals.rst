@@ -56,8 +56,8 @@ What it does is that it checks all the services registered and call some
 functions of the pyramid framework on your behalf.
 
 What's interesting here is that this mechanism is not really tied to pyramid.
-for instance, we are doing the same thing to do the sphinx automatic
-documentation generation: use the APIs that are exposed in the Service class
+for instance, we are doing the same thing `in cornice_sphinx <https://github.com/Cornices/cornice.ext.sphinx>`_
+to generate the documentation: use the APIs that are exposed in the Service class
 and do something from it.
 
 To keep close to the flexibility of Pyramid's routing system, a ``traverse``

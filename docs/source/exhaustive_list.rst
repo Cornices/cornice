@@ -73,3 +73,13 @@ prefix all your URIs by ``/v1/``.
 
     config.route_prefix = 'v2'
     config.include("cornice")
+
+
+CORS
+====
+
+Cornice can add CORS (Cross Origin Resource Sharing) support to your services.
+When enabled, it will define the appropriate views (``OPTIONS`` methods)
+and validators (headers etc.).
+
+See :ref:`more details...<service-cors>`
