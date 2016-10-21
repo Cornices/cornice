@@ -379,7 +379,7 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
                             status=400)
         self.assertEqual(response.json['status'], 'error')
         error_description = response.json['errors'][0]['description']
-        self.assertIn('Invalid JSON', error_description)
+        self.assertIn('Invalid JSON: Expecting object', error_description)
 
     def test_json_text(self):
         app = self.make_ordinary_app()
