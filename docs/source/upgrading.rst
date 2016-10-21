@@ -96,6 +96,11 @@ Now:
 This makes declarations a bit more verbose, but decorrelates Cornice from Colander.
 Now any validation library can be used.
 
+.. important::
+
+    Some of the validation messages may have changed from version 1.2.
+    For example ``Invalid escape sequence`` becomes ``Invalid \\uXXXX escape``.
+
 
 Complex Colander validation
 ---------------------------
