@@ -197,6 +197,41 @@ Deserializers
 The support of ``config.add_deserializer()`` and ``config.registry.cornice_deserializers``
 was dropped.
 
+Deserializers are still defined via the same API:
+
+.. code-block:: python
+
+    def dummy_deserializer(request):
+        if request.headers.get("Content-Type") == "text/dummy":
+            values = request.body.decode().split(',')
+            return dict(zip(['foo', 'bar', 'yeah'], values))
+        request.errors.add(location='body', description='Unsupported content')
+
+    @myservice.post(schema=FooBarSchema,
+                    deserializer=dummy_deserializer,
+                    validators=(my_validator,))
+
+But now, instead of using the application registry, the ``deserializer`` is
+accessed via the validator kwargs:
+
+.. code-block:: python
+
+    def my_validator(request, deserializer=None, **kwargs):
+        if deserializer is None:
+            deserializer = extract_json_data
+        data = deserializer(request)
+        ...
+
+.. note::
+
+    The built-in ``colander_validator`` supports custom deserializers and defaults
+    to the built-in JSON deserializer.
+
+.. note::
+
+    The attributes ``registry.cornice_deserializers`` and ``request.deserializer``
+    are not set anymore.
+
 
 Services schemas introspection
 ------------------------------
