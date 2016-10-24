@@ -2,8 +2,15 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+import unittest
+
 import simplejson as json
 from webtest import TestApp
+try:
+    import colander
+    COLANDER = True
+except ImportError:
+    COLANDER = False
 
 from cornice.errors import Errors
 
@@ -11,6 +18,11 @@ from .validationapp import main
 from .support import LoggingCatcher, TestCase
 
 
+skip_if_no_colander = unittest.skipIf(COLANDER is False,
+                                      "colander is not installed.")
+
+
+@skip_if_no_colander
 class TestServiceDefinition(LoggingCatcher, TestCase):
 
     def test_validation(self):
@@ -359,6 +371,7 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
             }, status=415)
 
 
+@skip_if_no_colander
 class TestRequestDataExtractors(LoggingCatcher, TestCase):
 
     def make_ordinary_app(self):
@@ -400,6 +413,7 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
         self.assertEqual(response.json['username'], 'man')
 
 
+@skip_if_no_colander
 class TestErrorMessageTranslation(TestCase):
 
     def post(self, settings={}, headers={}):
