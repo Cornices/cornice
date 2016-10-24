@@ -28,8 +28,8 @@ def extract_cstruct(request):
         if request.body:
             try:
                 body = request.json_body
-            except ValueError:
-                request.errors.add('body', '', 'Invalid JSON')
+            except ValueError as e:
+                request.errors.add('body', '', 'Invalid JSON: %s' % e)
                 return {}
             else:
                 if not hasattr(body, 'items'):

@@ -6,7 +6,10 @@ CHANGELOG
 2.1.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+**Bug fixes**
+
+- Fix truncated JSON validation error message when request body does not contain
+  valid JSON
 
 
 2.0.0 (2016-10-20)
