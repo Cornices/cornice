@@ -3,13 +3,15 @@ CHANGELOG
 #########
 
 
-2.1.0 (unreleased)
+2.0.1 (2016-10-24)
 ==================
 
 **Bug fixes**
 
+- Fix Colander imports to make sure it remains optional (#400)
 - Fix truncated JSON validation error message when request body does not contain
-  valid JSON
+  valid JSON (#401)
+- Fix docs about upgrading deserializers (#402)
 
 
 2.0.0 (2016-10-20)
