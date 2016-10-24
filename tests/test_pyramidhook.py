@@ -4,7 +4,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import logging
 import mock
-from mock import MagicMock
+import re
 from pyramid.interfaces import IDebugLogger
 from tests.support import TestCase
 
@@ -16,8 +16,6 @@ from pyramid.response import Response
 from pyramid.security import Allow, Deny, NO_PERMISSION_REQUIRED
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
-
-import colander
 
 from webtest import TestApp
 
@@ -213,8 +211,8 @@ test_service.add_view('GET', lambda _:_)
 class TestRouteWithTraverse(TestCase):
 
     def test_route_construction(self):
-        config = MagicMock()
-        config.add_route = MagicMock()
+        config = mock.MagicMock()
+        config.add_route = mock.MagicMock()
 
         register_service_views(config, test_service)
         self.assertTrue(
@@ -224,7 +222,7 @@ class TestRouteWithTraverse(TestCase):
 
     def test_route_with_prefix(self):
         config = testing.setUp(settings={})
-        config.add_route = MagicMock()
+        config.add_route = mock.MagicMock()
         config.route_prefix = '/prefix'
         config.registry.cornice_services = {}
         config.add_directive('add_cornice_service', register_service_views)
@@ -232,11 +230,6 @@ class TestRouteWithTraverse(TestCase):
 
         services = config.registry.cornice_services
         self.assertTrue('/prefix/wrapperservice' in services)
-
-
-class NonpickableSchema(colander.Schema):
-    # Compiled regexs are, apparently, non-pickleable
-    s = colander.SchemaNode(colander.String(), validator=colander.Regex('.'))
 
 
 class TestServiceWithNonpickleableSchema(TestCase):
@@ -248,7 +241,8 @@ class TestServiceWithNonpickleableSchema(TestCase):
         testing.tearDown()
 
     def test(self):
-        service = Service(name="test", path="/", schema=NonpickableSchema())
+        # Compiled regexs are, apparently, non-pickleable
+        service = Service(name="test", path="/", schema={'a': re.compile('')})
         service.add_view('GET', lambda _:_)
         register_service_views(self.config, service)
 

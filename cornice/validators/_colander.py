@@ -1,10 +1,11 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import colander
 
 
 def body_validator(request, **kwargs):
+    import colander
+
     schema = kwargs.get('schema')
     if schema:
         class RequestSchema(colander.MappingSchema):
@@ -18,6 +19,7 @@ def body_validator(request, **kwargs):
 
 
 def validator(request, deserializer=None, **kw):
+    import colander
     from cornice.validators import extract_cstruct
 
     if deserializer is None:
