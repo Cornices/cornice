@@ -7,7 +7,7 @@ except ImportError:
     print("please install the 'mozilla-sphinx-theme' distribution")
 
 sys.path.insert(0, os.path.abspath("../.."))  # include cornice from the source
-extensions = ['sphinx.ext.autodoc']
+extensions = []
 
 templates_path = ['_templates']
 source_suffix = '.rst'
