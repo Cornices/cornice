@@ -3,14 +3,17 @@ CHANGELOG
 #########
 
 
-2.1.0 (unreleased)
+2.0.2 (2016-10-25)
 ==================
+
+**Bug fixes**
+
+* Exclude ``tests`` from install (#407, thanks @doctaweeks!)
 
 **Internal changes**
 
 - Deprecate ``cornice.util.extract_json_data()`` and ``cornice.util.extract_form_urlencoded_data()``
-  in favor of ``cornice.validators.extract_cstruct()``
-
+  in favor of ``cornice.validators.extract_cstruct()`` (#409)
 
 2.0.1 (2016-10-24)
 ==================
