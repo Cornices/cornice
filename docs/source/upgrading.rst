@@ -216,16 +216,18 @@ accessed via the validator kwargs:
 
 .. code-block:: python
 
+    from cornice.validators import extract_cstruct
+
     def my_validator(request, deserializer=None, **kwargs):
         if deserializer is None:
-            deserializer = extract_json_data
+            deserializer = extract_cstruct
         data = deserializer(request)
         ...
 
 .. note::
 
     The built-in ``colander_validator`` supports custom deserializers and defaults
-    to the built-in JSON deserializer.
+    to the built-in JSON deserializer ``cornice.validators.extract_cstruct``.
 
 .. note::
 

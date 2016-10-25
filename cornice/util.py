@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import sys
+import warnings
 
 import json
 import simplejson
@@ -144,26 +145,15 @@ def match_content_type_header(func, context, request):
 
 
 def extract_json_data(request):
-    if request.body:
-        try:
-            body = simplejson.loads(request.body)
-            if isinstance(body, dict):
-                return body
-            request.errors.add(
-                'body', None,
-                "Invalid JSON: Should be a JSON object, got %s" % body
-            )
-            return {}
-        except ValueError as e:
-            request.errors.add(
-                'body', None,
-                "Invalid JSON request body: %s" % e)
-            return {}
-    else:
-        return {}
+    warnings.warn("Use ``cornice.validators.extract_cstruct()`` instead",
+                  DeprecationWarning)
+    from cornice.validators import extract_cstruct
+    return extract_cstruct(request)['body']
 
 
 def extract_form_urlencoded_data(request):
+    warnings.warn("Use ``cornice.validators.extract_cstruct()`` instead",
+                  DeprecationWarning)
     return request.POST
 
 

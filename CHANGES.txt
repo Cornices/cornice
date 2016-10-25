@@ -6,7 +6,10 @@ CHANGELOG
 2.1.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+**Internal changes**
+
+- Deprecate ``cornice.util.extract_json_data()`` and ``cornice.util.extract_form_urlencoded_data()``
+  in favor of ``cornice.validators.extract_cstruct()``
 
 
 2.0.1 (2016-10-24)

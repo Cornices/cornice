@@ -22,6 +22,14 @@ Resource
 .. autofunction:: cornice.resource.add_resource
 
 
+Validation
+==========
+
+.. autofunction:: cornice.validators.extract_cstruct
+.. autofunction:: cornice.validators.colander_body_validator
+.. autofunction:: cornice.validators.colander_validator
+
+
 Errors
 ======
 

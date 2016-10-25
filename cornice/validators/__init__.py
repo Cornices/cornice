@@ -19,6 +19,17 @@ DEFAULT_FILTERS = []
 
 
 def extract_cstruct(request):
+    """
+    Extract attributes from the specified `request` such as body, url, path,
+    method, querystring, headers, cookies, and returns them in a single dict
+    object.
+
+    :param request: Current request
+    :type request: :class:`~pyramid:pyramid.request.Request`
+
+    :returns: A mapping containing most request attributes.
+    :rtype: dict
+    """
     if request.content_type == 'application/x-www-form-urlencoded':
         body = request.POST.mixed()
 
