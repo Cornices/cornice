@@ -21,6 +21,7 @@ Cornice:
 * Christian Benke <benkokakao@gmail.com>
 * Christian Thieme <christian.thieme@celeraone.com>
 * Damian Dimmich <damian@tauri-tec.com>
+* Daniel M. Weeks <dan@danweeks.net>
 * David Charboneau <david@thecharboneaus.net>
 * David Grant <seizethedave@gmail.com>
 * Elias <elias@stupeflix.com>
