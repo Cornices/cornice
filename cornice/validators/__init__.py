@@ -51,7 +51,7 @@ def extract_cstruct(request):
 
     cstruct = {'method': request.method,
                'url': request.url,
-               'path': request.path,
+               'path': request.matchdict,
                'body': body}
 
     for sub, attr in (('querystring', 'GET'),
