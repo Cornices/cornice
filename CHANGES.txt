@@ -8,6 +8,16 @@ CHANGELOG
 
 - Nothing changed yet.
 
+2.0.3 (unreleased)
+==================
+
+**Bug fixes**
+
+- To maintain consistency with cornice 1.2 as to the semantics of
+  ``location='path'``, change ``cornice.validators.extract_cstruct``
+  so that it places ``request.matchdict`` (rather than
+  ``request.path``) into ``cstruct['path']``. (#411)
+
 
 2.0.2 (2016-10-25)
 ==================
