@@ -235,6 +235,12 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         self.assertEqual(response.json['errors'][0]['description'],
                          'Invalid email length')
 
+    def test_validated_path_content_from_schema(self):
+        # Test validation request.matchdict.  (See #411)
+        app = TestApp(main({}))
+        response = app.get('/item/42', status=200)
+        self.assertEqual(response.json, {'item_id': 42})
+
     def test_content_type_with_no_body_should_pass(self):
         app = TestApp(main({}))
 

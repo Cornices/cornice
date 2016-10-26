@@ -255,6 +255,19 @@ if COLANDER:
     def newsletter(request):
         return request.validated
 
+    class ItemPathSchema(MappingSchema):
+        item_id = SchemaNode(Integer())
+
+    class ItemSchema(MappingSchema):
+        path = ItemPathSchema()
+
+    item_service = Service(name='item', path='/item/{item_id}')
+
+    @item_service.get(schema=ItemSchema,
+                      validators=(colander_validator,))
+    def item(request):
+        return request.validated['path']
+
 
 def includeme(config):
     config.include("cornice")
