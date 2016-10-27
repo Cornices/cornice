@@ -100,3 +100,10 @@ if COLANDER:
                 validator(request, schema=RequestSchema)
             self.assertEqual(len(w), 1)
             self.assertIs(w[0].category, DeprecationWarning)
+
+        def test_no_schema(self):
+            body = {}
+            request = get_mock_request(body)
+            validator(request)
+            self.assertEqual(request.validated, {})
+            self.assertEqual(len(request.errors), 0)

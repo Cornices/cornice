@@ -62,28 +62,19 @@ def validator(request, schema=None, deserializer=None, **kwargs):
     if deserializer is None:
         deserializer = extract_cstruct
 
-    if schema is None:
-        raise TypeError('This validator cannot work without a schema')
-
-    schema = _ensure_instantiated(schema)
-    cstruct = deserializer(request)
-    try:
-        deserialized = schema.deserialize(cstruct)
-        request.validated.update(deserialized)
-    except colander.Invalid as e:
-        translate = request.localizer.translate
-        error_dict = e.asdict(translate=translate)
-        for name, msg in error_dict.items():
-            prefixed = name.split('.', 1)
-
-            if len(prefixed) == 1:
-                location = name
-                field = ''
-            else:
-                location = prefixed[0]
-                field = prefixed[1]
-
-            request.errors.add(location, field, error_dict[name])
+    if schema is not None:
+        schema = _ensure_instantiated(schema)
+        cstruct = deserializer(request)
+        try:
+            deserialized = schema.deserialize(cstruct)
+        except colander.Invalid as e:
+            translate = request.localizer.translate
+            error_dict = e.asdict(translate=translate)
+            for name, msg in error_dict.items():
+                location, _, field = name.partition('.')
+                request.errors.add(location, field, msg)
+        else:
+            request.validated.update(deserialized)
 
 
 def _ensure_instantiated(schema):
