@@ -26,15 +26,17 @@ def body_validator(request, schema=None, deserializer=None, **kwargs):
     """
     import colander
 
-    if schema is not None:
-        class RequestSchema(colander.MappingSchema):
-            body = _ensure_instantiated(schema)
+    if schema is None:
+        return
 
-            def deserialize(self, cstruct=colander.null):
-                appstruct = super(RequestSchema, self).deserialize(cstruct)
-                return appstruct['body']
-        schema = RequestSchema()
-    return validator(request, schema, deserializer, **kwargs)
+    class RequestSchema(colander.MappingSchema):
+        body = _ensure_instantiated(schema)
+
+        def deserialize(self, cstruct=colander.null):
+            appstruct = super(RequestSchema, self).deserialize(cstruct)
+            return appstruct['body']
+
+    validator(request, RequestSchema(), deserializer, **kwargs)
 
 
 def validator(request, schema=None, deserializer=None, **kwargs):
@@ -62,19 +64,21 @@ def validator(request, schema=None, deserializer=None, **kwargs):
     if deserializer is None:
         deserializer = extract_cstruct
 
-    if schema is not None:
-        schema = _ensure_instantiated(schema)
-        cstruct = deserializer(request)
-        try:
-            deserialized = schema.deserialize(cstruct)
-        except colander.Invalid as e:
-            translate = request.localizer.translate
-            error_dict = e.asdict(translate=translate)
-            for name, msg in error_dict.items():
-                location, _, field = name.partition('.')
-                request.errors.add(location, field, msg)
-        else:
-            request.validated.update(deserialized)
+    if schema is None:
+        return
+
+    schema = _ensure_instantiated(schema)
+    cstruct = deserializer(request)
+    try:
+        deserialized = schema.deserialize(cstruct)
+    except colander.Invalid as e:
+        translate = request.localizer.translate
+        error_dict = e.asdict(translate=translate)
+        for name, msg in error_dict.items():
+            location, _, field = name.partition('.')
+            request.errors.add(location, field, msg)
+    else:
+        request.validated.update(deserialized)
 
 
 def _ensure_instantiated(schema):
