@@ -88,7 +88,7 @@ Now:
     class SignupSchema(colander.MappingSchema):
         username = colander.SchemaNode(colander.String())
 
-    @signup.post(schema=SignupSchema, validators=(colander_body_validator,))
+    @signup.post(schema=SignupSchema(), validators=(colander_body_validator,))
     def signup_postt(request):
         username = request.validated['username']
         return {'success': True}
@@ -145,7 +145,7 @@ Now:
 
     signup = cornice.Service()
 
-    @signup.post(schema=SignupSchema, validators=(colander_validator,))
+    @signup.post(schema=SignupSchema(), validators=(colander_validator,))
     def signup_post(request):
         username = request.validated['body']['username']
         referrer = request.validated['querystring']['referrer']
@@ -207,7 +207,7 @@ Deserializers are still defined via the same API:
             return dict(zip(['foo', 'bar', 'yeah'], values))
         request.errors.add(location='body', description='Unsupported content')
 
-    @myservice.post(schema=FooBarSchema,
+    @myservice.post(schema=FooBarSchema(),
                     deserializer=dummy_deserializer,
                     validators=(my_validator,))
 

@@ -59,7 +59,7 @@ To describe a schema, using Colander and Cornice, here is how you can do:
     class SignupSchema(colander.MappingSchema):
         username = colander.SchemaNode(colander.String())
 
-    @signup.post(schema=SignupSchema, validators=(colander_body_validator,))
+    @signup.post(schema=SignupSchema(), validators=(colander_body_validator,))
     def signup_post(request):
         username = request.validated['username']
         return {'success': True}
@@ -120,7 +120,7 @@ The ``request.validated`` hences reflects this additional level.
 
     signup = cornice.Service()
 
-    @signup.post(schema=SignupSchema, validators=(colander_validator,))
+    @signup.post(schema=SignupSchema(), validators=(colander_validator,))
     def signup_post(request):
         username = request.validated['body']['username']
         referrer = request.validated['querystring']['referrer']
@@ -161,7 +161,7 @@ The general pattern in this case is:
         return extract_data_somehow(request)
 
 
-    @service.post(schema=MySchema,
+    @service.post(schema=MySchema(),
                   deserializer=my_deserializer,
                   validators=(colander_body_validator,))
     def post(request):
