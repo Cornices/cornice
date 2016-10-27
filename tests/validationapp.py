@@ -170,7 +170,7 @@ if COLANDER:
     class SignupSchema(MappingSchema):
         username = SchemaNode(String())
 
-    @signup.post(schema=SignupSchema, validators=(colander_body_validator,))
+    @signup.post(schema=SignupSchema(), validators=(colander_body_validator,))
     def signup_post(request):
         return request.validated
 
@@ -206,7 +206,7 @@ if COLANDER:
 
     foobar = Service(name="foobar", path="/foobar")
 
-    @foobar.post(schema=RequestSchema, validators=(colander_validator,))
+    @foobar.post(schema=RequestSchema(), validators=(colander_validator,))
     def foobar_post(request):
         return {"test": "succeeded"}
 
@@ -226,7 +226,7 @@ if COLANDER:
 
     foobaz = Service(name="foobaz", path="/foobaz")
 
-    @foobaz.get(schema=QSSchema, validators=(colander_validator,))
+    @foobaz.get(schema=QSSchema(), validators=(colander_validator,))
     def foobaz_get(request):
         return {"field": request.validated['querystring']['field']}
 
@@ -250,7 +250,7 @@ if COLANDER:
 
     email_service = Service(name='newsletter', path='/newsletter')
 
-    @email_service.post(schema=NewsletterPayload,
+    @email_service.post(schema=NewsletterPayload(),
                         validators=(colander_validator,))
     def newsletter(request):
         return request.validated
@@ -263,7 +263,7 @@ if COLANDER:
 
     item_service = Service(name='item', path='/item/{item_id}')
 
-    @item_service.get(schema=ItemSchema,
+    @item_service.get(schema=ItemSchema(),
                       validators=(colander_validator,))
     def item(request):
         return request.validated['path']

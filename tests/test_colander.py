@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import json
+import warnings
 
 from cornice.errors import Errors
 from cornice.validators._colander import validator
@@ -66,11 +67,36 @@ if COLANDER:
         return dummy_request
 
     class TestSchemas(TestCase):
-        def test_body_contains_fields(self):
+        def test_validation(self):
             body = {'bar': '1',
-                    'baz': 2,
+                    'baz': '2',
                     'foo': 'yeah'}
-            headers = {'x-foo': 'version_a'}
+            request = get_mock_request(body)
+            validator(request, schema=RequestSchema())
+            self.assertEqual(len(request.errors), 0)
+            self.assertEqual(request.validated['body'], {
+                'foo': 'yeah',
+                'bar': '1',
+                'baz': 2,
+                })
 
-            dummy_request = get_mock_request(body, headers=headers)
-            validator(dummy_request, schema=RequestSchema)
+        def test_validation_failure(self):
+            body = {'bar': '1',
+                    'baz': 'two',
+                    'foo': 'yeah'}
+            request = get_mock_request(body)
+            validator(request, schema=RequestSchema())
+            self.assertEqual(len(request.errors), 1)
+            self.assertEqual(request.validated, {})
+            error = request.errors[0]
+            self.assertEqual(error['location'], 'body')
+            self.assertEqual(error['name'], 'baz')
+
+        def test_schema_class_deprecated(self):
+            body = {}
+            request = get_mock_request(body)
+            with warnings.catch_warnings(record=True) as w:
+                warnings.resetwarnings()
+                validator(request, schema=RequestSchema)
+            self.assertEqual(len(w), 1)
+            self.assertIs(w[0].category, DeprecationWarning)

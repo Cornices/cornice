@@ -11,6 +11,19 @@ CHANGELOG
 2.0.3 (unreleased)
 ==================
 
+**Enhancements**
+
+- ``Cornice.validators.colander_validator`` and
+  ``cornice.validators.colander_body_validator`` now accept colander
+  schema node instances.  Previously only schema classes were
+  accepted.  For some discussion see #412.
+
+**Deprecations**
+
+- Passing schema classes to ``Cornice.validators.colander_validator`` and
+  ``cornice.validators.colander_body_validator`` is now deprecated.
+  (See above.)
+
 **Bug fixes**
 
 - To maintain consistency with cornice 1.2 as to the semantics of

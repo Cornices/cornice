@@ -2,6 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import inspect
+import warnings
+
 
 def body_validator(request, schema=None, deserializer=None, **kwargs):
     """
@@ -17,7 +20,7 @@ def body_validator(request, schema=None, deserializer=None, **kwargs):
     :param request: Current request
     :type request: :class:`~pyramid:pyramid.request.Request`
 
-    :param schema: The Colander schema class
+    :param schema: The Colander schema
     :param deserializer: Optional deserializer, defaults to
         :func:`cornice.validators.extract_cstruct`
     """
@@ -25,12 +28,12 @@ def body_validator(request, schema=None, deserializer=None, **kwargs):
 
     if schema is not None:
         class RequestSchema(colander.MappingSchema):
-            body = schema()
+            body = _ensure_instantiated(schema)
 
             def deserialize(self, cstruct=colander.null):
                 appstruct = super(RequestSchema, self).deserialize(cstruct)
                 return appstruct['body']
-        schema = RequestSchema
+        schema = RequestSchema()
     return validator(request, schema, deserializer, **kwargs)
 
 
@@ -49,7 +52,7 @@ def validator(request, schema=None, deserializer=None, **kwargs):
     :param request: Current request
     :type request: :class:`~pyramid:pyramid.request.Request`
 
-    :param schema: The Colander schema class
+    :param schema: The Colander schema
     :param deserializer: Optional deserializer, defaults to
         :func:`cornice.validators.extract_cstruct`
     """
@@ -62,7 +65,7 @@ def validator(request, schema=None, deserializer=None, **kwargs):
     if schema is None:
         raise TypeError('This validator cannot work without a schema')
 
-    schema = schema()
+    schema = _ensure_instantiated(schema)
     cstruct = deserializer(request)
     try:
         deserialized = schema.deserialize(cstruct)
@@ -81,3 +84,14 @@ def validator(request, schema=None, deserializer=None, **kwargs):
                 field = prefixed[1]
 
             request.errors.add(location, field, error_dict[name])
+
+
+def _ensure_instantiated(schema):
+    if inspect.isclass(schema):
+        warnings.warn(
+            "Setting schema to a class is deprecated. "
+            " Set schema to an instance instead.",
+            DeprecationWarning,
+            stacklevel=2)
+        schema = schema()
+    return schema
