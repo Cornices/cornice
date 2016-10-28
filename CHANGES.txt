@@ -3,12 +3,7 @@ CHANGELOG
 #########
 
 
-2.1.0 (unreleased)
-==================
-
-- Nothing changed yet.
-
-2.0.3 (unreleased)
+2.1.0 (2016-10-28)
 ==================
 
 **Enhancements**
@@ -34,6 +29,13 @@ CHANGELOG
 - Fix ``cornice.validators.colander_validator`` so that it does
   nothing if ``schema`` is unset (or set to ``None``.)  Previously
   (contrary to its docstring) it was raising a ``TypeError``.
+
+**Internal changes**
+
+- Raised test coverage to 100% (#417)
+
+Huge thanks to @dairiki for his help on this release!
+
 
 2.0.2 (2016-10-25)
 ==================
