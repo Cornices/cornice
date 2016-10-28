@@ -53,6 +53,10 @@ class TestService(TestCase):
         service = Service("coconuts", "/migrate", validators=validators)
         self.assertEqual(service.validators, validators)
 
+    def test_representation(self):
+        service = Service("coconuts", "/migrate")
+        self.assertEqual(repr(service), '<Service coconuts at /migrate>')
+
     def test_get_arguments(self):
         service = Service("coconuts", "/migrate")
         # not specifying anything, we should get the default values
