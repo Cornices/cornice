@@ -9,6 +9,7 @@ from pyramid.interfaces import IDebugLogger
 from tests.support import TestCase
 
 from pyramid import testing
+from pyramid.exceptions import PredicateMismatch
 from pyramid.httpexceptions import (
     HTTPOk, HTTPForbidden, HTTPNotFound, HTTPMethodNotAllowed
 )
@@ -275,3 +276,14 @@ class TestFallbackRegistration(TestCase):
             if v['introspectable'].title == u'function cornice.pyramidhook._fallback_view':
                 permissions = [p['value'] for p in v['related'] if p.type_name == 'permission']
                 self.assertIn(NO_PERMISSION_REQUIRED, permissions)
+
+    def test_fallback_no_predicate(self):
+        service = Service(name='fallback-test', path='/',
+                          effective_principals=('group:admins',))
+        service.add_view('GET', lambda _:_)
+        register_service_views(self.config, service)
+        self.config.include('cornice')
+        app = self.config.make_wsgi_app()
+        testapp = TestApp(app)
+        testapp.get('/', status=404)
+        #self.assertRaises(PredicateMismatch, testapp.get, '/')
