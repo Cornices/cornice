@@ -82,9 +82,6 @@ def add_resource(klass, depth=1, **kw):
             elif k not in service_args:
                 service_args[k] = kw[k]
 
-        if prefix == 'collection_' and service_args.get('collection_acl'):
-            service_args['acl'] = service_args['collection_acl']
-
         # create service
         service_name = (service_args.pop('name', None) or
                         klass.__name__.lower())
