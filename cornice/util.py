@@ -1,26 +1,18 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import sys
 import warnings
 
 import json
 import simplejson
 
 from pyramid import httpexceptions as exc
+from pyramid.compat import string_types
 from pyramid.renderers import IRendererFactory
 from pyramid.response import Response
 
 
 __all__ = ['json_renderer', 'to_list', 'json_error', 'match_accept_header']
-
-
-PY3 = sys.version_info[0] == 3
-
-if PY3:
-    string_types = str,         # noqa
-else:
-    string_types = basestring,  # noqa
 
 
 def is_string(s):
