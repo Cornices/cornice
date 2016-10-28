@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import functools
+from pyramid.exceptions import ConfigurationError
 from pyramid.response import Response
 from cornice.validators import (
     DEFAULT_VALIDATORS,
@@ -187,7 +188,7 @@ class Service(object):
                 setattr(self, key, value)
 
         if hasattr(self, 'factory') and hasattr(self, 'acl'):
-            raise KeyError("Cannot specify both 'acl' and 'factory'")
+            raise ConfigurationError("Cannot specify both 'acl' and 'factory'")
 
         # instantiate some variables we use to keep track of what's defined for
         # this service.

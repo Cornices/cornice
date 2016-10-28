@@ -1,6 +1,8 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+from pyramid.exceptions import ConfigurationError
+
 from cornice.resource import resource
 from cornice.service import (Service, get_services, clear_services,
                              decorate_view, _UnboundView)
@@ -524,6 +526,12 @@ class TestService(TestCase):
         self.assertEqual(ret, ['douggy', 'rusty'])
         self.assertEqual(dummy_request, DummyAPI.last_request)
         self.assertIsNone(DummyAPI.last_context)
+
+    def test_cannot_specify_both_factory_and_acl(self):
+        with self.assertRaises(ConfigurationError):
+            Service("coconuts", "/migrate",
+                    acl='dummy_permission',
+                    factory='TheFactoryMethodCalledByPyramid')
 
     def test_decorate_view(self):
         def myfunction():
