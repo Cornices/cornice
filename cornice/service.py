@@ -7,13 +7,10 @@ from cornice.validators import (
     DEFAULT_VALIDATORS,
     DEFAULT_FILTERS,
 )
+import venusian
+
 from cornice.util import is_string, to_list, json_error, func_name
 
-try:
-    import venusian
-    VENUSIAN = True
-except ImportError:
-    VENUSIAN = False
 
 SERVICES = []
 
@@ -205,15 +202,13 @@ class Service(object):
             setattr(self, verb.lower(),
                     functools.partial(self.decorator, verb))
 
-        if VENUSIAN:
-            # this callback will be called when config.scan (from pyramid) will
-            # be triggered.
-            def callback(context, name, ob):
-                config = context.config.with_package(info.module)
-                config.add_cornice_service(self)
+        # this callback will be called when config.scan (from pyramid) will
+        # be triggered.
+        def callback(context, name, ob):
+            config = context.config.with_package(info.module)
+            config.add_cornice_service(self)
 
-            info = venusian.attach(self, callback, category='pyramid',
-                                   depth=depth)
+        info = venusian.attach(self, callback, category='pyramid', depth=depth)
 
     def get_arguments(self, conf=None):
         """Return a dictionary of arguments. Takes arguments from the :param
