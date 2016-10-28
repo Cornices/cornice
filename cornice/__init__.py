@@ -62,7 +62,7 @@ def setup_localization(config):
                                 available_languages=available_languages,
                                 default_locale_name=default_locale_name)
         config.add_subscriber(set_localizer, NewRequest)
-    except ImportError:
+    except ImportError:  # pragma: no cover
         # add_translation_dirs raises an ImportError if colander is not
         # installed
         pass
