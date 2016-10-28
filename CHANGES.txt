@@ -31,6 +31,9 @@ CHANGELOG
   so that it places ``request.matchdict`` (rather than
   ``request.path``) into ``cstruct['path']``. (#411)
 
+- Fix ``cornice.validators.colander_validator`` so that it does
+  nothing if ``schema`` is unset (or set to ``None``.)  Previously
+  (contrary to its docstring) it was raising a ``TypeError``.
 
 2.0.2 (2016-10-25)
 ==================
