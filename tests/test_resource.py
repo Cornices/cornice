@@ -109,6 +109,14 @@ class TestResource(TestCase):
 
         self.assertIn(b'test({"name": "gawel"})', resp.body, msg=resp.body)
 
+    @mock.patch('cornice.resource.Service')
+    def test_without_collection_path_has_one_service(self, mocked_service):
+        @resource(path='/nocollection/{id}', name='nocollection')
+        class NoCollection(object):
+            def __init__(self, request, context=None):
+                pass
+        self.assertEqual(mocked_service.call_count, 1)
+
     def test_accept_headers(self):
         # the accept headers should work even in case they're specified in a
         # resource method
