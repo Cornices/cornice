@@ -313,15 +313,10 @@ def _mungle_view_args(args, predicate_list):
         # we need to build a custom predicate if argument value is a callable
         predicates = args.get('custom_predicates', [])
         if callable(value):
-            func = callable_map.get(kind)
-            if func:
-                predicate_checker = functools.partial(func, value)
-                predicates.append(predicate_checker)
-                args['custom_predicates'] = predicates
-            else:
-                raise ValueError(
-                    'No function defined for ' +
-                    'handling callables for field "{0}"'.format(kind))
+            func = callable_map[kind]
+            predicate_checker = functools.partial(func, value)
+            predicates.append(predicate_checker)
+            args['custom_predicates'] = predicates
         else:
             # otherwise argument value is just a scalar
             args[kind] = value

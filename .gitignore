@@ -10,7 +10,7 @@ deps
 *.swp
 html
 docs/build
-\.coverage
+.coverage
 *~
 ._build.etag
 _build.py.bak*

@@ -1,26 +1,18 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import sys
 import warnings
 
 import json
 import simplejson
 
 from pyramid import httpexceptions as exc
+from pyramid.compat import string_types
 from pyramid.renderers import IRendererFactory
 from pyramid.response import Response
 
 
 __all__ = ['json_renderer', 'to_list', 'json_error', 'match_accept_header']
-
-
-PY3 = sys.version_info[0] == 3
-
-if PY3:
-    string_types = str,         # noqa
-else:
-    string_types = basestring,  # noqa
 
 
 def is_string(s):
@@ -190,9 +182,9 @@ def func_name(f):
     """Return the name of a function or class method."""
     if isinstance(f, string_types):
         return f
-    elif hasattr(f, '__qualname__'):  # Python 3
-        return f.__qualname__
-    elif hasattr(f, 'im_class'):  # Python 2
-        return '{0}.{1}'.format(f.im_class.__name__, f.__name__)
-    else:
-        return f.__name__
+    elif hasattr(f, '__qualname__'):  # pragma: no cover
+        return f.__qualname__  # Python 3
+    elif hasattr(f, 'im_class'):  # pragma: no cover
+        return '{0}.{1}'.format(f.im_class.__name__, f.__name__)  # Python 2
+    else:  # pragma: no cover
+        return f.__name__  # Python 2

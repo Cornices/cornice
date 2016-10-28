@@ -2,18 +2,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import functools
+from pyramid.exceptions import ConfigurationError
 from pyramid.response import Response
 from cornice.validators import (
     DEFAULT_VALIDATORS,
     DEFAULT_FILTERS,
 )
+import venusian
+
 from cornice.util import is_string, to_list, json_error, func_name
 
-try:
-    import venusian
-    VENUSIAN = True
-except ImportError:
-    VENUSIAN = False
 
 SERVICES = []
 
@@ -190,7 +188,7 @@ class Service(object):
                 setattr(self, key, value)
 
         if hasattr(self, 'factory') and hasattr(self, 'acl'):
-            raise KeyError("Cannot specify both 'acl' and 'factory'")
+            raise ConfigurationError("Cannot specify both 'acl' and 'factory'")
 
         # instantiate some variables we use to keep track of what's defined for
         # this service.
@@ -205,15 +203,13 @@ class Service(object):
             setattr(self, verb.lower(),
                     functools.partial(self.decorator, verb))
 
-        if VENUSIAN:
-            # this callback will be called when config.scan (from pyramid) will
-            # be triggered.
-            def callback(context, name, ob):
-                config = context.config.with_package(info.module)
-                config.add_cornice_service(self)
+        # this callback will be called when config.scan (from pyramid) will
+        # be triggered.
+        def callback(context, name, ob):
+            config = context.config.with_package(info.module)
+            config.add_cornice_service(self)
 
-            info = venusian.attach(self, callback, category='pyramid',
-                                   depth=depth)
+        info = venusian.attach(self, callback, category='pyramid', depth=depth)
 
     def get_arguments(self, conf=None):
         """Return a dictionary of arguments. Takes arguments from the :param

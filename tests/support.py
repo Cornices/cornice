@@ -16,6 +16,8 @@ from webob import exc
 from pyramid.httpexceptions import HTTPException
 from pyramid import testing
 
+from cornice.errors import Errors
+
 
 logger = logging.getLogger('cornice')
 
@@ -27,11 +29,11 @@ class DummyContext(object):
 
 
 class DummyRequest(testing.DummyRequest):
-    errors = []
-
     def __init__(self, *args, **kwargs):
         super(DummyRequest, self).__init__(*args, **kwargs)
         self.context = DummyContext()
+        self.errors = Errors()
+        self.content_type = None
 
 
 def dummy_factory(request):

@@ -109,6 +109,14 @@ class TestResource(TestCase):
 
         self.assertIn(b'test({"name": "gawel"})', resp.body, msg=resp.body)
 
+    @mock.patch('cornice.resource.Service')
+    def test_without_collection_path_has_one_service(self, mocked_service):
+        @resource(path='/nocollection/{id}', name='nocollection')
+        class NoCollection(object):
+            def __init__(self, request, context=None):
+                pass
+        self.assertEqual(mocked_service.call_count, 1)
+
     def test_accept_headers(self):
         # the accept headers should work even in case they're specified in a
         # resource method
@@ -143,6 +151,17 @@ class TestResource(TestCase):
     def test_explicit_service_name(self):
         route_url = testing.DummyRequest().route_url
         self.assert_(route_url('user_service', id=42))  # service must exist
+
+    @mock.patch('cornice.resource.Service')
+    def test_collection_acl_can_be_different(self, mocked_service):
+        @resource(collection_path='/list', path='/list/{id}', name='list',
+                  collection_acl=mock.sentinel.collection_acl,
+                  acl=mock.sentinel.acl)
+        class List(object):
+            pass
+        acls_args = [kw['acl'] for _, kw in mocked_service.call_args_list]
+        self.assertIn(mock.sentinel.acl, acls_args)
+        self.assertIn(mock.sentinel.collection_acl, acls_args)
 
     def test_acl_support_unauthenticated_thing_get(self):
         # calling a view with permissions without an auth'd user => 403
