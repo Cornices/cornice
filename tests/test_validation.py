@@ -2,7 +2,9 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+import mock
 import unittest
+import warnings
 
 import simplejson as json
 from webtest import TestApp
@@ -13,9 +15,10 @@ except ImportError:
     COLANDER = False
 
 from cornice.errors import Errors
+from cornice.validators import colander_validator, colander_body_validator
 
 from .validationapp import main
-from .support import LoggingCatcher, TestCase
+from .support import LoggingCatcher, TestCase, DummyRequest
 
 
 skip_if_no_colander = unittest.skipIf(COLANDER is False,
@@ -470,3 +473,32 @@ class TestErrorMessageTranslation(TestCase):
         self.assertErrorDescription(
             response,
             u'10 is greater than maximum value 3')
+
+
+@skip_if_no_colander
+class TestValidatorEdgeCases(TestCase):
+    def test_schema_class_deprecated(self):
+        class RequestSchema(colander.MappingSchema):
+            body = colander.MappingSchema()
+
+        request = DummyRequest()
+        request.validated = {}
+        with warnings.catch_warnings(record=True) as w:
+            warnings.resetwarnings()
+            colander_validator(request, schema=RequestSchema)
+        self.assertEqual(len(w), 1)
+        self.assertIs(w[0].category, DeprecationWarning)
+
+    def test_no_schema(self):
+        request = DummyRequest()
+        request.validated = mock.sentinel.validated
+        colander_validator(request)
+        self.assertEqual(request.validated, mock.sentinel.validated)
+        self.assertEqual(len(request.errors), 0)
+
+    def test_no_body_schema(self):
+        request = DummyRequest()
+        request.validated = mock.sentinel.validated
+        colander_body_validator(request)
+        self.assertEqual(request.validated, mock.sentinel.validated)
+        self.assertEqual(len(request.errors), 0)
