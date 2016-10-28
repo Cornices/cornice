@@ -182,9 +182,9 @@ def func_name(f):
     """Return the name of a function or class method."""
     if isinstance(f, string_types):
         return f
-    elif hasattr(f, '__qualname__'):  # Python 3
-        return f.__qualname__
-    elif hasattr(f, 'im_class'):  # Python 2
-        return '{0}.{1}'.format(f.im_class.__name__, f.__name__)
-    else:
-        return f.__name__
+    elif hasattr(f, '__qualname__'):  # pragma: no cover
+        return f.__qualname__  # Python 3
+    elif hasattr(f, 'im_class'):  # pragma: no cover
+        return '{0}.{1}'.format(f.im_class.__name__, f.__name__)  # Python 2
+    else:  # pragma: no cover
+        return f.__name__  # Python 2

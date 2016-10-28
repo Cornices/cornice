@@ -163,7 +163,7 @@ def add_view(func, **kw):
         add_resource(User, collection_path='/users', path='/users/{id}')
     """
     # XXX needed in py2 to set on instancemethod
-    if hasattr(func, '__func__'):
+    if hasattr(func, '__func__'):  # pragma: no cover
         func = func.__func__
     # store view argument to use them later in @resource
     views = getattr(func, '__views__', None)
