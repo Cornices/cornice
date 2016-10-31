@@ -12,24 +12,19 @@ Show me some code!
 ==================
 
 A **full** Cornice WGSI application looks like this (this example is taken from
-the `demoapp project <https://github.com/mozilla-services/demoapp>`_)::
+the `demoapp project <https://github.com/Cornices/examples>`_)::
 
     from collections import defaultdict
 
-    from pyramid.exceptions import Forbidden
-    from pyramid.security import authenticated_userid, effective_principals
+    from pyramid.httpexceptions import HTTPForbidden
     from pyramid.view import view_config
 
     from cornice import Service
 
 
-    info_desc = """\
-    This service is useful to get and set data for a user.
-    """
-
-
-    user_info = Service(name='users', path='/{username}/info',
-                        description=info_desc)
+    user_info = Service(name='users',
+                        path='/{username}/info',
+                        description='Get and set user data.')
 
     _USERS = defaultdict(dict)
 
@@ -52,9 +47,9 @@ the `demoapp project <https://github.com/mozilla-services/demoapp>`_)::
 
         Returns *True* or *False*.
         """
-        username = authenticated_userid(request)
+        username = request.authenticated_userid
         if request.matchdict["username"] != username:
-            raise Forbidden()
+            raise HTTPForbidden()
         _USERS[username] = request.json_body
         return {'success': True}
 
@@ -62,24 +57,21 @@ the `demoapp project <https://github.com/mozilla-services/demoapp>`_)::
     @view_config(route_name="whoami", permission="authenticated", renderer="json")
     def whoami(request):
         """View returning the authenticated user's credentials."""
-        username = authenticated_userid(request)
-        principals = effective_principals(request)
+        username = request.authenticated_userid
+        principals = request.effective_principals
         return {"username": username, "principals": principals}
 
 What Cornice will do for you here is:
 
 - automatically raise a 405 if a DELETE or a PUT is called on
   **/{username}/info**
-- automatically generate your doc via a Sphinx directive.
 - provide a validation framework that will return a nice JSON structure
   in Bad Request 400 responses explaining what's wrong.
 - provide an acceptable **Content-Type** whenever you send an HTTP "Accept"
-  header
-  to it, resulting in a *406 Not Acceptable* with the list of acceptable ones
+  header to it, resulting in a *406 Not Acceptable* with the list of acceptable ones
   if it can't answer.
 
-You can also have a complete overview of the builtin validations provided by
-cornice in :doc:`builtin-features`
+Please follow up with :doc:`exhaustive_list` to get the picture.
 
 
 Documentation content
@@ -90,18 +82,16 @@ Documentation content
 
    quickstart
    tutorial
-   config
+   services
    resources
    validation
-   builtin_validation
-   sphinx
+   schema
    testing
    exhaustive_list
-   exampledoc
    api
    internals
-   spore
    faq
+   upgrading
 
 
 Contribution & Feedback

@@ -1,26 +1,18 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import sys
+import warnings
 
 import json
 import simplejson
 
 from pyramid import httpexceptions as exc
+from pyramid.compat import string_types
 from pyramid.renderers import IRendererFactory
 from pyramid.response import Response
 
 
-__all__ = ['json_renderer', 'to_list', 'json_error', 'match_accept_header',
-           'extract_request_data']
-
-
-PY3 = sys.version_info[0] == 3
-
-if PY3:
-    string_types = str,
-else:
-    string_types = basestring,
+__all__ = ['json_renderer', 'to_list', 'json_error', 'match_accept_header']
 
 
 def is_string(s):
@@ -40,7 +32,7 @@ class _JsonRenderer(object):
 
       .. _`[1]`: https://github.com/mozilla-services/cornice/pull/116 \
                  #issuecomment-14355865
-      .. _`[2]`: http://pyramid.readthedocs.org/en/latest/narr/renderers.html \
+      .. _`[2]`: http://pyramid.readthedocs.io/en/latest/narr/renderers.html \
                  #serializing-custom-objects
     """
     acceptable = ('application/json', 'text/json', 'text/plain')
@@ -94,77 +86,67 @@ class _JSONError(exc.HTTPError):
         self.content_type = 'application/json'
 
 
-def json_error(errors):
+def json_error(request):
     """Returns an HTTPError with the given status and message.
 
     The HTTP error content type is "application/json"
     """
-    return _JSONError(errors, errors.status)
+    return _JSONError(request.errors, request.errors.status)
 
 
 def match_accept_header(func, context, request):
     """
-    Return True if the request matches the values returned by the given :param:
-    func callable.
+    Return True if the request ``Accept`` header match
+    the list returned by the callable specified in :param:func.
+
+    Also attach the total list of possible accepted
+    egress media types to the request.
+
+    Utility function for performing content negotiation.
 
     :param func:
-        The callable returning the list of acceptable content-types,
-        given a request. It should accept a "request" argument.
+        The callable returning the list of acceptable
+        internet media types for content negotiation.
+        It obtains the request object as single argument.
     """
-    acceptable = func(request)
-    # attach the accepted egress content types to the request
+    acceptable = to_list(func(request))
     request.info['acceptable'] = acceptable
     return request.accept.best_match(acceptable) is not None
 
 
 def match_content_type_header(func, context, request):
-    supported_contenttypes = func(request)
-    # attach the accepted ingress content types to the request
+    """
+    Return True if the request ``Content-Type`` header match
+    the list returned by the callable specified in :param:func.
+
+    Also attach the total list of possible accepted
+    ingress media types to the request.
+
+    Utility function for performing request body
+    media type checks.
+
+    :param func:
+        The callable returning the list of acceptable
+        internet media types for request body
+        media type checks.
+        It obtains the request object as single argument.
+    """
+    supported_contenttypes = to_list(func(request))
     request.info['supported_contenttypes'] = supported_contenttypes
     return content_type_matches(request, supported_contenttypes)
 
 
 def extract_json_data(request):
-    if request.body:
-        try:
-            body = simplejson.loads(request.body)
-            if isinstance(body, dict):
-                return body
-            request.errors.add(
-                'body', None,
-                "Invalid JSON: Should be a JSON object, got %s" % body
-            )
-            return {}
-        except ValueError as e:
-            request.errors.add(
-                'body', None,
-                "Invalid JSON request body: %s" % e)
-            return {}
-    else:
-        return {}
+    warnings.warn("Use ``cornice.validators.extract_cstruct()`` instead",
+                  DeprecationWarning)
+    from cornice.validators import extract_cstruct
+    return extract_cstruct(request)['body']
 
 
 def extract_form_urlencoded_data(request):
+    warnings.warn("Use ``cornice.validators.extract_cstruct()`` instead",
+                  DeprecationWarning)
     return request.POST
-
-
-def extract_request_data(request):
-    """extract the different parts of the data from the request, and return
-    them as a tuple of (querystring, headers, body, path)
-    """
-    body = {}
-    content_type = getattr(request, 'content_type', None)
-    registry = request.registry
-    if hasattr(request, 'deserializer'):
-        body = request.deserializer(request)
-    elif (hasattr(registry, 'cornice_deserializers') and
-          content_type in registry.cornice_deserializers):
-        deserializer = registry.cornice_deserializers[content_type]
-        body = deserializer(request)
-    # otherwise, don't block but it will be an empty body, decode
-    # on your own
-
-    return request.GET, request.headers, body, request.matchdict
 
 
 def content_type_matches(request, content_types):
@@ -200,9 +182,9 @@ def func_name(f):
     """Return the name of a function or class method."""
     if isinstance(f, string_types):
         return f
-    elif hasattr(f, '__qualname__'):  # Python 3
-        return f.__qualname__
-    elif hasattr(f, 'im_class'):  # Python 2
-        return '{0}.{1}'.format(f.im_class.__name__, f.__name__)
-    else:
-        return f.__name__
+    elif hasattr(f, '__qualname__'):  # pragma: no cover
+        return f.__qualname__  # Python 3
+    elif hasattr(f, 'im_class'):  # pragma: no cover
+        return '{0}.{1}'.format(f.im_class.__name__, f.__name__)  # Python 2
+    else:  # pragma: no cover
+        return f.__name__  # Python 2

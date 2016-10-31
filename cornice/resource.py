@@ -3,20 +3,18 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import warnings
+
+import venusian
+
 from cornice import Service
-try:
-    import venusian
-    VENUSIAN = True
-except ImportError:
-    VENUSIAN = False
 
 
 def resource(depth=2, **kw):
     """Class decorator to declare resources.
 
     All the methods of this class named by the name of HTTP resources
-    will be used as such. You can also prefix them by "collection_" and they
-    will be treated as HTTP methods for the given collection path
+    will be used as such. You can also prefix them by ``"collection_"`` and
+    they will be treated as HTTP methods for the given collection path
     (collection_path), if any.
 
     :param depth:
@@ -38,8 +36,8 @@ def add_resource(klass, depth=1, **kw):
     """Function to declare resources of a Class.
 
     All the methods of this class named by the name of HTTP resources
-    will be used as such. You can also prefix them by "collection_" and they
-    will be treated as HTTP methods for the given collection path
+    will be used as such. You can also prefix them by ``"collection_"`` and
+    they will be treated as HTTP methods for the given collection path
     (collection_path), if any.
 
     :param klass:
@@ -52,7 +50,10 @@ def add_resource(klass, depth=1, **kw):
         Keyword arguments configuring the resource.
 
 
-    Here is an example::
+    Here is an example:
+
+    .. code-block:: python
+
         class User(object):
             pass
 
@@ -81,9 +82,6 @@ def add_resource(klass, depth=1, **kw):
             elif k not in service_args:
                 service_args[k] = kw[k]
 
-        if prefix == 'collection_' and service_args.get('collection_acl'):
-            service_args['acl'] = service_args['collection_acl']
-
         # create service
         service_name = (service_args.pop('name', None) or
                         klass.__name__.lower())
@@ -111,17 +109,16 @@ def add_resource(klass, depth=1, **kw):
 
     setattr(klass, '_services', services)
 
-    if VENUSIAN:
-        def callback(context, name, ob):
-            # get the callbacks registred by the inner services
-            # and call them from here when the @resource classes are being
-            # scanned by venusian.
-            for service in services.values():
-                config = context.config.with_package(info.module)
-                config.add_cornice_service(service)
+    def callback(context, name, ob):
+        # get the callbacks registred by the inner services
+        # and call them from here when the @resource classes are being
+        # scanned by venusian.
+        for service in services.values():
+            config = context.config.with_package(info.module)
+            config.add_cornice_service(service)
 
-        info = venusian.attach(klass, callback, category='pyramid',
-                               depth=depth)
+    info = venusian.attach(klass, callback, category='pyramid', depth=depth)
+
     return klass
 
 
@@ -149,22 +146,24 @@ def add_view(func, **kw):
 
     Example:
 
-    class User(object):
+    .. code-block:: python
 
-        def __init__(self, request):
-            self.request = request
+        class User(object):
 
-        def collection_get(self):
-            return {'users': _USERS.keys()}
+            def __init__(self, request):
+                self.request = request
 
-        def get(self):
-            return _USERS.get(int(self.request.matchdict['id']))
+            def collection_get(self):
+                return {'users': _USERS.keys()}
 
-    add_view(User.get, renderer='json')
-    add_resource(User, collection_path='/users', path='/users/{id}')
+            def get(self):
+                return _USERS.get(int(self.request.matchdict['id']))
+
+        add_view(User.get, renderer='json')
+        add_resource(User, collection_path='/users', path='/users/{id}')
     """
     # XXX needed in py2 to set on instancemethod
-    if hasattr(func, '__func__'):
+    if hasattr(func, '__func__'):  # pragma: no cover
         func = func.__func__
     # store view argument to use them later in @resource
     views = getattr(func, '__views__', None)

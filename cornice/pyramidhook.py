@@ -71,7 +71,7 @@ def get_fallback_view(service):
                         'Accept header should be one of {0}'.format(
                             acceptable).encode('ascii'))
                     request.errors.status = HTTPNotAcceptable.code
-                    error = service.error_handler(request.errors)
+                    error = service.error_handler(request)
                     raise error
 
             if 'content_type' in args:
@@ -89,7 +89,7 @@ def get_fallback_view(service):
                         'Content-Type header should be one of {0}'.format(
                             supported_contenttypes).encode('ascii'))
                     request.errors.status = HTTPUnsupportedMediaType.code
-                    error = service.error_handler(request.errors)
+                    error = service.error_handler(request)
                     raise error
 
         # In the absence of further information about what went wrong,
@@ -139,7 +139,7 @@ def wrap_request(event):
         setattr(request, 'validated', {})
 
     if not hasattr(request, 'errors'):
-        setattr(request, 'errors', Errors(request))
+        setattr(request, 'errors', Errors())
 
     if not hasattr(request, 'info'):
         setattr(request, 'info', {})
@@ -168,7 +168,7 @@ def register_service_views(config, service):
 
     # Cornice-specific arguments that pyramid does not know about
     cornice_parameters = ('filters', 'validators', 'schema', 'klass',
-                          'error_handler', 'deserializer') + CORS_PARAMETERS
+                          'error_handler') + CORS_PARAMETERS
 
     # 1. register route
 
@@ -231,7 +231,8 @@ def register_service_views(config, service):
         predicate_definitions = _pop_complex_predicates(args)
 
         if predicate_definitions:
-            for predicate_list in predicate_definitions:
+            empty_contenttype = [({'kind': 'content_type', 'value': ''},)]
+            for predicate_list in predicate_definitions + empty_contenttype:
                 args = dict(args)  # make a copy of the dict to not modify it
 
                 # prepare view args by evaluating complex predicates
@@ -324,29 +325,13 @@ def _mungle_view_args(args, predicate_list):
         # we need to build a custom predicate if argument value is a callable
         predicates = args.get('custom_predicates', [])
         if callable(value):
-            func = callable_map.get(kind)
-            if func:
-                predicate_checker = functools.partial(func, value)
-                predicates.append(predicate_checker)
-                args['custom_predicates'] = predicates
-            else:
-                raise ValueError(
-                    'No function defined for ' +
-                    'handling callables for field "{0}"'.format(kind))
+            func = callable_map[kind]
+            predicate_checker = functools.partial(func, value)
+            predicates.append(predicate_checker)
+            args['custom_predicates'] = predicates
         else:
             # otherwise argument value is just a scalar
             args[kind] = value
-
-
-def add_deserializer(config, content_type, deserializer):
-    registry = config.registry
-
-    def callback():
-        if not hasattr(registry, 'cornice_deserializers'):
-            registry.cornice_deserializers = {}
-        registry.cornice_deserializers[content_type] = deserializer
-
-    config.action(content_type, callable=callback)
 
 
 def register_resource_views(config, resource):

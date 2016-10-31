@@ -1,7 +1,0 @@
-Sphinx
-WebTest
-colander>=1.0b1
-mock
-nose
-rxjson
-simplejson

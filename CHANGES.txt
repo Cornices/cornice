@@ -1,7 +1,124 @@
-1.2.0 (unreleased)
+#########
+CHANGELOG
+#########
+
+
+2.2.0 (unreleased)
 ==================
 
 - Nothing changed yet.
+
+
+2.1.0 (2016-10-28)
+==================
+
+**Enhancements**
+
+- ``Cornice.validators.colander_validator`` and
+  ``cornice.validators.colander_body_validator`` now accept colander
+  schema node instances.  Previously only schema classes were
+  accepted.  For some discussion see #412.
+
+**Deprecations**
+
+- Passing schema classes to ``Cornice.validators.colander_validator`` and
+  ``cornice.validators.colander_body_validator`` is now deprecated.
+  (See above.)
+
+**Bug fixes**
+
+- To maintain consistency with cornice 1.2 as to the semantics of
+  ``location='path'``, change ``cornice.validators.extract_cstruct``
+  so that it places ``request.matchdict`` (rather than
+  ``request.path``) into ``cstruct['path']``. (#411)
+
+- Fix ``cornice.validators.colander_validator`` so that it does
+  nothing if ``schema`` is unset (or set to ``None``.)  Previously
+  (contrary to its docstring) it was raising a ``TypeError``.
+
+**Internal changes**
+
+- Raised test coverage to 100% (#417)
+
+Huge thanks to @dairiki for his help on this release!
+
+
+2.0.2 (2016-10-25)
+==================
+
+**Bug fixes**
+
+* Exclude ``tests`` from install (#407, thanks @doctaweeks!)
+
+**Internal changes**
+
+- Deprecate ``cornice.util.extract_json_data()`` and ``cornice.util.extract_form_urlencoded_data()``
+  in favor of ``cornice.validators.extract_cstruct()`` (#409)
+
+2.0.1 (2016-10-24)
+==================
+
+**Bug fixes**
+
+- Fix Colander imports to make sure it remains optional (#400)
+- Fix truncated JSON validation error message when request body does not contain
+  valid JSON (#401)
+- Fix docs about upgrading deserializers (#402)
+
+
+2.0.0 (2016-10-20)
+==================
+
+**Breaking changes**
+
+ Please refer to `upgrading docs <https://cornice.readthedocs.io/en/stable/upgrading.html>`_ for detailed migration instructions.
+
+- Dropped Python 2.6 support (#368)
+- Got rid of Buildout files (#369)
+- Got rid of Spore extension (#379)
+- Moved Sphinx extension to dedicated repo (#379)
+- Moved project scaffold to dedicated repo (#238, #390)
+- Completely rework the schema validation features (#376, #386)
+- Moved examples to dedicated repo (#392)
+- Custom ``error_handler`` now receives the request instead of errors (#381)
+- Errors list ``request.errors`` has no ``request`` anymore (#372, #378)
+- ``request.errors.add()`` now only accepts one of ``header``, ``body``, ``url``,
+  ``path``, ``querystring``, ``cookies`` or ``method`` as first argument (#374)
+- Remove deprecated features (#382)
+
+**Internal changes**
+
+- Take ``__version__`` from setup.py (#358)
+- Remove duplicated list of test deps in tox file (#371)
+
+
+1.2.1 (2016-03-15)
+==================
+
+Bug fixes
+
+- Properly handle content_type callables returning a single internet media type
+  as scalar. Thanks @amotl (#343)
+- Do not raise a 415 error when no content-type and no body (#354)
+
+Documentation
+
+- Improve documentation regarding content type negotiation and media type
+  validation. Thanks @amotl (#91, #343, #350)
+- Fix typo in testing docs. Thanks peletiah (#348)
+- Clarify docs for deferred colander validator. Thanks @antoineleclair (#352)
+
+
+1.2.0 (2016-01-18)
+==================
+
+- Adding the ability to define services imperatively. (#335)
+- Clean cornice/statics/ files. (#345)
+
+Bug fixes
+
+- Convert ``None`` to ``colander.null``  before calling colander's ``deserialize`` function. (#342)
+- Allow i18n of colander error messages (#206)
 
 
 1.1.0 (2015-09-29)

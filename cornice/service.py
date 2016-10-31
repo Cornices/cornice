@@ -2,22 +2,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import functools
-import warnings
-
+from pyramid.exceptions import ConfigurationError
 from pyramid.response import Response
-
 from cornice.validators import (
     DEFAULT_VALIDATORS,
     DEFAULT_FILTERS,
 )
-from cornice.schemas import CorniceSchema, validate_colander_schema
+import venusian
+
 from cornice.util import is_string, to_list, json_error, func_name
 
-try:
-    import venusian
-    VENUSIAN = True
-except ImportError:
-    VENUSIAN = False
 
 SERVICES = []
 
@@ -94,7 +88,7 @@ class Service(object):
         given request). Exclusive with the 'factory' option.
 
     :param permission:
-        As for :ref:`pyramid.config.Configurator.add_view`.
+        As for ``pyramid.config.Configurator.add_view()``.
         Note: `acl` and `permission` can also be applied
         to instance method decorators such as :meth:`~get` and :meth:`~put`.
 
@@ -119,7 +113,7 @@ class Service(object):
 
     :param cors_origins:
         The list of origins for CORS. You can use wildcards here if needed,
-        e.g. ('list', 'of', '*.domain').
+        e.g. ('list', 'of', '\*.domain').
 
     :param cors_headers:
         The list of headers supported for the services.
@@ -148,7 +142,7 @@ class Service(object):
         here.
 
     See
-    http://readthedocs.org/docs/pyramid/en/1.0-branch/glossary.html#term-acl
+    https://pyramid.readthedocs.io/en/1.0-branch/glossary.html#term-acl
     for more information about ACLs.
 
     Service cornice instances also have methods :meth:`~get`, :meth:`~post`,
@@ -171,7 +165,6 @@ class Service(object):
         self.path = path
         self.description = description
         self.cors_expose_all_headers = True
-        self._schemas = {}
         self._cors_enabled = None
 
         if cors_policy:
@@ -195,7 +188,7 @@ class Service(object):
                 setattr(self, key, value)
 
         if hasattr(self, 'factory') and hasattr(self, 'acl'):
-            raise KeyError("Cannot specify both 'acl' and 'factory'")
+            raise ConfigurationError("Cannot specify both 'acl' and 'factory'")
 
         # instantiate some variables we use to keep track of what's defined for
         # this service.
@@ -210,15 +203,13 @@ class Service(object):
             setattr(self, verb.lower(),
                     functools.partial(self.decorator, verb))
 
-        if VENUSIAN:
-            # this callback will be called when config.scan (from pyramid) will
-            # be triggered.
-            def callback(context, name, ob):
-                config = context.config.with_package(info.module)
-                config.add_cornice_service(self)
+        # this callback will be called when config.scan (from pyramid) will
+        # be triggered.
+        def callback(context, name, ob):
+            config = context.config.with_package(info.module)
+            config.add_cornice_service(self)
 
-            info = venusian.attach(self, callback, category='pyramid',
-                                   depth=depth)
+        info = venusian.attach(self, callback, category='pyramid', depth=depth)
 
     def get_arguments(self, conf=None):
         """Return a dictionary of arguments. Takes arguments from the :param
@@ -244,11 +235,6 @@ class Service(object):
             if arg in conf:
                 value.extend(to_list(conf.pop(arg)))
             arguments[arg] = value
-
-        # schema validation handling
-        if 'schema' in conf:
-            arguments['schema'] = (
-                CorniceSchema.from_colander(conf.pop('schema')))
 
         # Allow custom error handler
         arguments['error_handler'] = conf.pop('error_handler',
@@ -287,32 +273,7 @@ class Service(object):
         :param **kwargs: additional configuration for this view,
                         including `permission`.
         """
-
-        if 'acl' in kwargs:
-            kwargs.pop('acl')
-            msg = ("Warning: Using acl in method definitions is deprecated."
-                   "Use service or resource instead.")
-            warnings.warn(msg, DeprecationWarning)
-
-        if 'factory' in kwargs:
-            kwargs.pop('factory')
-            msg = ("Warning: Using acl in method definitions is deprecated."
-                   "Use service or resource instead.")
-            warnings.warn(msg, DeprecationWarning)
-
-        if 'traverse' in kwargs:
-            kwargs.pop('traverse')
-            msg = ("Warning: Using traverse in method definitions is "
-                   "deprecated. Use service or resource instead.")
-            warnings.warn(msg, DeprecationWarning)
-
         method = method.upper()
-        if 'schema' in kwargs:
-            # this is deprecated and unusable because multiple schema
-            # definitions for the same method will overwrite each other.
-            # still here for legacy reasons: you'll get a warning if you try to
-            # use it.
-            self._schemas[method] = kwargs['schema']
 
         if 'klass' in kwargs and not callable(view):
             view = _UnboundView(kwargs['klass'], view)
@@ -401,26 +362,6 @@ class Service(object):
                         validators.append(validator)
         return validators
 
-    def schemas_for(self, method):
-        """Returns a list of schemas defined for a given HTTP method.
-
-        A tuple is returned, containing the schema and the arguments relative
-        to it.
-        """
-        schemas = []
-        for meth, view, args in self.definitions:
-            if meth.upper() == method.upper() and 'schema' in args:
-                schemas.append((args['schema'], args))
-        return schemas
-
-    @property
-    def schemas(self):
-        """Here for backward compatibility with the old API."""
-        msg = "'Service.schemas' is deprecated. Use 'Service.definitions' "\
-              "instead."
-        warnings.warn(msg, DeprecationWarning)
-        return self._schemas
-
     @property
     def cors_enabled(self):
         if self._cors_enabled is False:
@@ -431,15 +372,6 @@ class Service(object):
     @cors_enabled.setter
     def cors_enabled(self, value):
         self._cors_enabled = value
-
-    @property
-    def cors_supported_headers(self):
-        """Backward compatibility for ``cors_supported_headers_for``."""
-        msg = "The '{0}' property is deprecated. Please start using '{1}' "\
-              "instead.".format('cors_supported_headers',
-                                'cors_supported_headers_for()')
-        warnings.warn(msg, DeprecationWarning)
-        return self.cors_supported_headers_for()
 
     def cors_supported_headers_for(self, method=None):
         """Return an iterable of supported headers for this service.
@@ -484,14 +416,6 @@ class Service(object):
         if not origins:
             origins = self.cors_origins
         return origins
-
-    def cors_support_credentials(self, method=None):
-        """Backward compatibility for ``cors_support_credentials_for``."""
-        msg = "The '{0}' property is deprecated. Please start using '{1}' "\
-              "instead.".format('cors_support_credentials',
-                                'cors_support_credentials_for()')
-        warnings.warn(msg, DeprecationWarning)
-        return self.cors_supported_headers_for()
 
     def cors_support_credentials_for(self, method=None):
         """Returns if the given method support credentials.
@@ -544,16 +468,6 @@ def decorate_view(view, args, method):
             elif isinstance(view, _UnboundView):
                 view_ = view.make_bound_view(ob)
 
-        # set data deserializer
-        if 'deserializer' in args:
-            request.deserializer = args['deserializer']
-
-        # do schema validation
-        if 'schema' in args:
-            validate_colander_schema(args['schema'], request)
-        elif hasattr(ob, 'schema'):
-            validate_colander_schema(ob.schema, request)
-
         # the validators can either be a list of callables or contain some
         # non-callable values. In which case we want to resolve them using the
         # object if any
@@ -561,7 +475,7 @@ def decorate_view(view, args, method):
         for validator in validators:
             if is_string(validator) and ob is not None:
                 validator = getattr(ob, validator)
-            validator(request)
+            validator(request, **args)
 
         # only call the view if we don't have validation errors
         if len(request.errors) == 0:
@@ -581,7 +495,7 @@ def decorate_view(view, args, method):
             # We already checked for CORS, but since the response is created
             # again, we want to do that again before returning the response.
             request.info['cors_checked'] = False
-            return args['error_handler'](request.errors)
+            return args['error_handler'](request)
 
         # if the view returns its own response, cors headers need to be set
         if isinstance(response, Response):

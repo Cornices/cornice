@@ -1,0 +1,7 @@
+Sphinx
+WebTest
+colander>=1.0b1
+coverage
+mock
+nose
+simplejson

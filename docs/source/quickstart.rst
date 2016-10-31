@@ -1,28 +1,30 @@
+.. _quickstart:
+
 QuickStart for people in a hurry
 ================================
 
-You are in a hurry, so we'll assume you are familiar with Pyramid, Paster, and
-Pip ;)
+You are in a hurry, so we'll assume you are familiar with Pip ;)
 
 To use Cornice, install it::
 
     $ pip install cornice
 
+To start from scratch, you can use a `Cookiecutter <https://cookiecutter.readthedocs.io>`_ project template::
 
-That'll give you a Paster template to use::
-
-    $ pcreate -t cornice project
+    $ pip install cookiecutter
+    $ cookiecutter gh:Cornices/cookiecutter-cornice
     ...
 
 The template creates a working Cornice application.
 
-If you want to add cornice support to an already existing project, you'll need
-to include cornice in your project `includeme`::
+.. note::
 
-    config.include("cornice")
+    If you're familiar with Pyramid and just want to add *cornice* to an already
+    existing project, you'll just need to include ``cornice`` in your project::
 
-You can then start poking at the :file:`views.py` file that
-has been created.
+        config.include("cornice")
+
+You can then start poking at the :file:`views.py` file.
 
 For example, let's define a service where you can **GET** and **POST** a value
 at **/values/{value}**, where *value* is an ascii value representing the
@@ -32,11 +34,11 @@ The :file:`views` module can look like this::
 
     from cornice import Service
 
-    values = Service(name='foo', path='/values/{value}',
-                     description="Cornice Demo")
-
     _VALUES = {}
 
+    values = Service(name='foo',
+                     path='/values/{value}',
+                     description="Cornice Demo")
 
     @values.get()
     def get_value(request):
@@ -76,4 +78,4 @@ Set a key-value using Curl::
     $ curl -X POST http://localhost:6543/values/foo -d '{"a": 1}'
 
 
-Check out what is stored in a foo values, open http://localhost:6543/values/foo
+Check out what is stored in a ``foo`` value at http://localhost:6543/values/foo

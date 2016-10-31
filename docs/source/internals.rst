@@ -10,10 +10,10 @@ or tweak the existing ones.
 The Service class
 =================
 
-The cornice.service.Service class is a container for all the definition
+The :class:`cornice.service.Service` class is a container for all the definition
 information for a particular service. That's what you use when you use the
 Cornice decorators for instance, by doing things like
-`@myservice.get(**kwargs)`. Under the hood, all the information you're passing
+``@myservice.get(**kwargs)``. Under the hood, all the information you're passing
 to the service is stored in this class. Into other things you will find there:
 
 - the `name` of the registered service.
@@ -24,7 +24,9 @@ to the service is stored in this class. Into other things you will find there:
 
 That's for the basic things. The last interesting part is what we call the
 "definitions". When you add a view to the service with the `add_view` method,
-it populates the definitions list, like this::
+it populates the definitions list, like this:
+
+.. code-block:: python
 
     self.definitions.append((method, view, args))
 
@@ -40,25 +42,25 @@ instance-level arguments or class-level arguments if no arguments are provided
 at the add_view level. For instance, let's say I have a default service which
 renders to XML. I set its renderer in the class to "XML".
 
-When I register the information with add_view, `renderer='XML'` will be added
-automatically in the args dict.
+When I register the information with :meth:`cornice.service.Service.add_view()`,
+``renderer='XML'`` will be added automatically in the kwargs dict.
 
-Registering the definitions into the pyramid routing system
+Registering the definitions into the Pyramid routing system
 ===========================================================
 
 Okay, so once you added the services definition using the Service class, you
 might need to actually register the right routes into pyramid. The
-`pyramidhook` module takes care of this for you.
+:mod:`cornice.pyramidhook` module takes care of this for you.
 
 What it does is that it checks all the services registered and call some
 functions of the pyramid framework on your behalf.
 
 What's interesting here is that this mechanism is not really tied to pyramid.
-for instance, we are doing the same thing to do the sphinx automatic
-documentation generation: use the APIs that are exposed in the Service class
+for instance, we are doing the same thing `in cornice_sphinx <https://github.com/Cornices/cornice.ext.sphinx>`_
+to generate the documentation: use the APIs that are exposed in the Service class
 and do something from it.
 
-To keep close to the flexibility of pyramid's routing system, a `traverse`
+To keep close to the flexibility of Pyramid's routing system, a ``traverse``
 argument can be provided on service creation. It will be passed to the route
 declaration. This way you can combine URL Dispatch and traversal to build an
 hybrid application.

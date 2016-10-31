@@ -7,22 +7,22 @@ except ImportError:
     print("please install the 'mozilla-sphinx-theme' distribution")
 
 sys.path.insert(0, os.path.abspath("../.."))  # include cornice from the source
-extensions = ['cornice.ext.sphinxext', 'sphinx.ext.autodoc']
+extensions = ['sphinx.ext.autodoc']
 
 templates_path = ['_templates']
 source_suffix = '.rst'
 master_doc = 'index'
 project = u'Cornice'
-copyright = u'2011, Mozilla Services'
+copyright = u'2011-2016, Mozilla Services'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = '1.1'
+version = '2.1'
 # The full version, including alpha/beta/rc tags.
-release = '1.1.0'
+release = '2.1.0'
 
 exclude_patterns = []
 

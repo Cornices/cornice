@@ -1,32 +1,82 @@
 Here is a (alphabetically-ordered) list of the people who contributed to
 Cornice:
 
+* Akim Sadaoui <akim.sadaoui@arkena.com>
+* Alessandro Amici <alexamici@gmail.com>
+* Alexandre Bourget <alex@bourget.cc>
 * Alexis Metaireau <alexis@notmyidea.org>
 * Alex Marandon <contact@alexmarandon.com>
+* Anaël Beutot <abeutot@oserror.org>
+* Andilab <andrzej.kostanski@gmail.com>
+* Andreas Motl <github.amo@netfrag.org>
+* Andreas Zeidler <andi@pyfidelity.com>
 * Andre Caron <andre.l.caron@gmail.com>
-* Andreas Motl <andreas.motl@ilo.de>
+* Andrew Brookins <a.m.brookins@gmail.com>
+* Antoine Leclair <antoineleclair@gmail.com>
 * Anton D <anton@screwtop>
-* Areski Belaid <areski@gmail.com>
+* Areski <areski@gmail.com>
 * Ben Bangert <ben@groovie.org>
 * Bruno Binet <bruno.binet@gmail.com>
 * Bryan Zegar <bryanzegar@gmail.com>
-* David Charboneau 
+* Christian Benke <benkokakao@gmail.com>
+* Christian Thieme <christian.thieme@celeraone.com>
+* Damian Dimmich <damian@tauri-tec.com>
+* Daniel M. Weeks <dan@danweeks.net>
+* David Charboneau <david@thecharboneaus.net>
+* David Grant <seizethedave@gmail.com>
+* Elias <elias@stupeflix.com>
 * Gael Pasgrimaud <gael@gawel.org>
+* George V. Reilly <george@reilly.org>
+* Graham Higgins <gjh-github@bel-epa.com>
+* G.Tjebbes <g.t@majerti.fr>
+* Guillaume Gauvrit <guillaume@gandi.net>
+* James Arthur <thruflo@gmail.com>
+* James Saxon <james@saxon.com>
 * Janek Hiis <janek@utopic.me>
-* Josip Delic <delicj@delijati.net>
+* Jeff Dairiki <dairiki@dairiki.org>
+* Jeff Marshall <jeff@classy.co>
+* Joe Steeve <js@hipro.co.in>
+* John Brodie <john.brodie@nextiva.com>
+* Jon Staley <jon.staley@fundingoptions.com>
+* Joshua Immanuel <josh@hipro.co.in>
+* Josip Delic <delijati@googlemail.com>
+* Kit Randel <kit@nocturne.net.nz>
+* Laurence Rowe <laurence@lrowe.co.uk>
 * Lorenzo Gil Sanchez <lorenzo.gil.sanchez@gmail.com>
+* Lucas Taylor <ltaylor.volks@gmail.com>
+* Luke Macken <lmacken@redhat.com>
+* Luper Rouch <luper.rouch@gmail.com>
 * Marc Abramowitz <marca@surveymonkey.com>
 * Marcin Lulek <info@webreactor.eu>
 * Marconi Moreto <caketoad@gmail.com>
 * Markus Zapke-Gründemann <markus@keimlink.de>
-* Matthias Wahl <matthias@itemfire.com>
-* Rémy HUBSCHER <hubscher.remy@gmail.com>
+* Mathieu Bridon <bochecha@fedoraproject.org>
+* Mathieu Leplatre <mathieu@mozilla.com>
+* Matthias Lehmann <ml@lalisio.com>
+* Matthias <matthias@itemfire.com>
+* Matt Skinner <skinner.m.c@gmail.com>
+* Myroslav Opyr <myroslav@quintagroup.com>
+* Nicolas Dietrich <nicodietrich@gmail.com>
+* Olivier Roussy <olivier@gandi.net>
+* Paul Smith <paulsmith@pobox.com>
+* Ralph Bean <rbean@redhat.com>
+* Ramana Rao <treerao@gmail.com>
+* Rémy HUBSCHER <rhubscher@mozilla.com>
 * rforkel <rforkel@rforkel-ubuntu.gulp.biz>
-* Rob Miller <rafrombrc@gmail.com>
+* Rickert Mulder <circlingthesun@gmail.com>
 * Rob Miller <rob@kalistra.com>
+* Rob van der Linde <robvdl@gmail.com>
+* Roman Kozlovskyi <kroman0@users.noreply.github.com>
 * Ryan Kelly <ryan@rfk.id.au>
+* Scott Bowers <sbbowers@gmail.com>
+* Sebastian Hanula <sebastian.hanula@gmail.com>
+* sghill <steve@sghill.net>
+* Simone Marzola <marzolasimone@gmail.com>
 * Tarek Ziade <tarek@ziade.org>
+* Tim Tisdall <tisdall@gmail.com>
+* Tom Lazar <tomster@pyfidelity.com>
 * Tres Seaver <tseaver@palladion.com>
+* tsauerwein <tobias.sauerwein@camptocamp.com>
 * Victor Ng <crankycoder@gmail.com>
 * Vincent Fretin <vincent.fretin@gmail.com>
 * Ymage <o2heltem@gmail.com>

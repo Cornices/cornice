@@ -1,10 +1,12 @@
+.. _tutorial:
+
 Full tutorial
 =============
 
 Let's create a full working application with **Cornice**. We want to
 create a light messaging service.
 
-You can find its whole source code at https://github.com/mozilla-services/cornice/blob/master/examples/messaging
+You can find its whole source code at https://github.com/Cornices/examples/blob/master/messaging
 
 Features:
 
@@ -39,9 +41,7 @@ We'll provide a single CLI client in Python, using Curses.
 Setting up the development environment
 --------------------------------------
 
-To create this application, we'll use Python 2.7. Make sure you
-have it on your system, then install **virtualenv** (see
-http://pypi.python.org/pypi/virtualenv).
+Make sure you have **virtualenv** (see http://pypi.python.org/pypi/virtualenv).
 
 Create a new directory and a virtualenv in it::
 
@@ -53,29 +53,13 @@ Once you have it, install Cornice in it with Pip::
 
     $ bin/pip install cornice
 
-Cornice provides a Paster Template you can use to create a new
-application::
+We provide a `Cookiecutter <https://cookiecutter.readthedocs.io>`_ template you
+can use to create a new application::
 
-    $ bin/pcreate -t cornice messaging
-    Creating directory <...path ...>/messaging
-      Recursing into +package+
-        Creating <...path ...>/messaging/messaging/
-        Copying __init__.py_tmpl to <...path ...>/messaging/messaging/__init__.py
-        Copying views.py_tmpl to <...path ...>/messaging/messaging/views.py
-      Copying +package+.ini_tmpl to <...path ...>/messaging/messaging.ini
-      Copying README.rst_tmpl to <...path ...>/messaging/README.rst
-      Copying setup.py_tmpl to <...path ...>/messaging/setup.py
-
-    ===============================================================================
-    Tutorials: http://docs.pylonsproject.org/projects/pyramid_tutorials
-    Documentation: http://docs.pylonsproject.org/projects/pyramid
-
-    Twitter (tips & updates): http://twitter.com/pylons
-    Mailing List: http://groups.google.com/group/pylons-discuss
-
-    Welcome to Pyramid.  Sorry for the convenience.
-    ===============================================================================
-
+    $ bin/pip install cookiecutter
+    $ bin/cookiecutter gh:Cornices/cookiecutter-cornice
+    repo_name [myapp]: messaging
+    project_title [My Cornice application.]: Cornice tutorial
 
 Once your application is generated, go there and call *develop* against it::
 
@@ -83,7 +67,7 @@ Once your application is generated, go there and call *develop* against it::
     $ ../bin/python setup.py develop
     ...
 
-The application can now be launched via embedded Pyramid pserve, it provides a default "Hello"
+The application can now be launched via embedded Pyramid ``pserve``, it provides a default "Hello"
 service check::
 
     $ ../bin/pserve messaging.ini
@@ -129,11 +113,14 @@ Users management
 
 
 We're going to get rid of the Hello service, and change this file in order
-to add our first service - the users management ::
+to add our first service - the users management
+
+.. code-block:: python
 
     from cornice import Service
 
     _USERS = {}
+
     users = Service(name='users', path='/users', description="User registration")
 
     @users.get(validators=valid_token)
@@ -149,7 +136,7 @@ to add our first service - the users management ::
         return {'token': '%s-%s' % (user['name'], user['token'])}
 
     @users.delete(validators=valid_token)
-    def del_user(request):
+    def delete_user(request):
         """Removes the user."""
         name = request.validated['user']
         del _USERS[name]
@@ -175,47 +162,32 @@ Remarks:
 Validators are filling the **request.validated** mapping, the service can
 then use.
 
-Here's their code::
+.. code-block:: python
 
     import os
     import binascii
-    import json
 
-    from webob import Response, exc
+    from pyramid.httpexceptions import HTTPUnauthorized
     from cornice import Service
 
-    users = Service(name='users', path='/users', description="Users")
-    _USERS = {}
 
-
-    #
-    # Helpers
-    #
     def _create_token():
         return binascii.b2a_hex(os.urandom(20))
-
-
-    class _401(exc.HTTPError):
-        def __init__(self, msg='Unauthorized'):
-            body = {'status': 401, 'message': msg}
-            Response.__init__(self, json.dumps(body))
-            self.status = 401
-            self.content_type = 'application/json'
 
 
     def valid_token(request):
         header = 'X-Messaging-Token'
         htoken = request.headers.get(header)
         if htoken is None:
-            raise _401()
+            raise HTTPUnauthorized()
         try:
             user, token = htoken.split('-', 1)
         except ValueError:
-            raise _401()
+            raise HTTPUnauthorized()
 
         valid = user in _USERS and _USERS[user] == token
         if not valid:
-            raise _401()
+            raise HTTPUnauthorized()
 
         request.validated['user'] = user
 
@@ -227,31 +199,6 @@ Here's their code::
         else:
             user = {'name': name, 'token': _create_token()}
             request.validated['user'] = user
-
-
-    #
-    # Services - User Management
-    #
-    @users.get(validators=valid_token)
-    def get_users(request):
-        """Returns a list of all users."""
-        return {'users': _USERS.keys()}
-
-
-    @users.post(validators=unique)
-    def create_user(request):
-        """Adds a new user."""
-        user = request.validated['user']
-        _USERS[user['name']] = user['token']
-        return {'token': '%s-%s' % (user['name'], user['token'])}
-
-
-    @users.delete(validators=valid_token)
-    def del_user(request):
-        """Removes the user."""
-        name = request.validated['user']
-        del _USERS[name]
-        return {'Goodbye': name}
 
 
 When the validator finds errors, it adds them to the **request.errors**
@@ -278,13 +225,13 @@ Messages management
 :::::::::::::::::::
 
 Now that we have users, let's post and get messages. This is done via two very
-simple functions we're adding in the :file:`views.py` file::
+simple functions we're adding in the :file:`views.py` file:
 
-
-    messages = Service(name='messages', path='/', description="Messages")
+.. code-block:: python
 
     _MESSAGES = []
 
+    messages = Service(name='messages', path='/', description="Messages")
 
     @messages.get()
     def get_messages(request):
@@ -311,7 +258,11 @@ The **POST** uses two validators:
   POST body, and puts it in the validated dict.
 
 
-Here's the :func:`valid_message` function::
+Here's the :func:`valid_message` function:
+
+.. code-block:: python
+
+    import json
 
     def valid_message(request):
         try:
@@ -340,61 +291,6 @@ and reuse the user name provided by the previous validator
 with the token control.
 
 
-Generating the documentation
-----------------------------
-
-Now that we have a nifty web application, let's add some doc.
-
-Go back to the root of your project and install Sphinx::
-
-    $ bin/pip install Sphinx
-
-Then create a Sphinx structure with **sphinx-quickstart**::
-
-
-    $ mkdir docs
-    $ bin/sphinx-quickstart
-    Welcome to the Sphinx 1.0.7 quickstart utility.
-
-    ..
-
-    Enter the root path for documentation.
-    > Root path for the documentation [.]: docs
-    ...
-    > Separate source and build directories (y/N) [n]: y
-    ...
-    > Project name: Messaging
-    > Author name(s): Tarek
-    ...
-    > Project version: 1.0
-    ...
-    > Create Makefile? (Y/n) [y]:
-    > Create Windows command file? (Y/n) [y]:
-
-
-Once the initial structure is created, we need to declare the Cornice
-extension, by editing the :file:`source/conf.py` file. We want to change
-**extensions = []** into::
-
-    import cornice   # makes sure cornice is available
-    extensions = ['cornice.ext.sphinxext']
-
-
-The last step is to document your services by editing the
-:file:`source/index.rst` file like this::
-
-    Welcome to Messaging's documentation!
-    =====================================
-
-    .. services::
-       :modules: messaging.views
-
-
-The **services** directive is told to look at the services in the **messaging**
-package. When the documentation is built, you will get a nice
-output of all the services we've described earlier.
-
-
 The Client
 ----------
 
@@ -407,4 +303,4 @@ A simple client to use against our service can do three things:
 Without going into great details, there's a Python CLI against messaging
 that uses Curses.
 
-See https://github.com/mozilla-services/cornice/blob/master/examples/messaging/messaging/client.py
+See https://github.com/Cornices/examples/blob/master/messaging/messaging/client.py

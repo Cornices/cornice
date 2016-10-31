@@ -1,26 +1,46 @@
 Testing
 =======
 
+Running tests
+-------------
+
+To run all tests in all Python environments configured in ``tox.ini``,
+just setup ``tox`` and run it inside the toplevel project directory::
+
+    tox
+
+To run a single test inside a specific Python environment, do e.g.::
+
+    tox -e py27 tests/test_validation.py:TestServiceDefinition.test_content_type_missing
+
+or::
+
+    tox -e py27 tests.test_validation:TestServiceDefinition.test_content_type_missing
+
+
+Testing cornice services
+------------------------
+
 Testing is nice and useful. Some folks even said it helped saving kittens. And
-childs.  Here is how you can test your Cornice's applications.
+childs. Here is how you can test your Cornice's applications.
 
-Let's suppose you have this service definition::
+Let's suppose you have this service definition:
 
+.. code-block:: python
 
     from pyramid.config import Configurator
 
     from cornice import Service
-    from cornice.tests.support import CatchErrors
 
     service = Service(name="service", path="/service")
 
 
-    def has_payed(request):
+    def has_payed(request, **kwargs):
         if not 'paid' in request.GET:
             request.errors.add('body', 'paid', 'You must pay!')
 
 
-    @service.get(validator=has_payed)
+    @service.get(validators=(has_payed,))
     def get1(request):
         return {"test": "succeeded"}
 
@@ -33,7 +53,7 @@ Let's suppose you have this service definition::
     def main(global_config, **settings):
         config = Configurator(settings={})
         config.include(includeme)
-        return CatchErrors(config.make_wsgi_app())
+        return config.make_wsgi_app()
 
 
 We have done three things here:
@@ -42,7 +62,9 @@ We have done three things here:
 * register the app and cornice to pyramid in the `includeme` function
 * define a `main` function to be used in tests
 
-To test this service, we will use **webtest**, and the `TestApp` class::
+To test this service, we will use **webtest**, and the `TestApp` class:
+
+.. code-block:: python
 
     from webtest import TestApp
     import unittest
