@@ -20,9 +20,9 @@ copyright = u'2011-2016, Mozilla Services'
 # built documents.
 #
 # The short X.Y version.
-version = '2.1'
+version = '2.2'
 # The full version, including alpha/beta/rc tags.
-release = '2.1.0'
+release = '2.2.0'
 
 exclude_patterns = []
 
