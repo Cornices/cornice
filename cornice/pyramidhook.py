@@ -97,10 +97,10 @@ def get_fallback_view(service):
 
         # After "custom predicates" feature has been added there is no need in
         # this line. Instead requests will be filtered by  "custom predicates"
-        # feature filter and exception “404 Not found" error will be raised. In
+        # feature filter and exception "404 Not found" error will be raised. In
         # order to avoid unpredictable cases, we left this line in place and
         # excluded it from coverage.
-        raise PredicateMismatch(service.name) # pragma: no cover
+        raise PredicateMismatch(service.name)  # pragma: no cover
     return _fallback_view
 
 
