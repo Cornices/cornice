@@ -6,6 +6,8 @@ import mock
 import unittest
 import warnings
 
+from pyramid import compat
+from pyramid.request import Request
 import simplejson as json
 from webtest import TestApp
 try:
@@ -15,7 +17,8 @@ except ImportError:
     COLANDER = False
 
 from cornice.errors import Errors
-from cornice.validators import colander_validator, colander_body_validator
+from cornice.validators import (colander_validator, colander_body_validator,
+    extract_cstruct)
 
 from .validationapp import main
 from .support import LoggingCatcher, TestCase, DummyRequest
@@ -502,3 +505,17 @@ class TestValidatorEdgeCases(TestCase):
         colander_body_validator(request)
         self.assertEqual(request.validated, mock.sentinel.validated)
         self.assertEqual(len(request.errors), 0)
+
+
+class TestExtractedJSONValueTypes(unittest.TestCase):
+    """Make sure that all JSON string values extracted from the request
+      are unicode when running using PY2.
+    """
+    def test_extracted_json_values(self):
+        """Extracted JSON values are unicode in PY2."""
+        body = '{"foo": "bar", "currency": "\xe2\x82\xac"}'
+        request = Request.blank('/', body=compat.bytes_(body))
+        data = extract_cstruct(request)
+        self.assertEqual(type(data['body']['foo']), compat.text_type)
+        self.assertEqual(type(data['body']['currency']), compat.text_type)
+        self.assertEqual(data['body']['currency'], u'€')
