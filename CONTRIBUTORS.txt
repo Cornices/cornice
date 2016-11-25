@@ -80,3 +80,4 @@ Cornice:
 * Victor Ng <crankycoder@gmail.com>
 * Vincent Fretin <vincent.fretin@gmail.com>
 * Ymage <o2heltem@gmail.com>
+* Volodymyr Maksymiv <vmaksymiv@quintagroup.com>

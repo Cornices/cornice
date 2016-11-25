@@ -6,7 +6,13 @@ CHANGELOG
 2.2.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+**Enhancements**
+
+- Add support of custom predicates in resources (#344, thanks @VDigitall!)
+
+**Internal changes**
+
+- Assert proper behaviour of UTF-8 content JSON body (#366, thanks @thruflo!)
 
 
 2.1.0 (2016-10-28)
