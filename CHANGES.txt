@@ -6,7 +6,11 @@ CHANGELOG
 2.3.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+**Bug fixes**
+
+- Fix ``cornice.cors.get_cors_preflight_view`` to make it parse
+  `Access-Control-Request-Headers` header correctly event if its value
+  contains zero number of white spaces between commas (#422)
 
 
 2.2.0 (2016-11-25)

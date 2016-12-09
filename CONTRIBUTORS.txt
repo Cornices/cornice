@@ -81,3 +81,4 @@ Cornice:
 * Vincent Fretin <vincent.fretin@gmail.com>
 * Ymage <o2heltem@gmail.com>
 * Volodymyr Maksymiv <vmaksymiv@quintagroup.com>
+* Sergey Safonov <spoof@spoofa.info>
