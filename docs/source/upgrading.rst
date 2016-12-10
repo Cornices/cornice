@@ -168,6 +168,55 @@ locations:
                 self.raise_invalid('Referrer cannot be the same as username')
             return appstruct
 
+Deferred validators
+-------------------
+
+Colander deferred validators allow to access runtime objects during validation,
+like the current request for example.
+
+Before, the binding to the request was implicitly done by Cornice, and now has
+to be explicit.
+
+.. code-block:: python
+
+    import colander
+
+    @colander.deferred
+    def deferred_validator(node, kw):
+        request = kw['request']
+        if request['x-foo'] == 'version_a':
+            return colander.OneOf(['a', 'b'])
+        else:
+            return colander.OneOf(['c', 'd'])
+
+    class Schema(colander.MappingSchema):
+        bazinga = colander.SchemaNode(colander.String(), validator=deferred_validator)
+
+Before:
+
+.. code-block:: python
+
+    signup = cornice.Service()
+
+    @signup.post(schema=Schema())
+    def signup_post(request):
+        return {}
+
+After:
+
+.. code-block:: python
+
+    def bound_schema_validator(request, **kwargs):
+        schema  = kwargs['schema']
+        kwargs['schema'] = schema.bind(request=request)
+        return colander_validator(request, **kwargs)
+
+    signup = cornice.Service()
+
+    @signup.post(schema=Schema(), validators=(bound_schema_validator,))
+    def signup_post(request):
+        return {}
+
 
 Error handler
 -------------
