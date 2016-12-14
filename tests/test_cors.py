@@ -68,6 +68,12 @@ def moar_spam(request):
     return 'moar spam'
 
 
+@eggs.get(cors_origins=('notmyidea.org',),
+          cors_headers=('X-My-Header', 'X-Another-Header', 'X-Another-Header2'))
+def get_eggs(request):
+    return "eggs"
+
+
 def is_bacon_good(request, **kwargs):
     if not request.matchdict['type'].endswith('good'):
         request.errors.add('querystring', 'type', 'should be better!')
@@ -278,11 +284,24 @@ class TestCORS(TestCase):
         self.assertIn('baz', headers)
 
     def test_preflight_request_headers_isnt_too_permissive(self):
+        # The specification says we can have any number of LWS (Linear white
+        # spaces) in the values.
         self.app.options(
             '/eggs', headers={
                 'Origin': 'notmyidea.org',
                 'Access-Control-Request-Method': 'GET',
-                'Access-Control-Request-Headers': 'foo,bar,baz'},
+                'Access-Control-Request-Headers': (
+                    '  X-My-Header  ,X-Another-Header,   X-Another-Header2 '
+                )},
+            status=200)
+
+        self.app.options(
+            '/eggs', headers={
+                'Origin': 'notmyidea.org',
+                'Access-Control-Request-Method': 'GET',
+                'Access-Control-Request-Headers': (
+                    'X-My-Header   ,baz ,  X-Another-Header  '
+                )},
             status=400)
 
     def test_preflight_headers_arent_case_sensitive(self):
