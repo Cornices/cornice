@@ -6,6 +6,11 @@ CHANGELOG
 2.3.0 (unreleased)
 ==================
 
+**Enhancements**
+
+- Add support for validation with specific JSON Content-Types
+  (i.e application/merge-patch+json).
+
 **Bug fixes**
 
 - Fix ``cornice.cors.get_cors_preflight_view`` to make it parse
