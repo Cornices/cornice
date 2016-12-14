@@ -205,6 +205,19 @@ class TestServiceWithWrapper(TestCase):
         self.assertEqual("TestServiceWithWrapper.test_wrapped", func_name(TestServiceWithWrapper.test_wrapped))
 
 
+class TestNosniffHeader(TestCase):
+    def setUp(self):
+        self.config = testing.setUp()
+        self.config.include("cornice")
+        self.config.scan("tests.test_pyramidhook")
+        self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
+
+    def test_no_sniff_is_added_to_responses(self):
+        response = self.app.get('/wrapperservice')
+        print(response.headers)
+        self.assertEqual(response.headers['X-Content-Type-Options'], 'nosniff')
+
+
 test_service = Service(name="jardinet", path="/jardinet", traverse="/jardinet")
 test_service.add_view('GET', lambda _:_)
 

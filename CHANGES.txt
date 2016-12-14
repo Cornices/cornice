@@ -12,6 +12,10 @@ CHANGELOG
   `Access-Control-Request-Headers` header correctly event if its value
   contains zero number of white spaces between commas (#422)
 
+**Enhancements**
+
+- Add ``X-Content-Type-Options: nosniff`` headers to responses (fixes #102)
+
 
 2.2.0 (2016-11-25)
 ==================
