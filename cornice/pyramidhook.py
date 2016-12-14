@@ -213,17 +213,11 @@ def register_service_views(config, service):
         if service.cors_enabled:
             args['validators'].insert(0, cors_validator)
 
-        decorated_view = decorate_view(view, dict(args), method)
+        decorated_view = decorate_view(view, dict(args), method, route_args)
 
         for item in cornice_parameters:
             if item in args:
                 del args[item]
-
-        # These attributes are used in routes not views
-        deprecated_attrs = ['acl', 'factory', 'traverse']
-        for attr in deprecated_attrs:
-            if attr in args:
-                args.pop(attr)
 
         # filter predicates defined on Resource
         route_predicates = config.get_predlist('route').sorter.names

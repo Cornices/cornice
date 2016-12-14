@@ -279,6 +279,11 @@ class Service(object):
             view = _UnboundView(kwargs['klass'], view)
 
         args = self.get_arguments(kwargs)
+
+        # These attributes were used in views in Cornice < 1.0.
+        deprecated_attrs = ('acl', 'factory', 'traverse')
+        args = {k: v for k, v in args.items() if k not in deprecated_attrs}
+
         if hasattr(self, 'get_view_wrapper'):
             view = self.get_view_wrapper(kwargs)(view)
         self.definitions.append((method, view, args))
@@ -443,7 +448,7 @@ class Service(object):
         return max_age
 
 
-def decorate_view(view, args, method):
+def decorate_view(view, args, method, route_args={}):
     """Decorate a given view with cornice niceties.
 
     This function returns a function with the same signature than the one
@@ -452,6 +457,7 @@ def decorate_view(view, args, method):
     :param view: the view to decorate
     :param args: the args to use for the decoration
     :param method: the HTTP method
+    :param route_args: the args used for the associated route
     """
     def wrapper(request):
         # if the args contain a klass argument then use it to resolve the view
@@ -460,7 +466,7 @@ def decorate_view(view, args, method):
         view_ = view
         if 'klass' in args and not callable(view):
             params = dict(request=request)
-            if 'factory' in args and 'acl' not in args:
+            if 'factory' in route_args and 'acl' not in route_args:
                 params['context'] = request.context
             ob = args['klass'](**params)
             if is_string(view):

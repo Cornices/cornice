@@ -505,10 +505,11 @@ class TestService(TestCase):
 
     def test_decorate_view_factory(self):
 
-        args = {'factory': u'TheFactoryMethodCalledByPyramid',
-                'klass': DummyAPI}
+        args = {'klass': DummyAPI}
+        route_args = {'factory': u'TheFactoryMethodCalledByPyramid'}
 
-        decorated_view = decorate_view('collection_get', args, 'GET')
+        decorated_view = decorate_view('collection_get', args,
+                                       'GET', route_args)
         dummy_request = DummyRequest()
         ret = decorated_view(dummy_request)
         self.assertEqual(ret, ['douggy', 'rusty'])

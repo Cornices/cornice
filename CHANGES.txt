@@ -12,6 +12,12 @@ CHANGELOG
   `Access-Control-Request-Headers` header correctly event if its value
   contains zero number of white spaces between commas (#422)
 
+**Internal changes**
+
+- Clean-up an inconsistency in ``cornice.service.decorate_view()`` function
+  where ``acl`` and ``factory`` were expected as view arguments (whereas
+  deprecated since 1.0)
+
 
 2.2.0 (2016-11-25)
 ==================
