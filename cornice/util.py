@@ -188,3 +188,20 @@ def func_name(f):
         return '{0}.{1}'.format(f.im_class.__name__, f.__name__)  # Python 2
     else:  # pragma: no cover
         return f.__name__  # Python 2
+
+
+def current_service(request):
+    """Return the Cornice service matching the specified request.
+
+    :returns: the service or None if unmatched.
+    :rtype: cornice.Service
+    """
+    if request.matched_route:
+        services = request.registry.cornice_services
+        pattern = request.matched_route.pattern
+        try:
+            service = services[pattern]
+        except KeyError:
+            return None
+        else:
+            return service

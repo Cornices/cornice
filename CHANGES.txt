@@ -10,16 +10,14 @@ CHANGELOG
 
 - Add support for validation with specific JSON Content-Types
   (i.e application/merge-patch+json).
+- Add ``X-Content-Type-Options: nosniff`` headers to responses (fixes #102)
+- Add a ``request.current_service`` attribute (fixes #105)
 
 **Bug fixes**
 
 - Fix ``cornice.cors.get_cors_preflight_view`` to make it parse
   `Access-Control-Request-Headers` header correctly event if its value
   contains zero number of white spaces between commas (#422)
-
-**Enhancements**
-
-- Add ``X-Content-Type-Options: nosniff`` headers to responses (fixes #102)
 
 **Internal changes**
 
