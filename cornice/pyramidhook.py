@@ -134,12 +134,25 @@ def handle_exceptions(exc, request):
     return apply_filters(request, exc)
 
 
+def add_nosniff_header(request, response):
+    """IE has some rather unfortunately content-type-sniffing behaviour
+    that can be used to trigger XSS attacks via a JSON API, as described here:
+
+    * http://blog.watchfire.com/wfblog/2011/10/json-based-xss-exploitation.html
+    * https://superevr.com/blog/2012/exploiting-xss-in-ajax-web-applications/
+
+    Make cornice safe-by-default against this attack by including the header.
+    """
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+
+
 def wrap_request(event):
     """Adds a "validated" dict, a custom "errors" object and an "info" dict to
     the request object if they don't already exists
     """
     request = event.request
     request.add_response_callback(apply_filters)
+    request.add_response_callback(add_nosniff_header)
 
     if not hasattr(request, 'validated'):
         setattr(request, 'validated', {})
