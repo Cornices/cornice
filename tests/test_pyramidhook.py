@@ -218,8 +218,20 @@ class TestNosniffHeader(TestCase):
         self.assertEqual(response.headers['X-Content-Type-Options'], 'nosniff')
 
 
-test_service = Service(name="jardinet", path="/jardinet", traverse="/jardinet")
-test_service.add_view('GET', lambda _:_)
+test_service = Service(name="jardinet", path="/jardinet", traverse='/')
+test_service.add_view('GET', lambda request: request.current_service.name)
+
+
+class TestCurrentService(TestCase):
+    def setUp(self):
+        self.config = testing.setUp()
+        self.config.include("cornice")
+        self.config.scan("tests.test_pyramidhook")
+        self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
+
+    def test_current_service_on_request(self):
+        resp = self.app.get("/jardinet")
+        self.assertEqual(resp.json, "jardinet")
 
 
 class TestRouteWithTraverse(TestCase):
@@ -229,10 +241,8 @@ class TestRouteWithTraverse(TestCase):
         config.add_route = mock.MagicMock()
 
         register_service_views(config, test_service)
-        self.assertTrue(
-                ('traverse', '/jardinet'),
-                config.add_route.called_args,
-            )
+        config.add_route.assert_called_with('jardinet', '/jardinet',
+                                            traverse='/')
 
     def test_route_with_prefix(self):
         config = testing.setUp(settings={})

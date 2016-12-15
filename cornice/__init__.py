@@ -14,7 +14,7 @@ from cornice.pyramidhook import (
     handle_exceptions,
     register_resource_views,
 )
-from cornice.util import ContentTypePredicate
+from cornice.util import ContentTypePredicate, current_service
 from pyramid.events import NewRequest
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.security import NO_PERMISSION_REQUIRED
@@ -79,6 +79,7 @@ def includeme(config):
     config.add_subscriber(wrap_request, NewRequest)
     config.add_renderer('simplejson', util.json_renderer)
     config.add_view_predicate('content_type', ContentTypePredicate)
+    config.add_request_method(current_service, reify=True)
 
     settings = config.get_settings()
     if asbool(settings.get('handle_exceptions', True)):
