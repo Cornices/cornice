@@ -16,6 +16,12 @@ CHANGELOG
 
 - Add ``X-Content-Type-Options: nosniff`` headers to responses (fixes #102)
 
+**Internal changes**
+
+- Clean-up an inconsistency in ``cornice.service.decorate_view()`` function
+  where ``acl`` and ``factory`` were expected as view arguments (whereas
+  deprecated since 1.0)
+
 
 2.2.0 (2016-11-25)
 ==================
