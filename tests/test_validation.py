@@ -396,6 +396,15 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
         })
         self.assertEqual(response.json['username'], 'man')
 
+    def test_valid_nonstandard_json(self):
+        app = self.make_ordinary_app()
+        response = app.post_json(
+            '/signup',
+            {'username': 'man'},
+            headers={'content-type': 'application/merge-patch+json'}
+        )
+        self.assertEqual(response.json['username'], 'man')
+
     def test_invalid_json(self):
         app = self.make_ordinary_app()
         response = app.post('/signup',

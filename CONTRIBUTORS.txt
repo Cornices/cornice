@@ -25,6 +25,7 @@ Cornice:
 * David Charboneau <david@thecharboneaus.net>
 * David Grant <seizethedave@gmail.com>
 * Elias <elias@stupeflix.com>
+* Gabriela Surita <gsurita@mozilla.com>
 * Gael Pasgrimaud <gael@gawel.org>
 * George V. Reilly <george@reilly.org>
 * Graham Higgins <gjh-github@bel-epa.com>

@@ -1,6 +1,8 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+import re
+
 from webob.multidict import MultiDict
 from cornice.validators._colander import (
     validator as colander_validator,
@@ -30,10 +32,11 @@ def extract_cstruct(request):
     :returns: A mapping containing most request attributes.
     :rtype: dict
     """
+    is_json = re.match('^application/(.*?)json$', str(request.content_type))
+
     if request.content_type == 'application/x-www-form-urlencoded':
         body = request.POST.mixed()
-
-    elif request.content_type and request.content_type != 'application/json':
+    elif request.content_type and not is_json:
         body = request.body
     else:
         if request.body:
