@@ -46,8 +46,9 @@ def extract_cstruct(request):
                 request.errors.add('body', '', 'Invalid JSON: %s' % e)
                 return {}
             else:
-                if not hasattr(body, 'items'):
-                    request.errors.add('body', '', 'Should be a JSON object')
+                if not hasattr(body, 'items') and not isinstance(body, list):
+                    request.errors.add('body', '',
+                                       'Should be a JSON object or array')
                     return {}
         else:
             body = {}
