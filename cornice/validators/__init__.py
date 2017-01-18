@@ -48,7 +48,7 @@ def extract_cstruct(request):
             else:
                 if not hasattr(body, 'items') and not isinstance(body, list):
                     request.errors.add('body', '',
-                                       'Should be a JSON object or array')
+                                       'Should be a JSON object or an array')
                     return {}
         else:
             body = {}
