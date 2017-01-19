@@ -32,11 +32,8 @@ def body_validator(request, schema=None, deserializer=None, **kwargs):
     class RequestSchema(colander.MappingSchema):
         body = _ensure_instantiated(schema)
 
-        def deserialize(self, cstruct=colander.null):
-            appstruct = super(RequestSchema, self).deserialize(cstruct)
-            return appstruct['body']
-
     validator(request, RequestSchema(), deserializer, **kwargs)
+    request.validated = request.validated.get('body', {})
 
 
 def validator(request, schema=None, deserializer=None, **kwargs):

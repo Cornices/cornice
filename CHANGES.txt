@@ -6,7 +6,9 @@ CHANGELOG
 2.4.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+**Enhancements**
+
+- Add support for arrays on request body top level.
 
 
 2.3.0 (2016-12-15)

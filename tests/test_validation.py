@@ -405,6 +405,15 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
         )
         self.assertEqual(response.json['username'], 'man')
 
+    def test_valid_json_array(self):
+        app = self.make_ordinary_app()
+        response = app.post_json(
+            '/group_signup',
+            [{'username': 'hey'}, {'username': 'how'}]
+        )
+        self.assertEqual(response.json['data'],
+                         [{'username': 'hey'}, {'username': 'how'}])
+
     def test_invalid_json(self):
         app = self.make_ordinary_app()
         response = app.post('/signup',

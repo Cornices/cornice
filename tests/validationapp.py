@@ -174,6 +174,16 @@ if COLANDER:
     def signup_post(request):
         return request.validated
 
+    group_signup = Service(name="group signup", path="/group_signup")
+
+    class GroupSignupSchema(SequenceSchema):
+        user = SignupSchema()
+
+    @group_signup.post(schema=GroupSignupSchema(),
+                       validators=(colander_body_validator,))
+    def group_signup_post(request):
+        return {'data': request.validated}
+
     def validate_bar(node, value):
         if value != 'open':
             raise Invalid(node, "The bar is not open.")
