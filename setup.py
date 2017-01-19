@@ -15,7 +15,7 @@ entry_points = ""
 package_data = {}
 
 setup(name='cornice',
-      version='2.4.0',
+      version='2.5.0.dev0',
       description='Define Web Services in Pyramid.',
       long_description=README + '\n\n' + CHANGES,
       license='MPLv2.0',
