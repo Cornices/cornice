@@ -33,9 +33,7 @@ def body_validator(request, schema=None, deserializer=None, **kwargs):
         body = _ensure_instantiated(schema)
 
     validator(request, RequestSchema(), deserializer, **kwargs)
-
-    if 'body' in request.validated:
-        request.validated = request.validated['body']
+    request.validated = request.validated.get('body', {})
 
 
 def validator(request, schema=None, deserializer=None, **kwargs):
