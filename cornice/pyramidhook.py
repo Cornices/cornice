@@ -204,6 +204,11 @@ def register_service_views(config, service):
 
     routes = config.get_predlist('route')
     for predicate in routes.sorter.names:
+        # Do not let the custom predicates handle the Header Accept
+        # it is done in the fallback view
+        if predicate == 'accept':
+            continue
+
         if hasattr(service, predicate):
             route_args[predicate] = getattr(service, predicate)
 
