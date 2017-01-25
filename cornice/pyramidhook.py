@@ -204,8 +204,9 @@ def register_service_views(config, service):
 
     routes = config.get_predlist('route')
     for predicate in routes.sorter.names:
-        # Do not let the custom predicates handle the Header Accept
-        # it is done in the fallback view
+        # Do not let the custom predicates handle validation of Header Accept,
+        # which will pass it through to pyramid. It is handled by
+        # _fallback_view(), because it allows callable.
         if predicate == 'accept':
             continue
 

@@ -19,35 +19,9 @@ from .support import TestCase, CatchErrors, dummy_factory
 
 
 USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
-FRUITS = {1: {'name': 'apple'}, 2: {'name': 'orange'}}
 
 def my_collection_acl(request):
     return [(Allow, 'alice', 'read')]
-
-
-def _accept(request):
-    return ('text/json', 'application/json')
-
-
-@resource(collection_path='/fruits', path='/fruits/{id}',
-          name='fruit_service', accept=_accept)
-class Group(object):
-
-    def __init__(self, request, context=None):
-        self.request = request
-        self.context = context
-
-    def collection_get(self):
-        return {'fruits': list(FRUITS.keys())}
-
-    @view(renderer='jsonp')
-    @view(renderer='json')
-    def get(self):
-        return FRUITS.get(int(self.request.matchdict['id']))
-
-    @view(renderer='json', accept=_accept)
-    def collection_post(self):
-        return {'test': 'yeah'}
 
 
 @resource(collection_path='/thing', path='/thing/{id}',
@@ -147,17 +121,6 @@ class TestResource(TestCase):
         # resource method
         self.assertEqual(
             self.app.post("/users", headers={'Accept': 'text/json'},
-                          params=json.dumps({'test': 'yeah'})).json,
-            {'test': 'yeah'})
-
-    def test_accept_headers_callable(self):
-        self.assertEqual(
-            self.app.post("/fruits", headers={'Accept': 'text/json'},
-                          params=json.dumps({'test': 'yeah'})).json,
-            {'test': 'yeah'})
-
-        self.assertEqual(
-            self.app.post("/fruits", headers={'Accept': 'application/json'},
                           params=json.dumps({'test': 'yeah'})).json,
             {'test': 'yeah'})
 
