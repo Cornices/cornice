@@ -20,7 +20,6 @@ from .support import TestCase, CatchErrors, dummy_factory
 
 USERS = {1: {'name': 'gawel'}, 2: {'name': 'tarek'}}
 
-
 def my_collection_acl(request):
     return [(Allow, 'alice', 'read')]
 
