@@ -278,6 +278,16 @@ class Service(object):
         if 'klass' in kwargs and not callable(view):
             view = _UnboundView(kwargs['klass'], view)
 
+        # Apply service validators, then view-specific validators.
+        validators = kwargs.pop('validators', [])
+        if callable(validators):
+            # Validators is sometimes passed a single function.
+            validators = [validators]
+        else:
+            # Need a list for concatenation below.
+            validators = list(validators)
+        kwargs['validators'] = self.get_validators(method) + validators
+
         args = self.get_arguments(kwargs)
 
         # These attributes were used in views in Cornice < 1.0.
@@ -359,7 +369,7 @@ class Service(object):
 
         :param method: the method to get the validators for.
         """
-        validators = []
+        validators = self.default_validators[:]
         for meth, view, args in self.definitions:
             if meth.upper() == method.upper() and 'validators' in args:
                 for validator in args['validators']:
