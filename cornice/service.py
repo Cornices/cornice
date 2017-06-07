@@ -84,8 +84,8 @@ class Service(object):
         values.  This param is exclusive with the 'acl' one.
 
     :param acl:
-        A callable defining the ACL (returns true or false, function of the
-        given request). Exclusive with the 'factory' option.
+        A callable accepting a request and returning a list of ACLs.
+        Exclusive with the 'factory' option.
 
     :param permission:
         As for ``pyramid.config.Configurator.add_view()``.
