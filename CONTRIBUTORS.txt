@@ -36,6 +36,7 @@ Cornice:
 * Janek Hiis <janek@utopic.me>
 * Jeff Dairiki <dairiki@dairiki.org>
 * Jeff Marshall <jeff@classy.co>
+* Jens Carl <jc.github@jens-carl.de>
 * Joe Steeve <js@hipro.co.in>
 * John Brodie <john.brodie@nextiva.com>
 * Jon Staley <jon.staley@fundingoptions.com>
