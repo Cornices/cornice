@@ -465,9 +465,11 @@ def decorate_view(view, args, method, route_args={}):
         ob = None
         view_ = view
         if 'klass' in args and not callable(view):
+            #XXX: given that request.context exists and root-factory only expects request param, having params seems unnecessary
             params = dict(request=request)
             if 'factory' in route_args and 'acl' not in route_args:
                 params['context'] = request.context
+            #ob = args['klass'](request)
             ob = args['klass'](**params)
             if is_string(view):
                 view_ = getattr(ob, view.lower())

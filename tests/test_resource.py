@@ -12,6 +12,7 @@ from pyramid.httpexceptions import (
 )
 from webtest import TestApp
 import mock
+from unittest import skip
 
 from cornice.resource import resource, view
 
@@ -25,12 +26,15 @@ def my_collection_acl(request):
 
 
 @resource(collection_path='/thing', path='/thing/{id}',
-          name='thing_service', collection_acl=my_collection_acl)
+          name='thing_service')
 class Thing(object):
 
     def __init__(self, request, context=None):
         self.request = request
         self.context = context
+
+    def __acl__(self):
+        return my_collection_acl(self.request)
 
     @view(permission='read')
     def collection_get(self):
@@ -151,6 +155,7 @@ class TestResource(TestCase):
         route_url = testing.DummyRequest().route_url
         self.assert_(route_url('user_service', id=42))  # service must exist
 
+    @skip('deprecated collection_acl param')
     @mock.patch('cornice.resource.Service')
     def test_collection_acl_can_be_different(self, mocked_service):
         @resource(collection_path='/list', path='/list/{id}', name='list',
@@ -166,11 +171,16 @@ class TestResource(TestCase):
         # calling a view with permissions without an auth'd user => 403
         self.app.get('/thing', status=HTTPForbidden.code)
 
+    def test_acl_support_unauthenticated_forbidden_thing_get(self):
+        # calling a view with permissions without an auth'd user => 403
+        with mock.patch.object(self.authn_policy, 'authenticated_userid', return_value=None):
+            result = self.app.get('/thing', status=HTTPForbidden.code)
+
     def test_acl_support_authenticated_allowed_thing_get(self):
-        with mock.patch.object(self.authn_policy, 'unauthenticated_userid',
-                               return_value='alice'):
-            result = self.app.get('/thing', status=HTTPOk.code)
-            self.assertEqual("yay", result.json)
+        with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='alice'):
+            with mock.patch.object(self.authn_policy, 'authenticated_userid', return_value='alice'):
+                result = self.app.get('/thing', status=HTTPOk.code)
+                self.assertEqual("yay", result.json)
 
 
 class NonAutocommittingConfigurationTestResource(TestCase):

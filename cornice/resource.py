@@ -82,6 +82,13 @@ def add_resource(klass, depth=1, **kw):
             elif k not in service_args:
                 service_args[k] = kw[k]
 
+        # auto-wire klass as its own view factory, unless one
+        # is explicitly declared. Make sure acl is thrown away
+        if 'factory' not in kw:
+            service_args['factory'] = klass
+            if 'acl' in service_args:
+                del(service_args['acl'])
+
         # create service
         service_name = (service_args.pop('name', None) or
                         klass.__name__.lower())
