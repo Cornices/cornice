@@ -168,6 +168,14 @@ class TestResource(TestCase):
         self.assertIn(mock.sentinel.collection_acl, acls_args)
 
     @mock.patch('cornice.resource.Service')
+    def test_factory_is_autowired(self, mocked_service):
+        @resource(collection_path='/list', path='/list/{id}', name='list')
+        class List(object):
+            pass
+        factory_args = [kw.get('factory') for _, kw in mocked_service.call_args_list]
+        self.assertEqual([List, List], factory_args)
+
+    @mock.patch('cornice.resource.Service')
     def test_acl_is_discarded(self, mocked_service):
         @resource(collection_path='/list', path='/list/{id}', name='list',
                   collection_acl=mock.sentinel.collection_acl,
@@ -178,6 +186,8 @@ class TestResource(TestCase):
         self.assertEqual([None, None], acls_args)
         self.assertNotIn(mock.sentinel.acl, acls_args)
         self.assertNotIn(mock.sentinel.collection_acl, acls_args)
+        factory_args = [kw.get('factory') for _, kw in mocked_service.call_args_list]
+        self.assertEqual([List, List], factory_args)
 
     def test_acl_support_unauthenticated_thing_get(self):
         # calling a view with permissions without an auth'd user => 403
