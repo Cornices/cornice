@@ -10,6 +10,7 @@ from pyramid.security import Allow
 from pyramid.httpexceptions import (
     HTTPOk, HTTPForbidden
 )
+from pyramid.exceptions import ConfigurationError
 from webtest import TestApp
 import mock
 from unittest import skip
@@ -155,18 +156,6 @@ class TestResource(TestCase):
         route_url = testing.DummyRequest().route_url
         self.assert_(route_url('user_service', id=42))  # service must exist
 
-    @skip('deprecated collection_acl param')
-    @mock.patch('cornice.resource.Service')
-    def test_collection_acl_can_be_different(self, mocked_service):
-        @resource(collection_path='/list', path='/list/{id}', name='list',
-                  collection_acl=mock.sentinel.collection_acl,
-                  acl=mock.sentinel.acl)
-        class List(object):
-            pass
-        acls_args = [kw['acl'] for _, kw in mocked_service.call_args_list]
-        self.assertIn(mock.sentinel.acl, acls_args)
-        self.assertIn(mock.sentinel.collection_acl, acls_args)
-
     @mock.patch('cornice.resource.Service')
     def test_factory_is_autowired(self, mocked_service):
         @resource(collection_path='/list', path='/list/{id}', name='list')
@@ -176,18 +165,13 @@ class TestResource(TestCase):
         self.assertEqual([List, List], factory_args)
 
     @mock.patch('cornice.resource.Service')
-    def test_acl_is_discarded(self, mocked_service):
-        @resource(collection_path='/list', path='/list/{id}', name='list',
-                  collection_acl=mock.sentinel.collection_acl,
-                  acl=mock.sentinel.acl)
-        class List(object):
-            pass
-        acls_args = [kw.get('acl') for _, kw in mocked_service.call_args_list]
-        self.assertEqual([None, None], acls_args)
-        self.assertNotIn(mock.sentinel.acl, acls_args)
-        self.assertNotIn(mock.sentinel.collection_acl, acls_args)
-        factory_args = [kw.get('factory') for _, kw in mocked_service.call_args_list]
-        self.assertEqual([List, List], factory_args)
+    def test_acl_is_deprecated(self, mocked_service):
+        with self.assertRaises(ConfigurationError):
+            @resource(collection_path='/list', path='/list/{id}', name='list',
+                      collection_acl=mock.sentinel.collection_acl,
+                      acl=mock.sentinel.acl)
+            class List(object):
+                pass
 
     def test_acl_support_unauthenticated_thing_get(self):
         # calling a view with permissions without an auth'd user => 403

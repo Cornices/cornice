@@ -187,8 +187,8 @@ class Service(object):
             if key != 'decorator':
                 setattr(self, key, value)
 
-        if hasattr(self, 'factory') and hasattr(self, 'acl'):
-            raise ConfigurationError("Cannot specify both 'acl' and 'factory'")
+        if hasattr(self, 'acl'):
+            raise ConfigurationError("Cannot specify 'acl'")
 
         # instantiate some variables we use to keep track of what's defined for
         # this service.
@@ -281,8 +281,13 @@ class Service(object):
         args = self.get_arguments(kwargs)
 
         # These attributes were used in views in Cornice < 1.0.
-        deprecated_attrs = ('acl', 'factory', 'traverse')
+        deprecated_attrs = ('acl', 'traverse')
         args = {k: v for k, v in args.items() if k not in deprecated_attrs}
+
+        # remove 'factory' if present,
+        # it's not a valid pyramid view param
+        if 'factory' in args:
+            del args['factory']
 
         if hasattr(self, 'get_view_wrapper'):
             view = self.get_view_wrapper(kwargs)(view)

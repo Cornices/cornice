@@ -34,7 +34,14 @@ def my_acl(request):
             (Allow, 'dan', ('write', 'update')),
         ]
 
-service = Service(name="service", path="/service", acl=my_acl)
+class MyFactory(object):
+    def __init__(self, request):
+        self.request = request
+
+    def __acl__(self):
+        return my_acl(self.request)
+
+service = Service(name="service", path="/service", factory=MyFactory)
 
 
 @service.get()
