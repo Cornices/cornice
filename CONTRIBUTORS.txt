@@ -31,6 +31,7 @@ Cornice:
 * Graham Higgins <gjh-github@bel-epa.com>
 * G.Tjebbes <g.t@majerti.fr>
 * Guillaume Gauvrit <guillaume@gandi.net>
+* Henddher Pedroza <henddher.pedroza@gmail.com>
 * James Arthur <thruflo@gmail.com>
 * James Saxon <james@saxon.com>
 * Janek Hiis <janek@utopic.me>

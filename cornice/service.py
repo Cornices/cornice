@@ -81,15 +81,11 @@ class Service(object):
     :param factory:
         A factory returning callables which return boolean values.  The
         callables take the request as their first argument and return boolean
-        values.  This param is exclusive with the 'acl' one.
-
-    :param acl:
-        A callable accepting a request and returning a list of ACLs.
-        Exclusive with the 'factory' option.
+        values.
 
     :param permission:
         As for ``pyramid.config.Configurator.add_view()``.
-        Note: `acl` and `permission` can also be applied
+        Note: `permission` can also be applied
         to instance method decorators such as :meth:`~get` and :meth:`~put`.
 
     :param klass:
@@ -188,7 +184,7 @@ class Service(object):
                 setattr(self, key, value)
 
         if hasattr(self, 'acl'):
-            raise ConfigurationError("Cannot specify 'acl'")
+            raise ConfigurationError("'acl' is not supported")
 
         # instantiate some variables we use to keep track of what's defined for
         # this service.
@@ -472,10 +468,10 @@ def decorate_view(view, args, method, route_args={}):
         if 'klass' in args and not callable(view):
             # XXX: given that request.context exists and root-factory
             # only expects request param, having params seems unnecessary
+            # ob = args['klass'](request)
             params = dict(request=request)
             if 'factory' in route_args and 'acl' not in route_args:
                 params['context'] = request.context
-            # ob = args['klass'](request)
             ob = args['klass'](**params)
             if is_string(view):
                 view_ = getattr(ob, view.lower())

@@ -2,6 +2,14 @@
 CHANGELOG
 #########
 
+3.0.0 (unreleased)
+==================
+
+**Enhancements**
+
+- Align Cornice with Pyramid ACL pattern: Dynamic ACLs based
+  on resource are now possible (#452, thanks @wjehenddher)
+
 
 2.5.0 (unreleased)
 ==================
