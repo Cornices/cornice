@@ -4,8 +4,11 @@ Upgrading
 2.X to 3.X
 ==========
 
-`acl` parameter is deprecated and a class decorated with `@resource`
-or `@service` becomes its own `route factory
+``acl`` and ``traverse`` parameters are no longer supported. ``ConfigurationError``
+will be raised if either one is specified.
+
+A class decorated with `@resource` or `@service` becomes its own
+`route factory
 <http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/urldispatch.html#route-factories>`_ and
 it may take advantage of `Pyramid ACL
 <https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/security.html#assigning-acls-to-your-resource-objects>`_.
@@ -14,12 +17,15 @@ Before:
 
 .. code-block:: python
 
-    @resource(path='/users')
+    def custom_acl(request):
+        return [(Allow, Everyone, 'view')]
+
+    @resource(path='/users', acl=custom_acl, collection_acl=custom_acl)
     class User(object):
 
-        def __init__(self, request):
+        def __init__(self, request, context=None):
             self.request = request
-            self.user = context
+            self.context = context
 
 Now:
 
@@ -30,7 +36,7 @@ Now:
 
         def __init__(self, request, context=None):
             self.request = request
-            self.user = context
+            self.context = context
 
         def __acl__(self):
             return [(Allow, Everyone, 'view')]

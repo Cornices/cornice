@@ -18,6 +18,7 @@ from pyramid.security import Allow, Deny, NO_PERMISSION_REQUIRED
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 
+from pyramid.exceptions import ConfigurationError
 from webtest import TestApp
 
 from cornice import Service
@@ -225,7 +226,7 @@ class TestNosniffHeader(TestCase):
         self.assertEqual(response.headers['X-Content-Type-Options'], 'nosniff')
 
 
-test_service = Service(name="jardinet", path="/jardinet", traverse='/')
+test_service = Service(name="jardinet", path="/jardinet")
 test_service.add_view('GET', lambda request: request.current_service.name)
 
 
@@ -248,8 +249,7 @@ class TestRouteWithTraverse(TestCase):
         config.add_route = mock.MagicMock()
 
         register_service_views(config, test_service)
-        config.add_route.assert_called_with('jardinet', '/jardinet',
-                                            traverse='/')
+        config.add_route.assert_called_with('jardinet', '/jardinet')
 
     def test_route_with_prefix(self):
         config = testing.setUp(settings={})
@@ -262,6 +262,10 @@ class TestRouteWithTraverse(TestCase):
         services = config.registry.cornice_services
         self.assertTrue('/prefix/wrapperservice' in services)
 
+    def test_route_with_traverse_fails(self):
+        with self.assertRaises(ConfigurationError):
+            bad_service = Service(name="jardinet", path="/jardinet", traverse='/')
+            self.fail("Shouldn't happen")
 
 class TestServiceWithNonpickleableSchema(TestCase):
     def setUp(self):

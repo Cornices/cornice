@@ -186,6 +186,9 @@ class Service(object):
         if hasattr(self, 'acl'):
             raise ConfigurationError("'acl' is not supported")
 
+        if hasattr(self, 'traverse'):
+            raise ConfigurationError("'traverse' is not supported")
+
         # instantiate some variables we use to keep track of what's defined for
         # this service.
         self.defined_methods = []
@@ -275,10 +278,6 @@ class Service(object):
             view = _UnboundView(kwargs['klass'], view)
 
         args = self.get_arguments(kwargs)
-
-        # These attributes were used in views in Cornice < 1.0.
-        deprecated_attrs = ('acl', 'traverse')
-        args = {k: v for k, v in args.items() if k not in deprecated_attrs}
 
         # remove 'factory' if present,
         # it's not a valid pyramid view param
@@ -470,7 +469,7 @@ def decorate_view(view, args, method, route_args={}):
             # only expects request param, having params seems unnecessary
             # ob = args['klass'](request)
             params = dict(request=request)
-            if 'factory' in route_args and 'acl' not in route_args:
+            if 'factory' in route_args:
                 params['context'] = request.context
             ob = args['klass'](**params)
             if is_string(view):

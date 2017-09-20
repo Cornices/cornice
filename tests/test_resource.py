@@ -164,12 +164,13 @@ class TestResource(TestCase):
         factory_args = [kw.get('factory') for _, kw in mocked_service.call_args_list]
         self.assertEqual([List, List], factory_args)
 
-    @mock.patch('cornice.resource.Service')
-    def test_acl_is_deprecated(self, mocked_service):
+    def test_acl_is_deprecated(self):
+        def custom_acl(request):
+            return []
         with self.assertRaises(ConfigurationError):
             @resource(collection_path='/list', path='/list/{id}', name='list',
-                      collection_acl=mock.sentinel.collection_acl,
-                      acl=mock.sentinel.acl)
+                      collection_acl=custom_acl,
+                      acl=custom_acl)
             class List(object):
                 pass
 
