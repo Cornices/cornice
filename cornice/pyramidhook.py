@@ -187,9 +187,6 @@ def register_service_views(config, service):
     if hasattr(service, 'factory'):
         route_args['factory'] = service.factory
 
-    if hasattr(service, 'traverse'):
-        route_args['traverse'] = service.traverse
-
     routes = config.get_predlist('route')
     for predicate in routes.sorter.names:
         # Do not let the custom predicates handle validation of Header Accept,
