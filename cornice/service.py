@@ -81,15 +81,11 @@ class Service(object):
     :param factory:
         A factory returning callables which return boolean values.  The
         callables take the request as their first argument and return boolean
-        values.  This param is exclusive with the 'acl' one.
-
-    :param acl:
-        A callable accepting a request and returning a list of ACLs.
-        Exclusive with the 'factory' option.
+        values.
 
     :param permission:
         As for ``pyramid.config.Configurator.add_view()``.
-        Note: `acl` and `permission` can also be applied
+        Note: `permission` can also be applied
         to instance method decorators such as :meth:`~get` and :meth:`~put`.
 
     :param klass:
@@ -187,8 +183,11 @@ class Service(object):
             if key != 'decorator':
                 setattr(self, key, value)
 
-        if hasattr(self, 'factory') and hasattr(self, 'acl'):
-            raise ConfigurationError("Cannot specify both 'acl' and 'factory'")
+        if hasattr(self, 'acl'):
+            raise ConfigurationError("'acl' is not supported")
+
+        if hasattr(self, 'traverse'):
+            raise ConfigurationError("'traverse' is not supported")
 
         # instantiate some variables we use to keep track of what's defined for
         # this service.
@@ -280,9 +279,10 @@ class Service(object):
 
         args = self.get_arguments(kwargs)
 
-        # These attributes were used in views in Cornice < 1.0.
-        deprecated_attrs = ('acl', 'factory', 'traverse')
-        args = {k: v for k, v in args.items() if k not in deprecated_attrs}
+        # remove 'factory' if present,
+        # it's not a valid pyramid view param
+        if 'factory' in args:
+            del args['factory']
 
         if hasattr(self, 'get_view_wrapper'):
             view = self.get_view_wrapper(kwargs)(view)
@@ -465,8 +465,11 @@ def decorate_view(view, args, method, route_args={}):
         ob = None
         view_ = view
         if 'klass' in args and not callable(view):
+            # XXX: given that request.context exists and root-factory
+            # only expects request param, having params seems unnecessary
+            # ob = args['klass'](request)
             params = dict(request=request)
-            if 'factory' in route_args and 'acl' not in route_args:
+            if 'factory' in route_args:
                 params['context'] = request.context
             ob = args['klass'](**params)
             if is_string(view):

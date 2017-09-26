@@ -16,8 +16,11 @@ Here is how you can register a resource:
     @resource(collection_path='/users', path='/users/{id}')
     class User(object):
 
-        def __init__(self, request):
+        def __init__(self, request, context=None):
             self.request = request
+
+        def __acl__(self):
+            return [(Allow, Everyone, 'everything')]
 
         def collection_get(self):
             return {'users': _USERS.keys()}
@@ -41,8 +44,11 @@ Here is an example of how to define cornice resources in an imperative way:
 
     class User(object):
 
-        def __init__(self, request):
+        def __init__(self, request, context=None):
             self.request = request
+
+        def __acl__(self):
+            return [(Allow, Everyone, 'everything')]
 
         def collection_get(self):
             return {'users': _USERS.keys()}
@@ -75,8 +81,11 @@ You also can register validators and filters that are defined in your
     @resource(path='/users/{id}')
     class User(object):
 
-        def __init__(self, request):
+        def __init__(self, request, context=None):
             self.request = request
+
+        def __acl__(self):
+            return [(Allow, Everyone, 'everything')]
 
         @view(validators=('validate_req',))
         def get(self):
@@ -111,3 +120,20 @@ For example::
         def __init__(self, request, context=None):
             self.request = request
             self.user = context
+
+When no `factory` is defined, the decorated class becomes the `route factory
+<http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/urldispatch.html#route-factories>`_.
+One advantage is that pyramid ACL authorization can be used out of the box: `Resource with ACL
+<https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/security.html#assigning-acls-to-your-resource-objects>`_.
+
+For example::
+
+    @resource(path='/users')
+    class User(object):
+
+        def __init__(self, request, context=None):
+            self.request = request
+            self.user = context
+
+        def __acl__(self):
+            return [(Allow, Everyone, 'view')]

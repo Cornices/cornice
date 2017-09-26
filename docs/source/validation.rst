@@ -331,13 +331,24 @@ When using the default json `error_handler`, the response might look like this::
 Managing ACLs
 =============
 
-You can also specify a way to deal with ACLs: pass in a function that takes
-a request and returns an ACL, and that ACL will be applied to all views
+You can also specify a way to deal with ACLs: have your factory
+return an ACL, and that ACL will be applied to all views
 in the service:
 
 .. code-block:: python
 
-    foo = Service(name='foo', path='/foo', acl=_check_acls)
+    class MyFactory(object):
+
+        def __init__(self, request, context=None):
+            self.request = request
+
+        def __acl__(self):
+            return [
+                    (Allow, Everyone, 'view'),
+                    (Allow, 'group:editors', 'edit')
+                ]
+
+    foo = Service(name='foo', path='/foo', factory=MyFactory)
 
 
 Filters

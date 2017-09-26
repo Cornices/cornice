@@ -25,7 +25,7 @@ specified in the HTTP specification.
 Authorization
 ~~~~~~~~~~~~~
 
-Authorization can be done using the `acl` parameter. If the authentication or
+Authorization can be done using pyramid's ACLs. If the authentication or
 the authorization fails at this stage, a 401 or 403 error is returned,
 depending on the cases.
 

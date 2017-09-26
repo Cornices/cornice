@@ -31,6 +31,9 @@ class ThingImp(object):
         self.request = request
         self.context = context
 
+    def __acl__(self):
+        return my_collection_acl(self.request)
+
     def collection_get(self):
         return 'yay'
 
@@ -91,7 +94,7 @@ class TestResource(TestCase):
         add_view(ThingImp.collection_get, permission='read')
         thing_resource = add_resource(
             ThingImp, collection_path='/thing', path='/thing/{id}',
-            name='thing_service', collection_acl=my_collection_acl)
+            name='thing_service')
 
         add_view(UserImp.get, renderer='json')
         add_view(UserImp.get, renderer='jsonp')
@@ -155,12 +158,16 @@ class TestResource(TestCase):
         # calling a view with permissions without an auth'd user => 403
         self.app.get('/thing', status=HTTPForbidden.code)
 
-    def test_acl_support_authenticated_allowed_thing_get(self):
-        with mock.patch.object(self.authn_policy, 'unauthenticated_userid',
-                               return_value='alice'):
-            result = self.app.get('/thing', status=HTTPOk.code)
-            self.assertEqual("yay", result.json)
+    def test_acl_support_unauthenticated_forbidden_thing_get(self):
+        # calling a view with permissions without an auth'd user => 403
+        with mock.patch.object(self.authn_policy, 'authenticated_userid', return_value=None):
+            result = self.app.get('/thing', status=HTTPForbidden.code)
 
+    def test_acl_support_authenticated_allowed_thing_get(self):
+        with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='alice'):
+            with mock.patch.object(self.authn_policy, 'authenticated_userid', return_value='alice'):
+                result = self.app.get('/thing', status=HTTPOk.code)
+                self.assertEqual("yay", result.json)
 
 class NonAutocommittingConfigurationTestResource(TestCase):
     """

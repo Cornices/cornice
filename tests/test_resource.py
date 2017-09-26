@@ -10,8 +10,10 @@ from pyramid.security import Allow
 from pyramid.httpexceptions import (
     HTTPOk, HTTPForbidden
 )
+from pyramid.exceptions import ConfigurationError
 from webtest import TestApp
 import mock
+from unittest import skip
 
 from cornice.resource import resource, view
 
@@ -25,12 +27,15 @@ def my_collection_acl(request):
 
 
 @resource(collection_path='/thing', path='/thing/{id}',
-          name='thing_service', collection_acl=my_collection_acl)
+          name='thing_service')
 class Thing(object):
 
     def __init__(self, request, context=None):
         self.request = request
         self.context = context
+
+    def __acl__(self):
+        return my_collection_acl(self.request)
 
     @view(permission='read')
     def collection_get(self):
@@ -152,25 +157,37 @@ class TestResource(TestCase):
         self.assert_(route_url('user_service', id=42))  # service must exist
 
     @mock.patch('cornice.resource.Service')
-    def test_collection_acl_can_be_different(self, mocked_service):
-        @resource(collection_path='/list', path='/list/{id}', name='list',
-                  collection_acl=mock.sentinel.collection_acl,
-                  acl=mock.sentinel.acl)
+    def test_factory_is_autowired(self, mocked_service):
+        @resource(collection_path='/list', path='/list/{id}', name='list')
         class List(object):
             pass
-        acls_args = [kw['acl'] for _, kw in mocked_service.call_args_list]
-        self.assertIn(mock.sentinel.acl, acls_args)
-        self.assertIn(mock.sentinel.collection_acl, acls_args)
+        factory_args = [kw.get('factory') for _, kw in mocked_service.call_args_list]
+        self.assertEqual([List, List], factory_args)
+
+    def test_acl_is_deprecated(self):
+        def custom_acl(request):
+            return []
+        with self.assertRaises(ConfigurationError):
+            @resource(collection_path='/list', path='/list/{id}', name='list',
+                      collection_acl=custom_acl,
+                      acl=custom_acl)
+            class List(object):
+                pass
 
     def test_acl_support_unauthenticated_thing_get(self):
         # calling a view with permissions without an auth'd user => 403
         self.app.get('/thing', status=HTTPForbidden.code)
 
+    def test_acl_support_unauthenticated_forbidden_thing_get(self):
+        # calling a view with permissions without an auth'd user => 403
+        with mock.patch.object(self.authn_policy, 'authenticated_userid', return_value=None):
+            result = self.app.get('/thing', status=HTTPForbidden.code)
+
     def test_acl_support_authenticated_allowed_thing_get(self):
-        with mock.patch.object(self.authn_policy, 'unauthenticated_userid',
-                               return_value='alice'):
-            result = self.app.get('/thing', status=HTTPOk.code)
-            self.assertEqual("yay", result.json)
+        with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='alice'):
+            with mock.patch.object(self.authn_policy, 'authenticated_userid', return_value='alice'):
+                result = self.app.get('/thing', status=HTTPOk.code)
+                self.assertEqual("yay", result.json)
 
 
 class NonAutocommittingConfigurationTestResource(TestCase):
