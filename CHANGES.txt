@@ -6,7 +6,9 @@ CHANGELOG
 2.5.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+**Bug fixes**
+
+- Disable CSRF check on predicate fallback view (fixes #458)
 
 
 2.4.0 (2017-01-19)
