@@ -259,7 +259,8 @@ def register_service_views(config, service):
         # Add the fallback view last
         config.add_view(view=get_fallback_view(service),
                         route_name=route_name,
-                        permission=NO_PERMISSION_REQUIRED)
+                        permission=NO_PERMISSION_REQUIRED,
+                        require_csrf=False)
         config.commit()
 
 

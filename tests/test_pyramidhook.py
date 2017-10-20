@@ -13,6 +13,7 @@ from pyramid.exceptions import PredicateMismatch
 from pyramid.httpexceptions import (
     HTTPOk, HTTPForbidden, HTTPNotFound, HTTPMethodNotAllowed
 )
+from pyramid.csrf import CookieCSRFStoragePolicy
 from pyramid.response import Response
 from pyramid.security import Allow, Deny, NO_PERMISSION_REQUIRED
 from pyramid.authentication import AuthTktAuthenticationPolicy
@@ -23,7 +24,7 @@ from webtest import TestApp
 
 from cornice import Service
 from cornice.pyramidhook import register_service_views
-from cornice.util import func_name
+from cornice.util import func_name, ContentTypePredicate
 
 from .support import CatchErrors, dummy_factory
 
@@ -286,6 +287,9 @@ class TestServiceWithNonpickleableSchema(TestCase):
 class TestFallbackRegistration(TestCase):
     def setUp(self):
         self.config = testing.setUp()
+        self.config.add_view_predicate('content_type', ContentTypePredicate)
+        self.config.set_csrf_storage_policy(CookieCSRFStoragePolicy(domain='localhost'))
+        self.config.set_default_csrf_options(require_csrf=True)
         self.config.registry.cornice_services = {}
 
     def tearDown(self):
@@ -321,3 +325,12 @@ class TestFallbackRegistration(TestCase):
         testapp = TestApp(app)
         testapp.get('/', status=404)
         #self.assertRaises(PredicateMismatch, testapp.get, '/')
+
+    def test_fallback_no_required_csrf(self):
+        service = Service(name='fallback-csrf', path='/', content_type='application/json')
+        service.add_view('POST', lambda _:'', require_csrf=False)
+        register_service_views(self.config, service)
+        self.config.include('cornice')
+        app = self.config.make_wsgi_app()
+        testapp = TestApp(app)
+        testapp.post('/', status=415, headers={'Content-Type': 'application/xml'})
