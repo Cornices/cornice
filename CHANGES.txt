@@ -26,6 +26,7 @@ CHANGELOG
 **Bug fixes**
 
 - Disable CSRF check on predicate fallback view (fixes #458)
+- Fix to use own validator for Header Accept (fixes #431)
 
 
 2.4.0 (2017-01-19)
