@@ -494,7 +494,7 @@ def decorate_view(view, args, method, route_args={}):
                     response = view_()
                 else:
                     response = view_(request)
-            except:
+            except Exception:
                 # cors headers need to be set if an exception was raised
                 request.info['cors_checked'] = False
                 raise
