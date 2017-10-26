@@ -9,7 +9,7 @@ with open(os.path.join(here, 'README.rst')) as f:
 with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
-requires = ['pyramid',  'simplejson']
+requires = ['pyramid>=1.7',  'simplejson']
 
 entry_points = ""
 package_data = {}
