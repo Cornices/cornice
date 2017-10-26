@@ -129,7 +129,7 @@ Now:
         username = colander.SchemaNode(colander.String())
 
     @signup.post(schema=SignupSchema(), validators=(colander_body_validator,))
-    def signup_postt(request):
+    def signup_post(request):
         username = request.validated['username']
         return {'success': True}
 
@@ -150,7 +150,7 @@ of the request (like querystring, body etc.), Cornice provides a validator that
 takes an additionnal level of mapping for ``body``, ``querystring``, ``path`` or ``headers``
 instead of the former ``location`` attribute on schema fields.
 
-The ``request.validated`` hences reflects this additional level.
+The ``request.validated`` hence reflects this additional level.
 
 Before:
 
@@ -204,7 +204,7 @@ locations:
             appstruct = super(SignupSchema, self).deserialize(cstruct)
             username = appstruct['body']['username']
             referrer = appstruct['querystring'].get('referrer')
-            if username == referred:
+            if username == referrer:
                 self.raise_invalid('Referrer cannot be the same as username')
             return appstruct
 
