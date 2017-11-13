@@ -27,6 +27,9 @@ Validation
 
 .. autofunction:: cornice.validators.extract_cstruct
 .. autofunction:: cornice.validators.colander_body_validator
+.. autofunction:: cornice.validators.colander_headers_validator
+.. autofunction:: cornice.validators.colander_path_validator
+.. autofunction:: cornice.validators.colander_querystring_validator
 .. autofunction:: cornice.validators.colander_validator
 
 

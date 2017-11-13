@@ -92,6 +92,11 @@ Example:
     def post(request):
         return request.validated
 
+In addition to ``colander_body_validator()`` as demonstrated above, there are also three more
+similar validators, ``colander_headers_validator()``, ``colander_path_validator()``, and
+``colander_querystring_validator()``, which validate the given ``Schema`` against the headers, path,
+or querystring parameters, respectively.
+
 
 Multiple request attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

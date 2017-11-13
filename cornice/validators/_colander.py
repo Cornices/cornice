@@ -5,35 +5,78 @@
 import inspect
 import warnings
 
+from six import with_metaclass
 
-def body_validator(request, schema=None, deserializer=None, **kwargs):
+
+def _generate_colander_validator(location):
     """
-    Validate the body against the schema defined on the service.
+    Generate a colander validator for data from the given location.
 
-    The content of the body is deserialized, validated and stored in the
-    ``request.validated`` attribute.
-
-    .. note::
-
-        If no schema is defined, this validator does nothing.
-
-    :param request: Current request
-    :type request: :class:`~pyramid:pyramid.request.Request`
-
-    :param schema: The Colander schema
-    :param deserializer: Optional deserializer, defaults to
-        :func:`cornice.validators.extract_cstruct`
+    :param location: The location in the request to find the data to be
+        validated, such as "body" or "querystring".
+    :type location: str
+    :return: Returns a callable that will validate the request at the given
+        location.
+    :rtype: callable
     """
-    import colander
+    def _validator(request, schema=None, deserializer=None, **kwargs):
+        """
+        Validate the location against the schema defined on the service.
 
-    if schema is None:
-        return
+        The content of the location is deserialized, validated and stored in
+        the ``request.validated`` attribute.
 
-    class RequestSchema(colander.MappingSchema):
-        body = _ensure_instantiated(schema)
+        .. note::
 
-    validator(request, RequestSchema(), deserializer, **kwargs)
-    request.validated = request.validated.get('body', {})
+            If no schema is defined, this validator does nothing.
+
+        :param request: Current request
+        :type request: :class:`~pyramid:pyramid.request.Request`
+
+        :param schema: The Colander schema
+        :param deserializer: Optional deserializer, defaults to
+            :func:`cornice.validators.extract_cstruct`
+        """
+        import colander
+
+        if schema is None:
+            return
+
+        class RequestSchemaMeta(type):
+            """
+            A metaclass that will inject a location class attribute into
+            RequestSchema.
+            """
+            def __new__(cls, name, bases, class_attrs):
+                """
+                Instantiate the RequestSchema class.
+
+                :param name: The name of the class we are instantiating. Will
+                    be "RequestSchema".
+                :type name: str
+                :param bases: The class's superclasses.
+                :type bases: tuple
+                :param dct: The class's class attributes.
+                :type dct: dict
+                """
+                class_attrs[location] = _ensure_instantiated(schema)
+                return type(name, bases, class_attrs)
+
+        class RequestSchema(with_metaclass(
+                RequestSchemaMeta, colander.MappingSchema)):
+            """A schema to validate the request's location attributes."""
+            pass
+
+        validator(request, RequestSchema(), deserializer, **kwargs)
+        request.validated = request.validated.get(location, {})
+
+    return _validator
+
+
+body_validator = _generate_colander_validator('body')
+headers_validator = _generate_colander_validator('headers')
+path_validator = _generate_colander_validator('path')
+querystring_validator = _generate_colander_validator('querystring')
 
 
 def validator(request, schema=None, deserializer=None, **kwargs):

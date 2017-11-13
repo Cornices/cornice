@@ -5,7 +5,10 @@ CHANGELOG
 3.1.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+- In addition to the ``colander_body_validator``, there are now three more similar validators:
+  ``colander_headers_validator``, ``colander_path_validator``, and
+  ``colander_querystring_validator``.
+- six is now a required dependency.
 
 
 3.0.0 (2017-10-20)
