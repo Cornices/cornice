@@ -41,17 +41,19 @@ We'll provide a single CLI client in Python, using Curses.
 Setting up the development environment
 --------------------------------------
 
-Make sure you have **virtualenv** (see http://pypi.python.org/pypi/virtualenv).
-
-Create a new directory and a virtualenv in it::
+To begin, create a new directory and environment::
 
     $ mkdir messaging
     $ cd messaging
-    $ virtualenv --no-site-packages .
+    $ python3 -m venv ./
 
 Once you have it, install Cornice in it with Pip::
 
     $ bin/pip install cornice
+
+You'll also need **waitress** (see https://pypi.python.org/pypi/waitress)::
+
+    $ bin/pip install waitress
 
 We provide a `Cookiecutter <https://cookiecutter.readthedocs.io>`_ template you
 can use to create a new application::
@@ -126,7 +128,7 @@ to add our first service - the users management
     @users.get(validators=valid_token)
     def get_users(request):
         """Returns a list of all users."""
-        return {'users': _USERS.keys()}
+        return {'users': list(_USERS)}
 
     @users.post(validators=unique)
     def create_user(request):
@@ -159,8 +161,8 @@ Remarks:
   the user.
 - **DELETE** also identifies the user then removes it.
 
-Validators are filling the **request.validated** mapping, the service can
-then use.
+These methods will use validators to fill the **request.validated**
+mapping.  Add the following code to :file:`messaging/views.py`::
 
 .. code-block:: python
 
@@ -168,14 +170,13 @@ then use.
     import binascii
 
     from pyramid.httpexceptions import HTTPUnauthorized
-    from cornice import Service
 
 
     def _create_token():
-        return binascii.b2a_hex(os.urandom(20))
+        return binascii.b2a_hex(os.urandom(20)).decode('utf-8')
 
 
-    def valid_token(request):
+    def valid_token(request, **kargs):
         header = 'X-Messaging-Token'
         htoken = request.headers.get(header)
         if htoken is None:
@@ -192,8 +193,8 @@ then use.
         request.validated['user'] = user
 
 
-    def unique(request):
-        name = request.body
+    def unique(request, **kargs):
+        name = request.text
         if name in _USERS:
             request.errors.add('url', 'name', 'This user exists!')
         else:
@@ -201,8 +202,10 @@ then use.
             request.validated['user'] = user
 
 
-When the validator finds errors, it adds them to the **request.errors**
-mapping, and that will return a 400 with the errors.
+The validators work by filling the **request.validated**
+dictionary. When the validator finds errors, it adds them to the
+**request.errors** dictionary, and that will return a 400 with the
+errors.
 
 Let's try our application so far with CURL::
 
