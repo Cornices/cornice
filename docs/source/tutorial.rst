@@ -41,21 +41,10 @@ We'll provide a single CLI client in Python, using Curses.
 Setting up the development environment
 --------------------------------------
 
-If you are using python 2, make sure you have **virtualenv** (see
-https://pypi.python.org/pypi/virtualenv).  If you use python 3, the
-relevant tool comes with python.
-
-Create a new directory and a virtualenv in it::
+To begin, create a new directory and environment::
 
     $ mkdir messaging
     $ cd messaging
-
-If you use python 2, use virtualenv to create your environment::
-
-    $ virtualenv --no-site-packages .
-
-If you use python 3, use venv to create your environment::
-
     $ python3 -m venv ./
 
 Once you have it, install Cornice in it with Pip::
