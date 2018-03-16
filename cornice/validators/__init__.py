@@ -10,6 +10,12 @@ from cornice.validators._colander import (
     headers_validator as colander_headers_validator,
     path_validator as colander_path_validator,
     querystring_validator as colander_querystring_validator)
+from cornice.validators._marshmallow import (
+    validator as marshmallow_validator,
+    body_validator as marshmallow_body_validator,
+    headers_validator as marshmallow_headers_validator,
+    path_validator as marshmallow_path_validator,
+    querystring_validator as marshmallow_querystring_validator)
 
 
 __all__ = ['colander_validator',
@@ -17,6 +23,11 @@ __all__ = ['colander_validator',
            'colander_headers_validator',
            'colander_path_validator',
            'colander_querystring_validator',
+           'marshmallow_validator',
+           'marshmallow_body_validator',
+           'marshmallow_headers_validator',
+           'marshmallow_path_validator',
+           'marshmallow_querystring_validator',
            'extract_cstruct',
            'DEFAULT_VALIDATORS',
            'DEFAULT_FILTERS']

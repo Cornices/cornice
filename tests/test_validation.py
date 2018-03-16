@@ -16,9 +16,18 @@ try:
 except ImportError:
     COLANDER = False
 
+try:
+    import marshmallow
+    MARSHMALLOW = True
+except ImportError:
+    MARSHMALLOW = False
+
 from cornice.errors import Errors
 from cornice.validators import (colander_validator, colander_body_validator,
     extract_cstruct)
+
+from cornice.validators import (marshmallow_validator,
+                                marshmallow_body_validator)
 
 from .validationapp import main
 from .support import LoggingCatcher, TestCase, DummyRequest
@@ -26,6 +35,9 @@ from .support import LoggingCatcher, TestCase, DummyRequest
 
 skip_if_no_colander = unittest.skipIf(COLANDER is False,
                                       "colander is not installed.")
+
+skip_if_no_marshmallow = unittest.skipIf(MARSHMALLOW is False,
+                                      "marshmallow is not installed.")
 
 
 @skip_if_no_colander
@@ -444,7 +456,7 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
 
 
 @skip_if_no_colander
-class TestErrorMessageTranslation(TestCase):
+class TestErrorMessageTranslationColander(TestCase):
 
     def post(self, settings={}, headers={}):
         app = TestApp(main({}, **settings))
@@ -537,3 +549,191 @@ class TestExtractedJSONValueTypes(unittest.TestCase):
         self.assertEqual(type(data['body']['foo']), compat.text_type)
         self.assertEqual(type(data['body']['currency']), compat.text_type)
         self.assertEqual(data['body']['currency'], u'€')
+
+
+@skip_if_no_marshmallow
+class TestServiceDefinitionMarshmallow(LoggingCatcher, TestCase):
+
+    def test_multiple_querystrings(self):
+        app = TestApp(main({}))
+
+        # it is possible to have more than one value with the same name in the
+        # querystring
+        self.assertEquals(b'{"field": ["5"]}', app.get('/m_foobaz?field=5').body)
+        self.assertEquals(b'{"field": ["5", "2"]}',
+                          app.get('/m_foobaz?field=5&field=2').body)
+
+    def test_validated_body_content_from_schema(self):
+        app = TestApp(main({}))
+        content = {'email': 'alexis@notmyidea.org'}
+        response = app.post_json('/newsletter', params=content)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['body'], content)
+
+    def test_validated_querystring_content_from_schema(self):
+        app = TestApp(main({}))
+        response = app.post_json('/m_newsletter?ref=3')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['querystring'], {"ref": 3})
+
+    def test_validated_querystring_and_schema_from_same_schema(self):
+        app = TestApp(main({}))
+        content = {'email': 'alexis@notmyidea.org'}
+        response = app.post_json('/m_newsletter?ref=20', params=content)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['body'], content)
+        self.assertEqual(response.json['querystring'], {"ref": 20})
+
+        response = app.post_json('/m_newsletter?ref=2', params=content,
+                                 status=400)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json['errors'][0]['description'][0]['email'],
+                         'Invalid email length')
+
+    def test_validated_path_content_from_schema(self):
+        # Test validation request.matchdict.  (See #411)
+        app = TestApp(main({}))
+        response = app.get('/m_item/42', status=200)
+        self.assertEqual(response.json, {'item_id': 42})
+
+    def test_content_type_with_no_body_should_pass(self):
+        app = TestApp(main({}))
+
+        request = app.RequestClass.blank('/m_newsletter', method='POST',
+                                         headers={'Content-Type':
+                                                      'application/json'})
+        response = app.do_request(request, 200, True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['body'], {})
+
+    def test_content_type_missing_with_no_body_should_pass(self):
+        app = TestApp(main({}))
+
+        # requesting without a Content-Type header nor a body should
+        # return a 200.
+        request = app.RequestClass.blank('/m_newsletter', method='POST')
+        response = app.do_request(request, 200, True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['body'], {})
+
+    def test_content_type_with_callable(self):
+        # Test that using a callable for content_type works as well.
+        app = TestApp(main({}))
+        response = app.post('/service6', headers={'Content-Type': 'audio/*'},
+                            status=415)
+        error_description = response.json['errors'][0]['description']
+        self.assertIn('text/xml', error_description)
+        self.assertIn('application/json', error_description)
+
+    def test_content_type_with_callable_returning_scalar(self):
+        # Test that using a callable for content_type works as well.
+        # Now, the callable returns a scalar instead of a list.
+        app = TestApp(main({}))
+        response = app.put('/service6', headers={'Content-Type': 'audio/*'},
+                           status=415)
+        error_description = response.json['errors'][0]['description']
+        self.assertIn('text/xml', error_description)
+
+    def test_post(self, settings={}, headers={}):
+        app = TestApp(main({}, **settings))
+        response = app.post_json('/m_foobar?yeah=test', {
+            'foo': 'hello',
+            'bar': 'open',
+            'yeah': 'man',
+            'ipsum': 10,
+        }, status=400, headers=headers)
+
+        self.assertEqual(response.json['errors'][0]['location'], 'body')
+        self.assertEqual(response.json['errors'][0]['name'], 'ipsum')
+
+
+@skip_if_no_marshmallow
+class TestRequestDataExtractorsMarshmallow(LoggingCatcher, TestCase):
+
+    def make_ordinary_app(self):
+        return TestApp(main({}))
+
+    def test_valid_json(self):
+        app = self.make_ordinary_app()
+        response = app.post_json('/m_signup', {
+            'username': 'man',
+        })
+        self.assertEqual(response.json['username'], 'man')
+
+    def test_valid_nonstandard_json(self):
+        app = self.make_ordinary_app()
+        response = app.post_json(
+            '/m_signup',
+            {'username': 'man'},
+            headers={'content-type': 'application/merge-patch+json'}
+        )
+        self.assertEqual(response.json['username'], 'man')
+
+    def test_valid_json_array(self):
+        app = self.make_ordinary_app()
+        response = app.post_json(
+            '/m_group_signup',
+            [{'username': 'hey'}, {'username': 'how'}]
+        )
+        self.assertEqual(response.json['data'],
+                         [{'username': 'hey'}, {'username': 'how'}])
+
+    def test_invalid_json(self):
+        app = self.make_ordinary_app()
+        response = app.post('/m_signup',
+                            '{"foo": "bar"',
+                            headers={'content-type': 'application/json'},
+                            status=400)
+        self.assertEqual(response.json['status'], 'error')
+        error_description = response.json['errors'][0]['description']
+        self.assertIn('Invalid JSON: Expecting', error_description)
+
+    def test_json_text(self):
+        app = self.make_ordinary_app()
+        response = app.post('/m_signup',
+                            '"invalid json input"',
+                            headers={'content-type': 'application/json'},
+                            status=400)
+        self.assertEqual(response.json['status'], 'error')
+        error_description = response.json['errors'][0]['description']
+        self.assertIn('Should be a JSON object', error_description)
+
+    def test_www_form_urlencoded(self):
+        app = self.make_ordinary_app()
+        headers = {'content-type': 'application/x-www-form-urlencoded'}
+        response = app.post('/m_signup',
+                            'username=man',
+                            headers=headers)
+        self.assertEqual(response.json['username'], 'man')
+
+
+@skip_if_no_marshmallow
+class TestValidatorEdgeCasesMarshmallow(TestCase):
+    def test_no_schema(self):
+        request = DummyRequest()
+        request.validated = mock.sentinel.validated
+        marshmallow_validator(request)
+        self.assertEqual(request.validated, mock.sentinel.validated)
+        self.assertEqual(len(request.errors), 0)
+
+    def test_no_body_schema(self):
+        request = DummyRequest()
+        request.validated = mock.sentinel.validated
+        marshmallow_body_validator(request)
+        self.assertEqual(request.validated, mock.sentinel.validated)
+        self.assertEqual(len(request.errors), 0)
+
+    def test_message_normalizer_no_field_names(self):
+        from marshmallow.exceptions import ValidationError
+        from cornice.validators._marshmallow import _message_normalizer
+        parsed = _message_normalizer(ValidationError('Test message'))
+        self.assertEqual({'_schema': ['Test message']}, parsed)
+
+    def test_message_normalizer_field_names(self):
+        from marshmallow.exceptions import ValidationError
+        from cornice.validators._marshmallow import _message_normalizer
+
+        parsed = _message_normalizer(
+            ValidationError('Test message', field_names=['test'])
+        )
+        self.assertEqual({'test': ['Test message']}, parsed)
