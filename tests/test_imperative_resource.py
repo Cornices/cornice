@@ -97,7 +97,7 @@ class TestResource(TestCase):
             name='thing_service')
 
         add_view(UserImp.get, renderer='json')
-        add_view(UserImp.get, renderer='jsonp')
+        add_view(UserImp.get, renderer='jsonp', accept='application/javascript')
         add_view(UserImp.collection_post, renderer='json', accept='text/json')
         user_resource = add_resource(
             UserImp, collection_path='/users', path='/users/{id}',
@@ -182,7 +182,8 @@ class NonAutocommittingConfigurationTestResource(TestCase):
         self.config.include("cornice")
 
         add_view(UserImp.get, renderer='json')
-        add_view(UserImp.get, renderer='jsonp')
+        # pyramid does not allow having 2 views with same request conditions
+        add_view(UserImp.get, renderer='jsonp', accept='application/javascript')
         add_view(UserImp.collection_post, renderer='json', accept='text/json')
         user_resource = add_resource(
             UserImp, collection_path='/users', path='/users/{id}',
