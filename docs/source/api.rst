@@ -31,7 +31,11 @@ Validation
 .. autofunction:: cornice.validators.colander_path_validator
 .. autofunction:: cornice.validators.colander_querystring_validator
 .. autofunction:: cornice.validators.colander_validator
-
+.. autofunction:: cornice.validators.marshmallow_body_validator
+.. autofunction:: cornice.validators.marshmallow_headers_validator
+.. autofunction:: cornice.validators.marshmallow_path_validator
+.. autofunction:: cornice.validators.marshmallow_querystring_validator
+.. autofunction:: cornice.validators.marshmallow_validator
 
 Errors
 ======

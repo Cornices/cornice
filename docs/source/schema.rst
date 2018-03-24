@@ -7,7 +7,7 @@ As you would do for a database table, you define some fields and
 their type, and make sure that incoming requests comply.
 
 There are many schema libraries in the Python ecosystem you can
-use. The most known ones are Colander & formencode.
+use. The most known ones are Colander, Marshmallow & formencode.
 
 You can do schema validation using either those libraries or either
 custom code.
@@ -64,6 +64,35 @@ To describe a schema, using Colander and Cornice, here is how you can do:
         username = request.validated['username']
         return {'success': True}
 
+
+
+Using Marshmallow
+=================
+
+Marshmallow (https://marshmallow.readthedocs.io/en/latest/)
+is an ORM/ODM/framework-agnostic library for converting complex
+datatypes, such as objects, to and from native Python datatypes that can also
+be used with Cornice validation hooks.
+
+Cornice provides a helper to ease Marshmallow integration.
+
+To describe a schema, using Marshmallow and Cornice, here is how you can do:
+
+.. code-block:: python
+
+    import marshmallow
+
+    from cornice import Service
+    from cornice.validators import marshmallow_body_validator
+
+    class SignupSchema(marshmallow.Schema):
+        username = marshmallow.fields.String(required=True)
+
+    @signup.post(schema=SignupSchema(), validators=(marshmallow_body_validator,))
+    def signup_post(request):
+        username = request.validated['username']
+        return {'success': True}
+
 Dynamic schemas
 ~~~~~~~~~~~~~~~
 
@@ -77,9 +106,9 @@ Example:
 
     def dynamic_schema(request):
         if request.method == 'POST':
-            schema = foo_schema
+            schema = foo_schema()
         elif request.method == 'PUT':
-            schema = bar_schema
+            schema = bar_schema()
         return schema
 
 
@@ -94,7 +123,8 @@ Example:
 
 In addition to ``colander_body_validator()`` as demonstrated above, there are also three more
 similar validators, ``colander_headers_validator()``, ``colander_path_validator()``, and
-``colander_querystring_validator()``, which validate the given ``Schema`` against the headers, path,
+``colander_querystring_validator()`` (and similarly named ``marshmallow_*``
+functions), which validate the given ``Schema`` against the headers, path,
 or querystring parameters, respectively.
 
 
@@ -111,6 +141,7 @@ The ``request.validated`` hences reflects this additional level.
 
 .. code-block:: python
 
+    # colander
     from cornice.validators import colander_validator
 
     class Querystring(colander.MappingSchema):
@@ -131,11 +162,34 @@ The ``request.validated`` hences reflects this additional level.
         referrer = request.validated['querystring']['referrer']
         return {'success': True}
 
+
+    # marshmallow
+    from cornice.validators import marshmallow_validator
+
+    class Querystring(marshmallow.Schema):
+        referrer = marshmallow.fields.String()
+
+    class Payload(marshmallow.Schema):
+        username = marshmallow.fields.String(validate=[
+            marshmallow.validate.Length(min=3)
+        ], required=True)
+
+    class SignupSchema(marshmallow.Schema):
+        body = marshmallow.fields.Nested(Payload())
+        querystring = marshmallow.fields.Nested(Querystring())
+
+    @signup.post(schema=SignupSchema(), validators=(marshmallow_validator,))
+    def signup_post(request):
+        username = request.validated['body']['username']
+        referrer = request.validated['querystring']['referrer']
+        return {'success': True}
+
 This allows to have validation at the schema level that validates data from several
 places on the request:
 
 .. code-block:: python
 
+    # colander
     class SignupSchema(colander.MappingSchema):
         body = Payload()
         querystring = Querystring()
@@ -144,14 +198,28 @@ places on the request:
             appstruct = super(SignupSchema, self).deserialize(cstruct)
             username = appstruct['body']['username']
             referrer = appstruct['querystring'].get('referrer')
-            if username == referred:
+            if username == referrer:
                 self.raise_invalid('Referrer cannot be the same as username')
             return appstruct
 
 
+    # marshmallow
+    class SignupSchema(marshmallow.Schema):
+        body = marshmallow.fields.Nested(Payload())
+        querystring = marshmallow.fields.Nested(Querystring())
+
+        @marshmallow.validates_schema(skip_on_field_errors=True)
+        def validate_multiple_fields(self, data):
+            username = data['body'].get('username')
+            referrer = data['querystring'].get('referrer')
+            if username == referrer:
+                raise marshmallow.ValidationError(
+                    'Referrer cannot be the same as username')
+
+
 Cornice provides built-in support for JSON and HTML forms
 (``application/x-www-form-urlencoded``) input validation using the provided
-colander validators.
+validators.
 
 If you need to validate other input formats, such as XML, you need to
 implement your own deserializer and pass it to the service.

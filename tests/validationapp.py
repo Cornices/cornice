@@ -165,7 +165,14 @@ except ImportError:
 
 if COLANDER:
 
+    # services for colander validation
     signup = Service(name="signup", path="/signup")
+    group_signup = Service(name="group signup", path="/group_signup")
+    foobar = Service(name="foobar", path="/foobar")
+    foobaz = Service(name="foobaz", path="/foobaz")
+    email_service = Service(name='newsletter', path='/newsletter')
+    item_service = Service(name='item', path='/item/{item_id}')
+
 
     class SignupSchema(MappingSchema):
         username = SchemaNode(String())
@@ -174,7 +181,6 @@ if COLANDER:
     def signup_post(request):
         return request.validated
 
-    group_signup = Service(name="group signup", path="/group_signup")
 
     class GroupSignupSchema(SequenceSchema):
         user = SignupSchema()
@@ -214,7 +220,6 @@ if COLANDER:
 
             return MappingSchema.deserialize(self, cstruct)
 
-    foobar = Service(name="foobar", path="/foobar")
 
     @foobar.post(schema=RequestSchema(), validators=(colander_validator,))
     def foobar_post(request):
@@ -234,7 +239,6 @@ if COLANDER:
     class QSSchema(MappingSchema):
         querystring = ListQuerystringSequence()
 
-    foobaz = Service(name="foobaz", path="/foobaz")
 
     @foobaz.get(schema=QSSchema(), validators=(colander_validator,))
     def foobaz_get(request):
@@ -258,7 +262,6 @@ if COLANDER:
                 self.raise_invalid('Invalid email length')
             return appstruct
 
-    email_service = Service(name='newsletter', path='/newsletter')
 
     @email_service.post(schema=NewsletterPayload(),
                         validators=(colander_validator,))
@@ -271,11 +274,122 @@ if COLANDER:
     class ItemSchema(MappingSchema):
         path = ItemPathSchema()
 
-    item_service = Service(name='item', path='/item/{item_id}')
 
     @item_service.get(schema=ItemSchema(),
                       validators=(colander_validator,))
     def item(request):
+        return request.validated['path']
+
+try:
+    import marshmallow
+    from cornice.validators import (
+        marshmallow_validator,
+        marshmallow_body_validator
+    )
+
+    MARSHMALLOW = True
+except ImportError:
+    MARSHMALLOW = False
+
+if MARSHMALLOW:
+    # services for marshmallow validation
+
+    m_signup = Service(name="m_signup", path="/m_signup")
+    m_group_signup = Service(name="m_group signup", path="/m_group_signup")
+    m_foobar = Service(name="m_foobar", path="/m_foobar")
+    m_foobaz = Service(name="m_foobaz", path="/m_foobaz")
+    m_email_service = Service(name='m_newsletter', path='/m_newsletter')
+    m_item_service = Service(name='m_item', path='/m_item/{item_id}')
+
+
+    class MSignupSchema(marshmallow.Schema):
+        username = marshmallow.fields.String()
+
+    @m_signup.post(
+        schema=MSignupSchema(), validators=(marshmallow_body_validator,))
+    def signup_post(request):
+        return request.validated
+
+    @m_group_signup.post(
+        schema=MSignupSchema(many=True), validators=(marshmallow_body_validator,))
+    def m_group_signup_post(request):
+        return {'data': request.validated}
+
+    def m_validate_bar(node, value):
+        if value != 'open':
+            raise Invalid(node, "The bar is not open.")
+
+    class MBodySchema(marshmallow.Schema):
+        # foo and bar are required, baz is optional
+        foo = marshmallow.fields.String()
+        bar = SchemaNode(String(), validator=m_validate_bar)
+        baz = marshmallow.fields.String(missing=None)
+        ipsum = marshmallow.fields.Integer(
+            missing=1, validate=marshmallow.validate.Range(0,3))
+        integers = marshmallow.fields.List(marshmallow.fields.Integer())
+
+    class MQuery(marshmallow.Schema):
+        yeah = marshmallow.fields.String()
+
+    class MRequestSchema(marshmallow.Schema):
+        body = marshmallow.fields.Nested(MBodySchema())
+        querystring = marshmallow.fields.Nested(MQuery())
+
+    @m_foobar.post(schema=MRequestSchema(), validators=(marshmallow_validator,))
+    def m_foobar_post(request):
+        return {"test": "succeeded"}
+
+
+    class MListQuerystringSequenced(marshmallow.Schema):
+        field = marshmallow.fields.List(marshmallow.fields.String(), many=True)
+
+        @marshmallow.pre_load()
+        def normalize_field(self, data):
+            if 'field' in data and not isinstance(data['field'], list):
+                data['field'] = [data['field']]
+            return data
+
+    class MQSSchema(marshmallow.Schema):
+        querystring = marshmallow.fields.Nested(MListQuerystringSequenced())
+
+
+    @m_foobaz.get(schema=MQSSchema(), validators=(marshmallow_validator,))
+    def m_foobaz_get(request):
+        return {"field": request.validated['querystring']['field']}
+
+    class MNewsletterSchema(marshmallow.Schema):
+        email = marshmallow.fields.String(validate=marshmallow.validate.Email())
+
+    class MRefererSchema(marshmallow.Schema):
+        ref = marshmallow.fields.Integer()
+
+    class MNewsletterPayload(marshmallow.Schema):
+        body = marshmallow.fields.Nested(MNewsletterSchema())
+        querystring = marshmallow.fields.Nested(MRefererSchema())
+
+        @marshmallow.validates_schema
+        def validate_email_length(self, data):
+            email = data['body'].get('email')
+            ref = data['querystring'].get('ref')
+            if email and ref and len(email) != ref:
+                raise marshmallow.ValidationError(
+                    {'email': 'Invalid email length'})
+
+    @m_email_service.post(
+        schema=MNewsletterPayload(), validators=(marshmallow_validator,))
+    def m_newsletter(request):
+        return request.validated
+
+    class MItemPathSchema(marshmallow.Schema):
+        item_id = marshmallow.fields.Integer(missing=None)
+
+    class MItemSchema(marshmallow.Schema):
+        path = marshmallow.fields.Nested(MItemPathSchema())
+
+
+    @m_item_service.get(
+        schema=MItemSchema(), validators=(marshmallow_validator,))
+    def m_item(request):
         return request.validated['path']
 
 
