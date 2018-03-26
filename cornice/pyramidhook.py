@@ -253,15 +253,12 @@ def register_service_views(config, service):
             config.add_view(view=decorated_view, route_name=route_name,
                             **args)
 
-        config.commit()
-
     if service.definitions:
         # Add the fallback view last
         config.add_view(view=get_fallback_view(service),
                         route_name=route_name,
                         permission=NO_PERMISSION_REQUIRED,
                         require_csrf=False)
-        config.commit()
 
 
 def _pop_complex_predicates(args):

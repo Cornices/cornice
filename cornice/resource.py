@@ -41,7 +41,7 @@ def add_resource(klass, depth=1, **kw):
     (collection_path), if any.
 
     :param klass:
-        The class (resource) on witch to register the service.
+        The class (resource) on which to register the service.
 
     :param depth:
         Witch frame should be looked in default 2.

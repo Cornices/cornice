@@ -53,7 +53,7 @@ class User(object):
     def collection_get(self):
         return {'users': list(USERS.keys())}
 
-    @view(renderer='jsonp')
+    @view(renderer='jsonp', accept='application/javascript')
     @view(renderer='json')
     def get(self):
         return USERS.get(int(self.request.matchdict['id']))
@@ -109,7 +109,8 @@ class TestResource(TestCase):
 
         self.assertEqual(self.app.get("/users/1").json, {'name': 'gawel'})
 
-        resp = self.app.get("/users/1?callback=test")
+        resp = self.app.get("/users/1?callback=test",
+                            headers={'Accept': 'application/javascript'})
 
         self.assertIn(b'test({"name": "gawel"})', resp.body, msg=resp.body)
 
