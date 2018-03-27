@@ -268,6 +268,34 @@ class TestRouteWithTraverse(TestCase):
             bad_service = Service(name="jardinet", path="/jardinet", traverse='/')
             self.fail("Shouldn't happen")
 
+
+class TestRouteFromPyramid(TestCase):
+
+    def setUp(self):
+        self.config = testing.setUp()
+        self.config.include("cornice")
+        self.config.add_route('proute', '/from_pyramid')
+        self.config.scan("tests.test_pyramidhook")
+
+        def handle_response(request):
+            return {'service': request.current_service.name,
+                    'route': request.matched_route.name}
+        rserv = Service(name="ServiceWPyramidRoute", pyramid_route="proute")
+        rserv.add_view('GET', handle_response)
+
+        register_service_views(self.config, rserv)
+        self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
+
+    def test_service_routing(self):
+        result = self.app.get('/from_pyramid', status=200)
+        self.assertEqual('proute', result.json['route'])
+        self.assertEqual('ServiceWPyramidRoute', result.json['service'])
+
+
+    def test_no_route_or_path(self):
+        with self.assertRaises(TypeError):
+            Service(name="broken service",)
+
 class TestServiceWithNonpickleableSchema(TestCase):
     def setUp(self):
         self.config = testing.setUp()

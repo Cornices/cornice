@@ -84,6 +84,35 @@ class TestResourceWarning(TestCase):
         msg = "Warning: collection_path and path are not distinct."
         mocked_warn.assert_called_with(msg)
 
+    @mock.patch('warnings.warn')
+    def test_routes_clash(self, mocked_warn):
+        @resource(collection_pyramid_route='some_route',
+                  pyramid_route='some_route', name='bad_thing_service')
+        class BadThing(object):
+            def __init__(self, request, context=None):
+                pass
+
+        msg = "Warning: collection_pyramid_route and " \
+              "pyramid_route are not distinct."
+        mocked_warn.assert_called_with(msg)
+
+
+    def test_routes_with_paths(self):
+        with self.assertRaises(ValueError):
+            @resource(collection_path='/some_route',
+                      pyramid_route='some_route', name='bad_thing_service')
+            class BadThing(object):
+                def __init__(self, request, context=None):
+                    pass
+
+    def test_routes_with_paths_reversed(self):
+        with self.assertRaises(ValueError):
+            @resource(collection_pyramid_route='some_route',
+                      path='/some_route', name='bad_thing_service')
+            class BadThing(object):
+                def __init__(self, request, context=None):
+                    pass
+
 
 class TestResource(TestCase):
 
