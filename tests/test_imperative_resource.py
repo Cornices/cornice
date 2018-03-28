@@ -98,7 +98,7 @@ class TestResource(TestCase):
 
         add_view(UserImp.get, renderer='json')
         add_view(UserImp.get, renderer='jsonp', accept='application/javascript')
-        add_view(UserImp.collection_post, renderer='json', accept='text/json')
+        add_view(UserImp.collection_post, renderer='json', accept='application/json')
         user_resource = add_resource(
             UserImp, collection_path='/users', path='/users/{id}',
             name='user_service', factory=dummy_factory)
@@ -123,7 +123,7 @@ class TestResource(TestCase):
         # the accept headers should work even in case they're specified in a
         # resource method
         self.assertEqual(
-            self.app.post("/users", headers={'Accept': 'text/json'},
+            self.app.post("/users", headers={'Accept': 'application/json'},
                           params=json.dumps({'test': 'yeah'})).json,
             {'test': 'yeah'})
 
@@ -184,7 +184,7 @@ class NonAutocommittingConfigurationTestResource(TestCase):
         add_view(UserImp.get, renderer='json')
         # pyramid does not allow having 2 views with same request conditions
         add_view(UserImp.get, renderer='jsonp', accept='application/javascript')
-        add_view(UserImp.collection_post, renderer='json', accept='text/json')
+        add_view(UserImp.collection_post, renderer='json', accept='application/json')
         user_resource = add_resource(
             UserImp, collection_path='/users', path='/users/{id}',
             name='user_service', factory=dummy_factory)
