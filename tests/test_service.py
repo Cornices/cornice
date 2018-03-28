@@ -186,7 +186,7 @@ class TestService(TestCase):
         # it is possible to give acceptable egress content-types dynamically at
         # run-time. You don't always want to have the callables when retrieving
         # all the acceptable content-types
-        service.add_view("POST", lambda x: "ok", accept=lambda r: "text/json")
+        service.add_view("POST", lambda x: "ok", accept=lambda r: "application/json")
         self.assertEqual(len(service.get_acceptable("POST")), 2)
         self.assertEqual(len(service.get_acceptable("POST", True)), 1)
 
@@ -215,7 +215,7 @@ class TestService(TestCase):
         # run-time. You don't always want to have the callables when retrieving
         # all the supported content-types
         service.add_view("POST", lambda x: "ok",
-                         content_type=lambda r: "text/json")
+                         content_type=lambda r: "application/json")
         self.assertEquals(len(service.get_contenttypes("POST")), 2)
         self.assertEquals(len(service.get_contenttypes("POST", True)), 1)
 

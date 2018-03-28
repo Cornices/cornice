@@ -58,7 +58,7 @@ class User(object):
     def get(self):
         return USERS.get(int(self.request.matchdict['id']))
 
-    @view(renderer='json', accept='text/json')
+    @view(renderer='json', accept='application/json')
     def collection_post(self):
         return {'test': 'yeah'}
 
@@ -126,7 +126,7 @@ class TestResource(TestCase):
         # the accept headers should work even in case they're specified in a
         # resource method
         self.assertEqual(
-            self.app.post("/users", headers={'Accept': 'text/json'},
+            self.app.post("/users", headers={'Accept': 'application/json'},
                           params=json.dumps({'test': 'yeah'})).json,
             {'test': 'yeah'})
 

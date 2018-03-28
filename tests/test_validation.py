@@ -89,7 +89,6 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         self.assertEquals('header', error_location)
         self.assertEquals('Accept', error_name)
         self.assertIn('application/json', error_description)
-        self.assertIn('text/json', error_description)
         self.assertIn('text/plain', error_description)
 
         # requesting a supported type should give an appropriate response type
@@ -118,20 +117,20 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         response = app.get('/service3', headers={'Accept': 'audio/*'},
                            status=406)
         error_description = response.json['errors'][0]['description']
-        self.assertIn('text/json', error_description)
+        self.assertIn('application/json', error_description)
 
         response = app.get('/service3', headers={'Accept': 'text/*'})
-        self.assertEqual(response.content_type, "text/json")
+        self.assertEqual(response.content_type, "text/plain")
 
         # Test that using a callable to define what's accepted works as well.
         # Now, the callable returns a scalar instead of a list.
         response = app.put('/service3', headers={'Accept': 'audio/*'},
                            status=406)
         error_description = response.json['errors'][0]['description']
-        self.assertIn('text/json', error_description)
+        self.assertIn('application/json', error_description)
 
         response = app.put('/service3', headers={'Accept': 'text/*'})
-        self.assertEqual(response.content_type, "text/json")
+        self.assertEqual(response.content_type, "text/plain")
 
         # If we are not asking for a particular content-type,
         # we should get one of the two types that the service supports.
@@ -143,7 +142,7 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         app = TestApp(main({}))
 
         response = app.get('/service3', headers={'Accept': 'text/*'})
-        self.assertEqual(response.content_type, "text/json")
+        self.assertEqual(response.content_type, "text/plain")
 
     def test_accept_issue_113_text_application_star(self):
         app = TestApp(main({}))

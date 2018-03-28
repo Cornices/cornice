@@ -57,7 +57,7 @@ def post1(request):
 service2 = Service(name="service2", path="/service2")
 
 
-@service2.get(accept=("application/json", "text/json"))
+@service2.get(accept=("application/json"))
 @service2.get(accept=("text/plain"), renderer="string")
 def get2(request):
     return {"body": "yay!"}
@@ -67,8 +67,8 @@ def get2(request):
 service3 = Service(name="service3", path="/service3")
 
 
-@service3.get(accept=lambda request: ('application/json', 'text/json'))
-@service3.put(accept=lambda request: 'text/json')
+@service3.get(accept=lambda request: ('application/json', 'text/plain'))
+@service3.put(accept=lambda request: ('application/json', 'text/plain'))
 def get3(request):
     return {"body": "yay!"}
 
