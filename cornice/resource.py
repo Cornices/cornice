@@ -62,6 +62,10 @@ def add_resource(klass, depth=1, **kw):
 
     services = {}
 
+    if (('collection_pyramid_route' in kw or 'pyramid_route' in kw) and
+            ('collection_path' in kw or 'path' in kw)):
+        raise ValueError('You use either paths or route names, not both')
+
     if 'collection_path' in kw:
         if kw['collection_path'] == kw['path']:
             msg = "Warning: collection_path and path are not distinct."
@@ -70,6 +74,14 @@ def add_resource(klass, depth=1, **kw):
         prefixes = ('', 'collection_')
     else:
         prefixes = ('',)
+
+    if 'collection_pyramid_route' in kw:
+        if kw['collection_pyramid_route'] == kw['pyramid_route']:
+            msg = "Warning: collection_pyramid_route and " \
+                  "pyramid_route are not distinct."
+            warnings.warn(msg)
+
+        prefixes = ('', 'collection_')
 
     for prefix in prefixes:
 

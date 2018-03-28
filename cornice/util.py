@@ -199,9 +199,7 @@ def current_service(request):
     if request.matched_route:
         services = request.registry.cornice_services
         pattern = request.matched_route.pattern
-        try:
-            service = services[pattern]
-        except KeyError:
-            return None
-        else:
-            return service
+        name = request.matched_route.name
+        # try pattern first, then route name else return None
+        service = services.get(pattern, services.get('__cornice' + name))
+        return service

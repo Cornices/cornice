@@ -59,6 +59,10 @@ class TestService(TestCase):
         service = Service("coconuts", "/migrate")
         self.assertEqual(repr(service), '<Service coconuts at /migrate>')
 
+    def test_representation_path(self):
+        service = Service("coconuts", pyramid_route="some_route")
+        self.assertEqual(repr(service), '<Service coconuts at some_route>')
+
     def test_get_arguments(self):
         service = Service("coconuts", "/migrate")
         # not specifying anything, we should get the default values

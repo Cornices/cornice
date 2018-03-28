@@ -48,6 +48,9 @@ class Service(object):
     :param path:
         The path the service is available at. Should also be unique.
 
+    :param pyramid_route:
+        Use existing pyramid route instead of creating new one.
+
     :param renderer:
         The renderer that should be used by this service. Default value is
         'simplejson'.
@@ -153,12 +156,18 @@ class Service(object):
     list_arguments = ('validators', 'filters', 'cors_headers', 'cors_origins')
 
     def __repr__(self):
-        return u'<Service %s at %s>' % (self.name, self.path)
+        return u'<Service %s at %s>' % (
+            self.name, self.pyramid_route or self.path)
 
-    def __init__(self, name, path, description=None, cors_policy=None, depth=1,
-                 **kw):
+    def __init__(self, name, path=None, description=None, cors_policy=None,
+                 depth=1, pyramid_route=None, **kw):
         self.name = name
         self.path = path
+        self.pyramid_route = pyramid_route
+
+        if not self.path and not self.pyramid_route:
+            raise TypeError('You need to pass path or pyramid_route arg')
+
         self.description = description
         self.cors_expose_all_headers = True
         self._cors_enabled = None

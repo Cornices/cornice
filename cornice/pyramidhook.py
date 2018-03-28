@@ -162,9 +162,14 @@ def register_service_views(config, service):
     :param service: the service object containing the definitions
     """
     route_name = service.name
-    services = config.registry.cornice_services
+    existing_route = service.pyramid_route
     prefix = config.route_prefix or ''
-    services[prefix + service.path] = service
+    services = config.registry.cornice_services
+    if existing_route:
+        route_name = existing_route
+        services[prefix + '__cornice' + existing_route] = service
+    else:
+        services[prefix + service.path] = service
 
     # before doing anything else, register a view for the OPTIONS method
     # if we need to
@@ -198,7 +203,9 @@ def register_service_views(config, service):
         if hasattr(service, predicate):
             route_args[predicate] = getattr(service, predicate)
 
-    config.add_route(route_name, service.path, **route_args)
+    # register route when not using exiting pyramid routes
+    if not existing_route:
+        config.add_route(route_name, service.path, **route_args)
 
     # 2. register view(s)
 
