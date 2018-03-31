@@ -68,6 +68,15 @@ As you can see, you can define methods for the collection (it will use the
 **path** argument of the class decorator. When defining collection_* methods, the
 path defined in the **collection_path** will be used.
 
+Here is an example how to reuse existing pyramid routes instead of registering
+new ones:
+
+.. code-block:: python
+
+   @resource(collection_pyramid_route='users', pyramid_route='user')
+   class User(object):
+       ....
+
 Validators and filters
 ======================
 
