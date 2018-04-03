@@ -14,11 +14,11 @@ FRUITS = {1: {'name': 'apple'}, 2: {'name': 'orange'}}
 
 
 def _accept(request):
-    return ('text/json', 'application/json')
+    return ('text/plain', 'application/json')
 
 
 def _content_type(request):
-    return ('text/json', 'application/json')
+    return ('text/plain', 'application/json')
 
 
 @resource(collection_path='/fruits', path='/fruits/{id}',
@@ -58,15 +58,15 @@ class TestResource(TestCase):
 
     def test_accept_headers_get(self):
         self.assertEqual(
-            self.app.get("/fruits", headers={'Accept': 'text/json'}).json,
-            {'fruits': [1, 2]})
+            self.app.get("/fruits", headers={'Accept': 'text/plain'}).body,
+            b'{"fruits": [1, 2]}')
 
         self.assertEqual(
             self.app.get("/fruits", headers={'Accept': 'application/json'}).json,
             {'fruits': [1, 2]})
 
         self.assertEqual(
-            self.app.get("/fruits/1", headers={'Accept': 'text/json'}).json,
+            self.app.get("/fruits/1", headers={'Accept': 'text/plain'}).json,
             {'name': 'apple'})
 
         self.assertEqual(
@@ -76,7 +76,7 @@ class TestResource(TestCase):
 
     def test_accept_headers_post(self):
         self.assertEqual(
-            self.app.post("/fruits", headers={'Accept': 'text/json', 'Content-Type': 'application/json'},
+            self.app.post("/fruits", headers={'Accept': 'text/plain', 'Content-Type': 'application/json'},
                           params=json.dumps({'test': 'yeah'})).json,
             {'test': 'yeah'})
 
@@ -88,17 +88,17 @@ class TestResource(TestCase):
     def test_406(self):
             self.app.get(
                 "/fruits",
-                headers={'Accept': 'text/plain'},
+                headers={'Accept': 'text/xml'},
                 status=406)
 
             self.app.post(
                 "/fruits",
-                headers={'Accept': 'text/plain'},
+                headers={'Accept': 'text/html'},
                 params=json.dumps({'test': 'yeah'}),
                 status=406)
 
     def test_415(self):
         self.app.post(
             "/fruits",
-            headers={'Accept': 'application/json', 'Content-Type': 'text/plain'},
+            headers={'Accept': 'application/json', 'Content-Type': 'text/html'},
             status=415)

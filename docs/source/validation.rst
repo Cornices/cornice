@@ -217,7 +217,7 @@ value of accepted media types:
 
     def _accept(request):
         # interact with request if needed
-        return ("text/xml", "text/json")
+        return ("text/xml", "application/json")
 
     @service.get(accept=_accept)
     def foo(request):
@@ -241,7 +241,7 @@ When using the default json `error_handler`, the response might look like this::
             {
                 'location': 'header',
                 'name': 'Accept',
-                'description': 'Accept header should be one of ["text/xml", "text/json"]'
+                'description': 'Accept header should be one of ["text/xml", "application/json"]'
             }
         ]
     }

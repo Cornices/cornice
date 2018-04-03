@@ -35,7 +35,7 @@ class _JsonRenderer(object):
       .. _`[2]`: http://pyramid.readthedocs.io/en/latest/narr/renderers.html \
                  #serializing-custom-objects
     """
-    acceptable = ('application/json', 'text/json', 'text/plain')
+    acceptable = ('application/json', 'text/plain')
 
     def __call__(self, data, context):
         """Serialise the ``data`` with the Pyramid renderer."""
