@@ -58,6 +58,17 @@ def add_resource(klass, depth=1, **kw):
             pass
 
         add_resource(User, collection_path='/users', path='/users/{id}')
+
+    Alternatively if you want to reuse your existing pyramid routes:
+
+    .. code-block:: python
+
+        class User(object):
+            pass
+
+        add_resource(User, collection_pyramid_route='users',
+            pyramid_route='user')
+
     """
 
     services = {}

@@ -16,6 +16,17 @@ this way:
     def flush_post(request):
         return {"Done": True}
 
+Example above registers new routes in pyramid registry, you might want to
+reuse existing routes from your application too.
+
+.. code-block:: python
+
+    from cornice import Service
+
+    flush = Service(name='flush',
+                    description='Clear database content',
+                    pyramid_route='flush_path')
+
 See :class:`cornice.service.Service` for an exhaustive list of options.
 
 Imperatively
