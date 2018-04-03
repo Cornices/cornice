@@ -5,7 +5,19 @@ CHANGELOG
 3.2.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+**New features**
+
+- Add marshmallow request validation support (#475, thanks @ergo)
+- Allow to reuse Pyramid existing routes in services (#477, thanks @ergo)
+
+**Documentation**
+
+- Make tutorial work for python3 users (#471, thanks @rvandegrift)
+
+**Internal changes**
+
+- Remove configuration commit (#476, thanks @ergo)
+- Remove mentions of ``text/json`` in tests and docs (#478, thanks @wjehenddher)
 
 
 3.1.0 (2018-02-08)
