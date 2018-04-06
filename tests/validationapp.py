@@ -154,7 +154,8 @@ try:
         Range,
         Email,
         drop,
-        null
+        null,
+        deferred
     )
 
     from cornice.validators import colander_validator, colander_body_validator
@@ -167,6 +168,7 @@ if COLANDER:
 
     # services for colander validation
     signup = Service(name="signup", path="/signup")
+    bound = Service(name="bound", path="/bound")
     group_signup = Service(name="group signup", path="/group_signup")
     foobar = Service(name="foobar", path="/foobar")
     foobaz = Service(name="foobaz", path="/foobaz")
@@ -176,6 +178,27 @@ if COLANDER:
 
     class SignupSchema(MappingSchema):
         username = SchemaNode(String())
+
+    @deferred
+    def deferred_missing(node, kw):
+        import random
+        return kw.get('missing_foo') or random.random()
+
+    class NeedsBindingSchema(MappingSchema):
+        somefield = SchemaNode(String(), missing=deferred_missing)
+
+    def rebinding_validator(request, **kwargs):
+        kwargs['schema'] = NeedsBindingSchema().bind()
+        return colander_body_validator(request, **kwargs)
+
+    @bound.post(schema=NeedsBindingSchema().bind(), validators=(rebinding_validator,))
+    def bound_post(request):
+        return request.validated
+
+    @bound.post(schema=NeedsBindingSchema().bind(missing_foo=-10),
+                validators=(colander_body_validator,), header='X-foo')
+    def bound_post_with_override(request):
+        return request.validated
 
     @signup.post(schema=SignupSchema(), validators=(colander_body_validator,))
     def signup_post(request):

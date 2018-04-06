@@ -455,6 +455,38 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
 
 
 @skip_if_no_colander
+class TestBoundSchemas(LoggingCatcher, TestCase):
+
+    def make_ordinary_app(self):
+        return TestApp(main({}))
+
+    def test_bound_schema_existing_value(self):
+        app = self.make_ordinary_app()
+        response = app.post_json('/bound', {
+            'somefield': 'test',
+        })
+        self.assertEqual(response.json['somefield'], 'test')
+
+    def test_bound_schema_non_existing_value(self):
+        app = self.make_ordinary_app()
+        response = app.post_json('/bound', {})
+        self.assertTrue(response.json['somefield'] > 0)
+
+    def test_bound_schema_use_bound(self):
+        app = self.make_ordinary_app()
+        response = app.post_json('/bound', {}, headers={'X-foo': '1'})
+        self.assertEqual(response.json['somefield'], -10)
+
+    def test_bound_schema_multiple_calls(self):
+        app = self.make_ordinary_app()
+        response = app.post_json('/bound', {})
+        old = response.json['somefield']
+        self.assertTrue(response.json['somefield'] > 0)
+        response = app.post_json('/bound', {})
+        self.assertNotEqual(response.json['somefield'], old)
+
+
+@skip_if_no_colander
 class TestErrorMessageTranslationColander(TestCase):
 
     def post(self, settings={}, headers={}):
