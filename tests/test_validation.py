@@ -768,3 +768,39 @@ class TestValidatorEdgeCasesMarshmallow(TestCase):
             ValidationError('Test message', field_names=['test'])
         )
         self.assertEqual({'test': ['Test message']}, parsed)
+
+
+@skip_if_no_marshmallow
+class TestContextSchemas(LoggingCatcher, TestCase):
+
+    def make_ordinary_app(self):
+        return TestApp(main({}))
+
+    def test_schema_existing_value(self):
+        app = self.make_ordinary_app()
+        response = app.post_json('/m_bound', {
+            'somefield': 99,
+            'csrf_secret': 'secret'
+        })
+        self.assertEqual(response.json['somefield'], 99)
+
+    def test_schema_wrong_token(self):
+        app = self.make_ordinary_app()
+        response = app.post_json('/m_bound', {}, status=400)
+        self.assertEqual(
+            response.json['errors'][0]['description'][0],
+            "Wrong token"
+        )
+
+    def test_schema_non_existing_value(self):
+        app = self.make_ordinary_app()
+        response = app.post_json('/m_bound', {'csrf_secret': 'secret'})
+        self.assertTrue(response.json['somefield'] > 0)
+
+    def test_schema_multiple_calls(self):
+        app = self.make_ordinary_app()
+        response = app.post_json('/m_bound', {'csrf_secret': 'secret'})
+        old = response.json['somefield']
+        self.assertTrue(response.json['somefield'] > 0)
+        response = app.post_json('/bound', {'csrf_secret': 'secret'})
+        self.assertNotEqual(response.json['somefield'], old)

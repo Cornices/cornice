@@ -318,6 +318,7 @@ if MARSHMALLOW:
     # services for marshmallow validation
 
     m_signup = Service(name="m_signup", path="/m_signup")
+    m_bound = Service(name="m_bound", path="/m_bound")
     m_group_signup = Service(name="m_group signup", path="/m_group_signup")
     m_foobar = Service(name="m_foobar", path="/m_foobar")
     m_foobaz = Service(name="m_foobaz", path="/m_foobaz")
@@ -328,13 +329,37 @@ if MARSHMALLOW:
     class MSignupSchema(marshmallow.Schema):
         username = marshmallow.fields.String()
 
+    class MSignupGroupSchema(marshmallow.Schema):
+        username = marshmallow.fields.String()
+
+        def __init__(self, *args, **kwargs):
+            kwargs['many'] = True
+            marshmallow.Schema.__init__(self, *args, **kwargs)
+
+    import random
+
+    class MNeedsContextSchema(marshmallow.Schema):
+        somefield = marshmallow.fields.Float(missing=lambda: random.random())
+        csrf_secret = marshmallow.fields.String()
+
+        @marshmallow.validates_schema
+        def validate_csrf_secret(self, data):
+            # simulate validation of session variables
+            if self.context['request'].get_csrf() != data.get('csrf_secret'):
+                raise marshmallow.ValidationError('Wrong token')
+
+    @m_bound.post(schema=MNeedsContextSchema(),
+                  validators=(marshmallow_body_validator,))
+    def m_bound_post(request):
+        return request.validated
+
     @m_signup.post(
         schema=MSignupSchema(), validators=(marshmallow_body_validator,))
     def signup_post(request):
         return request.validated
 
     @m_group_signup.post(
-        schema=MSignupSchema(many=True), validators=(marshmallow_body_validator,))
+        schema=MSignupGroupSchema(), validators=(marshmallow_body_validator,))
     def m_group_signup_post(request):
         return {'data': request.validated}
 
@@ -424,4 +449,6 @@ def includeme(config):
 def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.include(includeme)
+    # used for simulating pyramid session object access in validators
+    config.add_request_method(lambda x: 'secret', 'get_csrf')
     return CatchErrors(config.make_wsgi_app())

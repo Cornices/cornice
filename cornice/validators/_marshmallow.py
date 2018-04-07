@@ -42,6 +42,8 @@ def _generate_marshmallow_validator(location):
 
         class ValidatedField(marshmallow.fields.Field):
             def _deserialize(self, value, attr, data):
+                if not schema.context.get('request'):
+                    schema.context.setdefault('request', request)
                 deserialized = schema.load(value)
                 # marshmallow 2.x returns a tuple, 3/x will always throw
                 # and returns just data
@@ -140,6 +142,9 @@ def validator(request, schema=None, deserializer=None, **kwargs):
 
     if schema is None:
         return
+
+    if not schema.context.get('request'):
+        schema.context.setdefault('request', request)
 
     cstruct = deserializer(request)
     try:
