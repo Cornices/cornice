@@ -769,6 +769,11 @@ class TestValidatorEdgeCasesMarshmallow(TestCase):
         )
         self.assertEqual({'test': ['Test message']}, parsed)
 
+    def test_instantiated_schema(self):
+        app = TestApp(main({}))
+        with self.assertRaises(ValueError):
+            app.post('/m_item/42', status=200)
+
 
 @skip_if_no_marshmallow
 class TestContextSchemas(LoggingCatcher, TestCase):

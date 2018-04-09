@@ -348,18 +348,18 @@ if MARSHMALLOW:
             if self.context['request'].get_csrf() != data.get('csrf_secret'):
                 raise marshmallow.ValidationError('Wrong token')
 
-    @m_bound.post(schema=MNeedsContextSchema(),
+    @m_bound.post(schema=MNeedsContextSchema,
                   validators=(marshmallow_body_validator,))
     def m_bound_post(request):
         return request.validated
 
     @m_signup.post(
-        schema=MSignupSchema(), validators=(marshmallow_body_validator,))
+        schema=MSignupSchema, validators=(marshmallow_body_validator,))
     def signup_post(request):
         return request.validated
 
     @m_group_signup.post(
-        schema=MSignupGroupSchema(), validators=(marshmallow_body_validator,))
+        schema=MSignupGroupSchema, validators=(marshmallow_body_validator,))
     def m_group_signup_post(request):
         return {'data': request.validated}
 
@@ -380,10 +380,10 @@ if MARSHMALLOW:
         yeah = marshmallow.fields.String()
 
     class MRequestSchema(marshmallow.Schema):
-        body = marshmallow.fields.Nested(MBodySchema())
-        querystring = marshmallow.fields.Nested(MQuery())
+        body = marshmallow.fields.Nested(MBodySchema)
+        querystring = marshmallow.fields.Nested(MQuery)
 
-    @m_foobar.post(schema=MRequestSchema(), validators=(marshmallow_validator,))
+    @m_foobar.post(schema=MRequestSchema, validators=(marshmallow_validator,))
     def m_foobar_post(request):
         return {"test": "succeeded"}
 
@@ -398,10 +398,10 @@ if MARSHMALLOW:
             return data
 
     class MQSSchema(marshmallow.Schema):
-        querystring = marshmallow.fields.Nested(MListQuerystringSequenced())
+        querystring = marshmallow.fields.Nested(MListQuerystringSequenced)
 
 
-    @m_foobaz.get(schema=MQSSchema(), validators=(marshmallow_validator,))
+    @m_foobaz.get(schema=MQSSchema, validators=(marshmallow_validator,))
     def m_foobaz_get(request):
         return {"field": request.validated['querystring']['field']}
 
@@ -412,8 +412,8 @@ if MARSHMALLOW:
         ref = marshmallow.fields.Integer()
 
     class MNewsletterPayload(marshmallow.Schema):
-        body = marshmallow.fields.Nested(MNewsletterSchema())
-        querystring = marshmallow.fields.Nested(MRefererSchema())
+        body = marshmallow.fields.Nested(MNewsletterSchema)
+        querystring = marshmallow.fields.Nested(MRefererSchema)
 
         @marshmallow.validates_schema
         def validate_email_length(self, data):
@@ -424,7 +424,7 @@ if MARSHMALLOW:
                     {'email': 'Invalid email length'})
 
     @m_email_service.post(
-        schema=MNewsletterPayload(), validators=(marshmallow_validator,))
+        schema=MNewsletterPayload, validators=(marshmallow_validator,))
     def m_newsletter(request):
         return request.validated
 
@@ -432,14 +432,18 @@ if MARSHMALLOW:
         item_id = marshmallow.fields.Integer(missing=None)
 
     class MItemSchema(marshmallow.Schema):
-        path = marshmallow.fields.Nested(MItemPathSchema())
+        path = marshmallow.fields.Nested(MItemPathSchema)
 
 
     @m_item_service.get(
-        schema=MItemSchema(), validators=(marshmallow_validator,))
+        schema=MItemSchema, validators=(marshmallow_validator,))
     def m_item(request):
         return request.validated['path']
 
+    @m_item_service.post(
+        schema=MItemSchema(), validators=(marshmallow_validator,))
+    def m_item_fails(request):
+        return request.validated['path']
 
 def includeme(config):
     config.include("cornice")

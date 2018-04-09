@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import inspect
+
 from six import with_metaclass
 
 
@@ -39,6 +41,8 @@ def _generate_marshmallow_validator(location):
 
         if schema is None:
             return
+
+        schema = _instantiate_schema(schema)
 
         class ValidatedField(marshmallow.fields.Field):
             def _deserialize(self, value, attr, data):
@@ -88,7 +92,7 @@ def _generate_marshmallow_validator(location):
             """A schema to validate the request's location attributes."""
             pass
 
-        validator(request, RequestSchema(), deserializer, **kwargs)
+        validator(request, RequestSchema, deserializer, **kwargs)
         request.validated = request.validated.get(location, {})
 
     return _validator
@@ -143,6 +147,7 @@ def validator(request, schema=None, deserializer=None, **kwargs):
     if schema is None:
         return
 
+    schema = _instantiate_schema(schema)
     if not schema.context.get('request'):
         schema.context.setdefault('request', request)
 
@@ -168,3 +173,10 @@ def validator(request, schema=None, deserializer=None, **kwargs):
                 request.errors.add(location, location, details)
     else:
         request.validated.update(deserialized)
+
+
+def _instantiate_schema(schema):
+    if not inspect.isclass(schema):
+        raise ValueError('You need to pass Marshmallow class instead '
+                         'of schema instance')
+    return schema()
