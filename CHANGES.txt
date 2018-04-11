@@ -5,7 +5,9 @@ CHANGELOG
 3.3.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Cornice now only accepts Marshmallow schemas instead of instances
+- Marshmallow schemas get request object added to their context
+  during validation
 
 
 3.2.0 (2018-04-03)
