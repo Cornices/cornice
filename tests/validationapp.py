@@ -154,7 +154,8 @@ try:
         Range,
         Email,
         drop,
-        null
+        null,
+        deferred
     )
 
     from cornice.validators import colander_validator, colander_body_validator
@@ -167,6 +168,7 @@ if COLANDER:
 
     # services for colander validation
     signup = Service(name="signup", path="/signup")
+    bound = Service(name="bound", path="/bound")
     group_signup = Service(name="group signup", path="/group_signup")
     foobar = Service(name="foobar", path="/foobar")
     foobaz = Service(name="foobaz", path="/foobaz")
@@ -176,6 +178,27 @@ if COLANDER:
 
     class SignupSchema(MappingSchema):
         username = SchemaNode(String())
+
+    @deferred
+    def deferred_missing(node, kw):
+        import random
+        return kw.get('missing_foo') or random.random()
+
+    class NeedsBindingSchema(MappingSchema):
+        somefield = SchemaNode(String(), missing=deferred_missing)
+
+    def rebinding_validator(request, **kwargs):
+        kwargs['schema'] = NeedsBindingSchema().bind()
+        return colander_body_validator(request, **kwargs)
+
+    @bound.post(schema=NeedsBindingSchema().bind(), validators=(rebinding_validator,))
+    def bound_post(request):
+        return request.validated
+
+    @bound.post(schema=NeedsBindingSchema().bind(missing_foo=-10),
+                validators=(colander_body_validator,), header='X-foo')
+    def bound_post_with_override(request):
+        return request.validated
 
     @signup.post(schema=SignupSchema(), validators=(colander_body_validator,))
     def signup_post(request):
@@ -295,6 +318,7 @@ if MARSHMALLOW:
     # services for marshmallow validation
 
     m_signup = Service(name="m_signup", path="/m_signup")
+    m_bound = Service(name="m_bound", path="/m_bound")
     m_group_signup = Service(name="m_group signup", path="/m_group_signup")
     m_foobar = Service(name="m_foobar", path="/m_foobar")
     m_foobaz = Service(name="m_foobaz", path="/m_foobaz")
@@ -305,13 +329,37 @@ if MARSHMALLOW:
     class MSignupSchema(marshmallow.Schema):
         username = marshmallow.fields.String()
 
+    class MSignupGroupSchema(marshmallow.Schema):
+        username = marshmallow.fields.String()
+
+        def __init__(self, *args, **kwargs):
+            kwargs['many'] = True
+            marshmallow.Schema.__init__(self, *args, **kwargs)
+
+    import random
+
+    class MNeedsContextSchema(marshmallow.Schema):
+        somefield = marshmallow.fields.Float(missing=lambda: random.random())
+        csrf_secret = marshmallow.fields.String()
+
+        @marshmallow.validates_schema
+        def validate_csrf_secret(self, data):
+            # simulate validation of session variables
+            if self.context['request'].get_csrf() != data.get('csrf_secret'):
+                raise marshmallow.ValidationError('Wrong token')
+
+    @m_bound.post(schema=MNeedsContextSchema,
+                  validators=(marshmallow_body_validator,))
+    def m_bound_post(request):
+        return request.validated
+
     @m_signup.post(
-        schema=MSignupSchema(), validators=(marshmallow_body_validator,))
+        schema=MSignupSchema, validators=(marshmallow_body_validator,))
     def signup_post(request):
         return request.validated
 
     @m_group_signup.post(
-        schema=MSignupSchema(many=True), validators=(marshmallow_body_validator,))
+        schema=MSignupGroupSchema, validators=(marshmallow_body_validator,))
     def m_group_signup_post(request):
         return {'data': request.validated}
 
@@ -332,10 +380,10 @@ if MARSHMALLOW:
         yeah = marshmallow.fields.String()
 
     class MRequestSchema(marshmallow.Schema):
-        body = marshmallow.fields.Nested(MBodySchema())
-        querystring = marshmallow.fields.Nested(MQuery())
+        body = marshmallow.fields.Nested(MBodySchema)
+        querystring = marshmallow.fields.Nested(MQuery)
 
-    @m_foobar.post(schema=MRequestSchema(), validators=(marshmallow_validator,))
+    @m_foobar.post(schema=MRequestSchema, validators=(marshmallow_validator,))
     def m_foobar_post(request):
         return {"test": "succeeded"}
 
@@ -350,10 +398,10 @@ if MARSHMALLOW:
             return data
 
     class MQSSchema(marshmallow.Schema):
-        querystring = marshmallow.fields.Nested(MListQuerystringSequenced())
+        querystring = marshmallow.fields.Nested(MListQuerystringSequenced)
 
 
-    @m_foobaz.get(schema=MQSSchema(), validators=(marshmallow_validator,))
+    @m_foobaz.get(schema=MQSSchema, validators=(marshmallow_validator,))
     def m_foobaz_get(request):
         return {"field": request.validated['querystring']['field']}
 
@@ -364,8 +412,8 @@ if MARSHMALLOW:
         ref = marshmallow.fields.Integer()
 
     class MNewsletterPayload(marshmallow.Schema):
-        body = marshmallow.fields.Nested(MNewsletterSchema())
-        querystring = marshmallow.fields.Nested(MRefererSchema())
+        body = marshmallow.fields.Nested(MNewsletterSchema)
+        querystring = marshmallow.fields.Nested(MRefererSchema)
 
         @marshmallow.validates_schema
         def validate_email_length(self, data):
@@ -376,7 +424,7 @@ if MARSHMALLOW:
                     {'email': 'Invalid email length'})
 
     @m_email_service.post(
-        schema=MNewsletterPayload(), validators=(marshmallow_validator,))
+        schema=MNewsletterPayload, validators=(marshmallow_validator,))
     def m_newsletter(request):
         return request.validated
 
@@ -384,14 +432,18 @@ if MARSHMALLOW:
         item_id = marshmallow.fields.Integer(missing=None)
 
     class MItemSchema(marshmallow.Schema):
-        path = marshmallow.fields.Nested(MItemPathSchema())
+        path = marshmallow.fields.Nested(MItemPathSchema)
 
 
     @m_item_service.get(
-        schema=MItemSchema(), validators=(marshmallow_validator,))
+        schema=MItemSchema, validators=(marshmallow_validator,))
     def m_item(request):
         return request.validated['path']
 
+    @m_item_service.post(
+        schema=MItemSchema(), validators=(marshmallow_validator,))
+    def m_item_fails(request):
+        return request.validated['path']
 
 def includeme(config):
     config.include("cornice")
@@ -401,4 +453,6 @@ def includeme(config):
 def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.include(includeme)
+    # used for simulating pyramid session object access in validators
+    config.add_request_method(lambda x: 'secret', 'get_csrf')
     return CatchErrors(config.make_wsgi_app())

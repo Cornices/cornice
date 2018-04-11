@@ -88,7 +88,7 @@ To describe a schema, using Marshmallow and Cornice, here is how you can do:
     class SignupSchema(marshmallow.Schema):
         username = marshmallow.fields.String(required=True)
 
-    @signup.post(schema=SignupSchema(), validators=(marshmallow_body_validator,))
+    @signup.post(schema=SignupSchema, validators=(marshmallow_body_validator,))
     def signup_post(request):
         username = request.validated['username']
         return {'success': True}
@@ -175,10 +175,10 @@ The ``request.validated`` hences reflects this additional level.
         ], required=True)
 
     class SignupSchema(marshmallow.Schema):
-        body = marshmallow.fields.Nested(Payload())
-        querystring = marshmallow.fields.Nested(Querystring())
+        body = marshmallow.fields.Nested(Payload)
+        querystring = marshmallow.fields.Nested(Querystring)
 
-    @signup.post(schema=SignupSchema(), validators=(marshmallow_validator,))
+    @signup.post(schema=SignupSchema, validators=(marshmallow_validator,))
     def signup_post(request):
         username = request.validated['body']['username']
         referrer = request.validated['querystring']['referrer']
@@ -205,8 +205,8 @@ places on the request:
 
     # marshmallow
     class SignupSchema(marshmallow.Schema):
-        body = marshmallow.fields.Nested(Payload())
-        querystring = marshmallow.fields.Nested(Querystring())
+        body = marshmallow.fields.Nested(Payload)
+        querystring = marshmallow.fields.Nested(Querystring)
 
         @marshmallow.validates_schema(skip_on_field_errors=True)
         def validate_multiple_fields(self, data):
@@ -239,6 +239,23 @@ The general pattern in this case is:
                   validators=(colander_body_validator,))
     def post(request):
         return {'OK': 1}
+
+
+Marshmallow schemas have access to request as context object which can be handy
+for things like CSRF validation:
+
+.. code-block:: python
+
+    class MNeedsContextSchema(marshmallow.Schema):
+        somefield = marshmallow.fields.Float(missing=lambda: random.random())
+        csrf_secret = marshmallow.fields.String()
+
+        @marshmallow.validates_schema
+        def validate_csrf_secret(self, data):
+            # simulate validation of session variables
+            if self.context['request'].get_csrf() != data.get('csrf_secret'):
+                raise marshmallow.ValidationError('Wrong token')
+
 
 
 Using formencode
