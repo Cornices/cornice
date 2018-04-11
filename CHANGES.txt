@@ -2,7 +2,7 @@
 CHANGELOG
 #########
 
-3.3.0 (unreleased)
+3.3.0 (2018-04-11)
 ==================
 
 - Cornice now accepts Marshmallow schemas instead of instances (#482, @ergo)
