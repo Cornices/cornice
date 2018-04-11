@@ -5,27 +5,9 @@ CHANGELOG
 3.3.0 (unreleased)
 ==================
 
-- Cornice now only accepts Marshmallow schemas instead of instances
+- Cornice now accepts Marshmallow schemas instead of instances (#482, @ergo)
 - Marshmallow schemas get request object added to their context
-  during validation
-
-
-3.2.0 (2018-04-03)
-==================
-
-**New features**
-
-- Add marshmallow request validation support (#475, thanks @ergo)
-- Allow to reuse Pyramid existing routes in services (#477, thanks @ergo)
-
-**Documentation**
-
-- Make tutorial work for python3 users (#471, thanks @rvandegrift)
-
-**Internal changes**
-
-- Remove configuration commit (#476, thanks @ergo)
-- Remove mentions of ``text/json`` in tests and docs (#478, thanks @wjehenddher)
+  during validation (#482, @ergo)
 
 
 3.2.0 (2018-04-03)
