@@ -263,11 +263,6 @@ class TestRouteWithTraverse(TestCase):
         services = config.registry.cornice_services
         self.assertTrue('/prefix/wrapperservice' in services)
 
-    def test_route_with_traverse_fails(self):
-        with self.assertRaises(ConfigurationError):
-            bad_service = Service(name="jardinet", path="/jardinet", traverse='/')
-            self.fail("Shouldn't happen")
-
 
 class TestRouteFromPyramid(TestCase):
 

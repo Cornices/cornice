@@ -195,9 +195,6 @@ class Service(object):
         if hasattr(self, 'acl'):
             raise ConfigurationError("'acl' is not supported")
 
-        if hasattr(self, 'traverse'):
-            raise ConfigurationError("'traverse' is not supported")
-
         # instantiate some variables we use to keep track of what's defined for
         # this service.
         self.defined_methods = []
