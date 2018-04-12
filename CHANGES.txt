@@ -5,7 +5,9 @@ CHANGELOG
 3.4.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Add traverse support. For more information regarding Hybrid Applications see
+  `Pyramid documentation <https://docs.pylonsproject.org/projects/pyramid/en/1.9-branch/narr/hybrid.html>`_
+  (#483).
 
 
 3.3.0 (2018-04-11)
