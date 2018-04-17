@@ -162,7 +162,7 @@ Remarks:
 - **DELETE** also identifies the user then removes it.
 
 These methods will use validators to fill the **request.validated**
-mapping.  Add the following code to :file:`messaging/views.py`::
+mapping.  Add the following code to :file:`messaging/views.py`:
 
 .. code-block:: python
 
