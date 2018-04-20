@@ -10,11 +10,6 @@ from cornice.resource import resource
 from cornice.resource import view
 from .support import TestCase, CatchErrors
 
-EMPLOYEES_DB = {
-    1: {'name': 'Tony Flash', 'position': 'topmanager', 'salary': 30000},
-    2: {'name': 'Jimmy Arrow', 'position': 'supervisor', 'salary': 50000}
-}
-
 
 class employeeType(object):
     def __init__(self, val, config):
