@@ -112,7 +112,7 @@ class Service(object):
 
     :param cors_origins:
         The list of origins for CORS. You can use wildcards here if needed,
-        e.g. ('list', 'of', '\*.domain').
+        e.g. ('list', 'of', '\\*.domain').
 
     :param cors_headers:
         The list of headers supported for the services.
