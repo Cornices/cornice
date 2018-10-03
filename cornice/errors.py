@@ -26,7 +26,7 @@ class Errors(list):
     @classmethod
     def from_json(cls, string):
         """Transforms a json string into an `Errors` instance"""
-        obj = json.loads(string)
+        obj = json.loads(string.decode())
         return Errors.from_list(obj.get('errors', []))
 
     @classmethod
