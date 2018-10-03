@@ -56,7 +56,7 @@ def get_fallback_view(service):
                 acceptable = list(set(acceptable))
 
                 # Now check if that was actually the source of the problem.
-                if not request.accept.best_match(acceptable):
+                if not request.accept.acceptable_offers(acceptable):
                     request.errors.add(
                         'header', 'Accept',
                         'Accept header should be one of {0}'.format(

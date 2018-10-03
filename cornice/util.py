@@ -65,7 +65,7 @@ class _JsonRenderer(object):
         json_str = renderer(data, context)
 
         # XXX So we (re)set it ourselves here, i.e.: *after* the previous call.
-        content_type = (request.accept.best_match(self.acceptable) or
+        content_type = (request.accept.acceptable_offers(self.acceptable) or
                         self.acceptable[0])
         response.content_type = content_type
         return json_str
@@ -111,7 +111,7 @@ def match_accept_header(func, context, request):
     """
     acceptable = to_list(func(request))
     request.info['acceptable'] = acceptable
-    return request.accept.best_match(acceptable) is not None
+    return request.accept.acceptable_offers(acceptable) is not None
 
 
 def match_content_type_header(func, context, request):

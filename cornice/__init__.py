@@ -41,7 +41,8 @@ def set_localizer_for_languages(event, available_languages,
     request = event.request
     if request.accept_language:
         accepted = request.accept_language
-        locale = accepted.best_match(available_languages, default_locale_name)
+        locale = accepted.acceptable_offers(available_languages,
+                                            default_locale_name)
         request._LOCALE_ = locale
 
 

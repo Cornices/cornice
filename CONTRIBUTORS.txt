@@ -1,6 +1,7 @@
 Here is a (alphabetically-ordered) list of the people who contributed to
 Cornice:
 
+* Ajey B. Kulkarni <bkajey@gmail.com>
 * Akim Sadaoui <akim.sadaoui@arkena.com>
 * Alessandro Amici <alexamici@gmail.com>
 * Alexandre Bourget <alex@bourget.cc>
