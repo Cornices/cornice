@@ -60,6 +60,7 @@ Cornice:
 * Matt Skinner <skinner.m.c@gmail.com>
 * Myroslav Opyr <myroslav@quintagroup.com>
 * Nicolas Dietrich <nicodietrich@gmail.com>
+* Niko Wenselowski <niko@nerdno.de>
 * Olivier Roussy <olivier@gandi.net>
 * Paul Smith <paulsmith@pobox.com>
 * Ralph Bean <rbean@redhat.com>

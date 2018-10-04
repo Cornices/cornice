@@ -1,7 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import simplejson as json
+import json
 
 
 class Errors(list):
@@ -26,7 +26,7 @@ class Errors(list):
     @classmethod
     def from_json(cls, string):
         """Transforms a json string into an `Errors` instance"""
-        obj = json.loads(string)
+        obj = json.loads(string.decode())
         return Errors.from_list(obj.get('errors', []))
 
     @classmethod
