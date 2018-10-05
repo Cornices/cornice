@@ -117,6 +117,13 @@ def _message_normalizer(exc, no_field_name="_schema"):
     :return:
     """
     if isinstance(exc.messages, dict):
+        if '_schema' in exc.messages:
+            new_dict = {}
+            # if not dict expect a list of dicts and normalize it to just dict
+            if not hasattr(exc.messages['_schema'], 'keys'):
+                for item in exc.messages['_schema']:
+                    new_dict.update(item)
+                return {'_schema': new_dict}
         return exc.messages
     if len(exc.field_names) == 0:
         return {no_field_name: exc.messages}
