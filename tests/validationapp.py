@@ -305,6 +305,10 @@ if COLANDER:
 
 try:
     import marshmallow
+    try:
+        from marshmallow.utils import EXCLUDE
+    except ImportError:
+        EXCLUDE = 'exclude'
     from cornice.validators import (
         marshmallow_validator,
         marshmallow_body_validator
@@ -327,9 +331,15 @@ if MARSHMALLOW:
 
 
     class MSignupSchema(marshmallow.Schema):
+        class Meta:
+            strict = True
+            unknown = EXCLUDE
         username = marshmallow.fields.String()
 
     class MSignupGroupSchema(marshmallow.Schema):
+        class Meta:
+            strict = True
+            unknown = EXCLUDE
         username = marshmallow.fields.String()
 
         def __init__(self, *args, **kwargs):
@@ -339,6 +349,9 @@ if MARSHMALLOW:
     import random
 
     class MNeedsContextSchema(marshmallow.Schema):
+        class Meta:
+            strict = True
+            unknown = EXCLUDE
         somefield = marshmallow.fields.Float(missing=lambda: random.random())
         csrf_secret = marshmallow.fields.String()
 
@@ -368,6 +381,9 @@ if MARSHMALLOW:
             raise Invalid(node, "The bar is not open.")
 
     class MBodySchema(marshmallow.Schema):
+        class Meta:
+            strict = True
+            unknown = EXCLUDE
         # foo and bar are required, baz is optional
         foo = marshmallow.fields.String()
         bar = SchemaNode(String(), validator=m_validate_bar)
@@ -377,9 +393,15 @@ if MARSHMALLOW:
         integers = marshmallow.fields.List(marshmallow.fields.Integer())
 
     class MQuery(marshmallow.Schema):
+        class Meta:
+            strict = True
+            unknown = EXCLUDE
         yeah = marshmallow.fields.String()
 
     class MRequestSchema(marshmallow.Schema):
+        class Meta:
+            strict = True
+            unknown = EXCLUDE
         body = marshmallow.fields.Nested(MBodySchema)
         querystring = marshmallow.fields.Nested(MQuery)
 
@@ -398,6 +420,10 @@ if MARSHMALLOW:
             return data
 
     class MQSSchema(marshmallow.Schema):
+        class Meta:
+            strict = True
+            unknown = EXCLUDE
+
         querystring = marshmallow.fields.Nested(MListQuerystringSequenced)
 
 
@@ -406,12 +432,22 @@ if MARSHMALLOW:
         return {"field": request.validated['querystring']['field']}
 
     class MNewsletterSchema(marshmallow.Schema):
+        class Meta:
+            strict = True
+            unknown = EXCLUDE
         email = marshmallow.fields.String(validate=marshmallow.validate.Email())
 
     class MRefererSchema(marshmallow.Schema):
+        class Meta:
+            strict = True
+            unknown = EXCLUDE
         ref = marshmallow.fields.Integer()
 
     class MNewsletterPayload(marshmallow.Schema):
+        class Meta:
+            strict = True
+            unknown = EXCLUDE
+
         body = marshmallow.fields.Nested(MNewsletterSchema)
         querystring = marshmallow.fields.Nested(MRefererSchema)
 
@@ -429,9 +465,15 @@ if MARSHMALLOW:
         return request.validated
 
     class MItemPathSchema(marshmallow.Schema):
+        class Meta:
+            strict = True
+            unknown = EXCLUDE
         item_id = marshmallow.fields.Integer(missing=None)
 
     class MItemSchema(marshmallow.Schema):
+        class Meta:
+            strict = True
+            unknown = EXCLUDE
         path = marshmallow.fields.Nested(MItemPathSchema)
 
 

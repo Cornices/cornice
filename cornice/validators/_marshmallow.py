@@ -38,6 +38,10 @@ def _generate_marshmallow_validator(location):
             :func:`cornice.validators.extract_cstruct`
         """
         import marshmallow
+        try:
+            from marshmallow.utils import EXCLUDE
+        except ImportError:
+            EXCLUDE = 'exclude'
 
         if schema is None:
             return
@@ -61,6 +65,7 @@ def _generate_marshmallow_validator(location):
         class Meta(object):
             strict = True
             ordered = True
+            unknown = EXCLUDE
 
         class RequestSchemaMeta(type):
             """
