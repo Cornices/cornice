@@ -445,7 +445,6 @@ if MARSHMALLOW:
 
     class MNewsletterPayload(marshmallow.Schema):
         class Meta:
-            strict = True
             unknown = EXCLUDE
 
         body = marshmallow.fields.Nested(MNewsletterSchema)
