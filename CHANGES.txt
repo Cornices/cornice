@@ -5,7 +5,15 @@ CHANGELOG
 3.5.0 (unreleased)
 ==================
 
-- cornice.errors and validation tests now use the builtin `json` module instead of `simplejson` (@okin)
+**Bug fixes**
+
+- support both marshmallow 2.x and 3.x unknown key handling (@ergo, #495)
+
+**Internal changes**
+
+- Enable support for Python 3.7
+- cornice.errors and validation tests now use the builtin `json` module instead of `simplejson` (@okin, #494)
+- Cleanup tests (@karantan, #488)
 
 
 3.4.0 (2018-04-12)
