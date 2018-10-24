@@ -5,8 +5,9 @@ CHANGELOG
 3.5.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+**Internal changes**
 
+- Fix DeprecationWarning for unrecognized backslash escapes (#491)
 
 3.4.1 (2018-10-08)
 ==================
