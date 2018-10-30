@@ -18,7 +18,7 @@ def resource(depth=2, **kw):
     (collection_path), if any.
 
     :param depth:
-        Witch frame should be looked in default 2.
+        Which frame should be looked in default 2.
 
     :param kw:
         Keyword arguments configuring the resource.
@@ -44,7 +44,7 @@ def add_resource(klass, depth=1, **kw):
         The class (resource) on which to register the service.
 
     :param depth:
-        Witch frame should be looked in default 2.
+        Which frame should be looked in default 2.
 
     :param kw:
         Keyword arguments configuring the resource.
