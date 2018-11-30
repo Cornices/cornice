@@ -65,9 +65,10 @@ class _JsonRenderer(object):
         json_str = renderer(data, context)
 
         # XXX So we (re)set it ourselves here, i.e.: *after* the previous call.
-        content_type = (request.accept.best_match(self.acceptable) or
-                        self.acceptable[0])
-        response.content_type = content_type
+        ctypes = request.accept.acceptable_offers(offers=self.acceptable)
+        if not ctypes:
+            ctypes = [(self.acceptable[0], 1.0)]
+        response.content_type = ctypes[0][0]
         return json_str
 
 
