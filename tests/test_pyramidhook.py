@@ -223,7 +223,6 @@ class TestNosniffHeader(TestCase):
 
     def test_no_sniff_is_added_to_responses(self):
         response = self.app.get('/wrapperservice')
-        print(response.headers)
         self.assertEqual(response.headers['X-Content-Type-Options'], 'nosniff')
 
 
