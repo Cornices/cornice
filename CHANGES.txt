@@ -5,7 +5,9 @@ CHANGELOG
 3.5.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+**Internal changes**
+
+- Remove remaining usage of deprecated ``.best_match()``
 
 
 3.4.3 (2018-11-30)
