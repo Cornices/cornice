@@ -112,7 +112,7 @@ def match_accept_header(func, context, request):
     """
     acceptable = to_list(func(request))
     request.info['acceptable'] = acceptable
-    return request.accept.best_match(acceptable) is not None
+    return len(request.accept.acceptable_offers(acceptable)) > 0
 
 
 def match_content_type_header(func, context, request):
