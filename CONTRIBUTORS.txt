@@ -79,6 +79,7 @@ Cornice:
 * Tarek Ziade <tarek@ziade.org>
 * Tim Tisdall <tisdall@gmail.com>
 * Tom Lazar <tomster@pyfidelity.com>
+* Tomasz Czekański <t.czekanski@gmail.com>
 * Tres Seaver <tseaver@palladion.com>
 * tsauerwein <tobias.sauerwein@camptocamp.com>
 * Victor Ng <crankycoder@gmail.com>

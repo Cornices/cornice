@@ -1,0 +1,81 @@
+Internationalization and localization
+#####################################
+
+For internationalization and localization to work with your project you should
+follow instructions on Pyramid docs https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/i18n.html.
+
+You should also add two settings to you project .ini file:
+
+
+.. code-block:: python
+
+    pyramid.default_locale_name = en
+    available_languages = en fr pl
+
+
+There are few places where translations will be performed automatically for you
+by Cornice using `request.localizer.translate <https://docs.pylonsproject.org/projects/pyramid/en/latest/api/i18n.html#pyramid.i18n.Localizer.translate>`_
+function:
+
+    - Colander validation errors (standard validators and custom)
+    - Custom validation errors added with `request.errors.add(location, name, description, **kwars)`
+      (only `description` field will be translated)
+
+For custom error messages you are strongly advised to use 
+`TranslationString <https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/i18n.html#using-the-translationstring-class>`_
+from `pyramid.i18n` module.
+
+
+.. code-block:: python
+
+    from pyramid.i18n import TranslationString
+    ts = TranslationString('My error message')
+
+
+This applies to errors returned from Cornice validation:
+
+
+.. code-block:: python
+
+    ...
+
+    from pyramid.i18n import TranslationString
+
+    def custom_cornice_validator(request, **kwargs):
+        # do some validation and add an error
+        request.errors.add('body', 'field', TranslationString('My error message'))
+
+    @service.get(validators=custom_cornice_validator)
+    def service_handler(request):
+        return {}
+
+
+and Colander validation too:
+
+
+.. code-block:: python
+
+    ...
+
+    from pyramid.i18n import TranslationString
+
+
+    def custom_colander_validator(node, value):
+        # do some validation
+        request.errors.add('body', 'field', TranslationString('My error message'))
+
+    def MySchema(MappingSchema):
+        field = SchemaNode(String(), validator=custom_colander_validator)
+
+    @service.get(schema=MySchema(), validators=colander_body_validator)
+    def service_handler(request):
+        return {}
+
+
+You can also use factory for `TranslationString` as it makes your code easier
+to read. 
+
+
+.. seealso::
+
+    https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/i18n.html#using-the-translationstringfactory-class
