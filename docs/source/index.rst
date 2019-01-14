@@ -89,6 +89,7 @@ Documentation content
    testing
    exhaustive_list
    api
+   i18n
    internals
    faq
    upgrading
