@@ -149,7 +149,7 @@ def wrap_request(event):
         setattr(request, 'validated', {})
 
     if not hasattr(request, 'errors'):
-        setattr(request, 'errors', Errors())
+        setattr(request, 'errors', Errors(localizer=request.localizer))
 
     if not hasattr(request, 'info'):
         setattr(request, 'info', {})

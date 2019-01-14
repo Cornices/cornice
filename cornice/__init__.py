@@ -74,6 +74,13 @@ def includeme(config):
     # attributes required to maintain services
     config.registry.cornice_services = {}
 
+    settings = config.get_settings()
+
+    # localization request subscriber must be set before first call
+    # for request.localizer (in wrap_request)
+    if settings.get('available_languages'):
+        setup_localization(config)
+
     config.add_directive('add_cornice_service', register_service_views)
     config.add_directive('add_cornice_resource', register_resource_views)
     config.add_subscriber(wrap_request, NewRequest)
@@ -81,7 +88,6 @@ def includeme(config):
     config.add_view_predicate('content_type', ContentTypePredicate)
     config.add_request_method(current_service, reify=True)
 
-    settings = config.get_settings()
     if asbool(settings.get('handle_exceptions', True)):
         config.add_view(handle_exceptions, context=Exception,
                         permission=NO_PERMISSION_REQUIRED)
@@ -89,6 +95,3 @@ def includeme(config):
                         permission=NO_PERMISSION_REQUIRED)
         config.add_view(handle_exceptions, context=HTTPForbidden,
                         permission=NO_PERMISSION_REQUIRED)
-
-    if settings.get('available_languages'):
-        setup_localization(config)
