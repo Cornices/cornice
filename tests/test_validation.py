@@ -416,10 +416,21 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
         )
         self.assertEqual(response.json['username'], 'man')
 
-    def test_valid_json_array(self):
+    def test_json_array_with_colander_body_validator(self):
+        app = self.make_ordinary_app()
+
+        with self.assertRaises(TypeError) as context:
+            app.post_json(
+                '/group_signup',
+                [{'username': 'hey'}, {'username': 'how'}]
+            )
+            self.assertIn('Schema should inherit from colander.MappingSchema.',
+                          str(context))
+
+    def test_json_array_with_colander_validator(self):
         app = self.make_ordinary_app()
         response = app.post_json(
-            '/group_signup',
+            '/body_group_signup',
             [{'username': 'hey'}, {'username': 'how'}]
         )
         self.assertEqual(response.json['data'],

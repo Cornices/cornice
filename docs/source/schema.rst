@@ -64,6 +64,12 @@ To describe a schema, using Colander and Cornice, here is how you can do:
         username = request.validated['username']
         return {'success': True}
 
+.. note::
+
+    When you use one of ``colander_body_validator``, ``colander_headers_validator``,
+    ``colander_querystring_validator`` etc. it is necessary to set schema which 
+    inherits from :class:`colander.MappingSchema`. If you need to deserialize 
+    :class:`colander.SequenceSchema` you need to use ``colander_validator`` instead.
 
 
 Using Marshmallow
