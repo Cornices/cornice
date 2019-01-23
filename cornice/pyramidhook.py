@@ -149,7 +149,10 @@ def wrap_request(event):
         setattr(request, 'validated', {})
 
     if not hasattr(request, 'errors'):
-        setattr(request, 'errors', Errors(localizer=request.localizer))
+        if "available_languages" in request.registry.settings:
+            setattr(request, 'errors', Errors(localizer=request.localizer))
+        else:
+            setattr(request, 'errors', Errors())
 
     if not hasattr(request, 'info'):
         setattr(request, 'info', {})

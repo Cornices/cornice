@@ -2,10 +2,10 @@
 CHANGELOG
 #########
 
-3.6.0 (unreleased)
+3.5.1 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Fix wrong localizer usage when deactivated. (#505)
 
 
 3.5.0 (2019-01-15)
