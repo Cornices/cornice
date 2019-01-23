@@ -47,6 +47,8 @@ class TestErrorsTranslation(TestCase):
 
     def setUp(self):
         self.config = testing.setUp()
+        settings = self.config.get_settings()
+        settings["available_languages"] = "en fr"
         self.config.include('cornice')
         self.config.scan('tests.test_errors')
         self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
