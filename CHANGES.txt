@@ -2,7 +2,7 @@
 CHANGELOG
 #########
 
-3.5.1 (unreleased)
+3.5.1 (2019-01-24)
 ==================
 
 - Fix usage of localizer in Errors when l18n is deactivated. (#505)
