@@ -5,7 +5,7 @@ CHANGELOG
 3.5.1 (unreleased)
 ==================
 
-- Fix wrong localizer usage when deactivated. (#505)
+- Fix usage of localizer in Errors when l18n is deactivated. (#505)
 
 
 3.5.0 (2019-01-15)
