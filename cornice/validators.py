@@ -19,4 +19,4 @@ def filter_json_xsrf(response):
 
 
 DEFAULT_VALIDATORS = []
-DEFAULT_FILTERS = [filter_json_xsrf, ]
+DEFAULT_FILTERS = []
