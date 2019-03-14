@@ -105,4 +105,4 @@ source, and this is one brick of our stack.
 We welcome Contributors and Feedback!
 
 - Developers Mailing List: https://mail.mozilla.org/listinfo/services-dev
-- Repository: https://github.com/mozilla-services/cornice
+- Repository: https://github.com/Cornices/cornice
