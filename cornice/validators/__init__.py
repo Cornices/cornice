@@ -52,7 +52,7 @@ def extract_cstruct(request):
     is_json = re.match('^application/(.*?)json$', str(request.content_type))
 
     if request.content_type in (
-        'application/x-www-form-urlencoded', 
+        'application/x-www-form-urlencoded',
         'multipart/form-data'
     ):
         body = request.POST.mixed()
