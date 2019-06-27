@@ -51,7 +51,7 @@ def extract_cstruct(request):
     """
     is_json = re.match('^application/(.*?)json$', str(request.content_type))
 
-    if request.content_type == 'application/x-www-form-urlencoded':
+    if request.content_type in ('application/x-www-form-urlencoded', 'multipart/form-data'):
         body = request.POST.mixed()
     elif request.content_type and not is_json:
         body = request.body
