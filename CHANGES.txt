@@ -2,7 +2,7 @@
 CHANGELOG
 #########
 
-3.6.0 (unreleased)
+3.6.0 (2019-07-24)
 ==================
 
 - Add validation support for multipart/form-data (#510)
