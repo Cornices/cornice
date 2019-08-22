@@ -163,7 +163,6 @@ def _ignore_options_factory_wrapper(factory):
     authorization header, which breaks some factories relying on user to be
     authenticated at the call point.
     """
-    @functools.wraps
     def _wrapper(request):
         if request.method == "OPTIONS":
             return
