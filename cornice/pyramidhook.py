@@ -158,6 +158,19 @@ def wrap_request(event):
         setattr(request, 'info', {})
 
 
+def _ignore_options_factory_wrapper(factory):
+    """Don't call factory for OPTIONS views because browser sends no
+    authorization header, which breaks some factories relying on user to be
+    authenticated at the call point.
+    """
+    @functools.wraps
+    def _wrapper(request):
+        if request.method == "OPTIONS":
+            return
+        return factory(request)
+    return _wrapper
+
+
 def register_service_views(config, service):
     """Register the routes of the given service into the pyramid router.
 
@@ -176,9 +189,11 @@ def register_service_views(config, service):
 
     # before doing anything else, register a view for the OPTIONS method
     # if we need to
+    _ignore_factory_for_options = False
     if service.cors_enabled and 'OPTIONS' not in service.defined_methods:
         service.add_view('options', view=get_cors_preflight_view(service),
                          permission=NO_PERMISSION_REQUIRED)
+        _ignore_factory_for_options = True
 
     # register the fallback view, which takes care of returning good error
     # messages to the user-agent
@@ -193,7 +208,13 @@ def register_service_views(config, service):
     route_args = {}
 
     if hasattr(service, 'factory'):
-        route_args['factory'] = service.factory
+        factory = service.factory
+        # If no custom OPTIONS view given, replace existing factory with
+        # wrapper guarding original one from OPTIONS requests, which have no
+        # expected headers like Authorization.
+        if _ignore_factory_for_options:
+            factory = _ignore_options_factory_wrapper(factory)
+        route_args['factory'] = factory
 
     routes = config.get_predlist('route')
     for predicate in routes.sorter.names:
