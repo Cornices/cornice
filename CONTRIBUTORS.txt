@@ -29,6 +29,7 @@ Cornice:
 * Gabriela Surita <gsurita@mozilla.com>
 * Gael Pasgrimaud <gael@gawel.org>
 * George V. Reilly <george@reilly.org>
+* George Mamalakis <mamalos@gmail.com>
 * Graham Higgins <gjh-github@bel-epa.com>
 * G.Tjebbes <g.t@majerti.fr>
 * Guillaume Gauvrit <guillaume@gandi.net>

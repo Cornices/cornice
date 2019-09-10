@@ -348,16 +348,6 @@ if MARSHMALLOW:
             unknown = EXCLUDE
         username = marshmallow.fields.String()
 
-    class MSignupGroupSchema(marshmallow.Schema):
-        class Meta:
-            strict = True
-            unknown = EXCLUDE
-        username = marshmallow.fields.String()
-
-        def __init__(self, *args, **kwargs):
-            kwargs['many'] = True
-            marshmallow.Schema.__init__(self, *args, **kwargs)
-
     import random
 
     class MNeedsContextSchema(marshmallow.Schema):
@@ -383,8 +373,15 @@ if MARSHMALLOW:
     def signup_post(request):
         return request.validated
 
-    @m_group_signup.post(
-        schema=MSignupGroupSchema, validators=(marshmallow_body_validator,))
+    # callback that returns a validator with keyword arguments for marshmallow
+    # schema initialisation. In our case it passes many=True to the desired
+    # schema
+    def get_my_marshmallow_validator_with_kwargs(request, **kwargs):
+        kwargs['schema'] = MSignupSchema
+        kwargs['schema_kwargs'] = {'many': True}
+        return marshmallow_body_validator(request, **kwargs)
+
+    @m_group_signup.post(validators=(get_my_marshmallow_validator_with_kwargs,))
     def m_group_signup_post(request):
         return {'data': request.validated}
 
@@ -510,6 +507,7 @@ if MARSHMALLOW:
         schema=MFormSchema, validators=(marshmallow_body_validator,))
     def m_form(request):
         return request.validated
+
 
 def includeme(config):
     config.include("cornice")
