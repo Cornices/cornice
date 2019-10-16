@@ -115,7 +115,7 @@ def add_resource(klass, depth=1, **kw):
                         klass.__name__.lower())
         service_name = prefix + service_name
         service = services[service_name] = Service(name=service_name,
-                                                   depth=2, **service_args)
+                                                   depth=depth, **service_args)
 
         # initialize views
         for verb in ('get', 'post', 'put', 'delete', 'options', 'patch'):
