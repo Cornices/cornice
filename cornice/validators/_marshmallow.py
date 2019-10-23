@@ -4,8 +4,6 @@
 
 import inspect
 
-from six import with_metaclass
-
 
 def _generate_marshmallow_validator(location):
     """
@@ -91,8 +89,7 @@ def _generate_marshmallow_validator(location):
                 class_attrs['Meta'] = Meta
                 return type(name, bases, class_attrs)
 
-        class RequestSchema(with_metaclass(
-                RequestSchemaMeta, marshmallow.Schema)):
+        class RequestSchema(marshmallow.Schema, metaclass=RequestSchemaMeta):  # noqa
             """A schema to validate the request's location attributes."""
             pass
 

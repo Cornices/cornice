@@ -1,8 +1,7 @@
 language: python
-python: 2.7
+python: 3.6
 sudo: false
 env:
-    - TOX_ENV=py27
     - TOX_ENV=flake8
     - TOX_ENV=docs
 install:
@@ -30,6 +29,10 @@ matrix:
       dist: xenial
       env:
         - TOX_ENV=py37-raw
+    - python: 3.8
+      dist: xenial
+      env:
+        - TOX_ENV=py38
 
 notifications:
     irc:
