@@ -2,7 +2,7 @@
 CHANGELOG
 #########
 
-3.7.0 (unreleased)
+3.6.1 (2019-11-13)
 ==================
 
 - Do not return content if response is ``204 No Content`` (fixes #521)
