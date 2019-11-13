@@ -55,9 +55,13 @@ def update_view(request):
     return "updated_view"
 
 
-@service.delete(permission='write')
+@service.patch(permission='write')
 def return_yay(request):
     return "yay"
+
+@service.delete()
+def delete_view(request):
+    request.response.status = 204
 
 
 class TemperatureCooler(object):
@@ -119,32 +123,36 @@ class TestService(TestCase):
         # calling a unknown verb on an existing resource should return a 405
         self.app.post("/service", status=HTTPMethodNotAllowed.code)
 
-    def test_acl_support_unauthenticated_service_delete(self):
-        # calling a view with permissions without an auth'd user => 403
-        self.app.delete('/service', status=HTTPForbidden.code)
+    def test_204(self):
+        resp = self.app.delete("/service", status=204)
+        self.assertNotIn("Content-Type", resp.headers)
 
-    def test_acl_support_authenticated_allowed_service_delete(self):
+    def test_acl_support_unauthenticated_service_patch(self):
+        # calling a view with permissions without an auth'd user => 403
+        self.app.patch('/service', status=HTTPForbidden.code)
+
+    def test_acl_support_authenticated_allowed_service_patch(self):
         with mock.patch.object(self.authn_policy, 'unauthenticated_userid',
                                return_value='bob'):
-            result = self.app.delete('/service', status=HTTPOk.code)
+            result = self.app.patch('/service', status=HTTPOk.code)
             self.assertEqual("yay", result.json)
         # The other user with 'write' permission
         with mock.patch.object(self.authn_policy, 'unauthenticated_userid',
                                return_value='dan'):
-            result = self.app.delete('/service', status=HTTPOk.code)
+            result = self.app.patch('/service', status=HTTPOk.code)
             self.assertEqual("yay", result.json)
 
-    def test_acl_support_authenticated_valid_user_wrong_permission_service_delete(self):
+    def test_acl_support_authenticated_valid_user_wrong_permission_service_patch(self):
         with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='alice'):
-            self.app.delete('/service', status=HTTPForbidden.code)
+            self.app.patch('/service', status=HTTPForbidden.code)
 
-    def test_acl_support_authenticated_valid_user_permission_denied_service_delete(self):
+    def test_acl_support_authenticated_valid_user_permission_denied_service_patch(self):
         with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='carol'):
-            self.app.delete('/service', status=HTTPForbidden.code)
+            self.app.patch('/service', status=HTTPForbidden.code)
 
-    def test_acl_support_authenticated_invalid_user_service_delete(self):
+    def test_acl_support_authenticated_invalid_user_service_patch(self):
         with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='mallory'):
-            self.app.delete('/service', status=HTTPForbidden.code)
+            self.app.patch('/service', status=HTTPForbidden.code)
 
     def test_acl_support_authenticated_allowed_service_put(self):
         with mock.patch.object(self.authn_policy, 'unauthenticated_userid', return_value='dan'):
