@@ -44,6 +44,11 @@ class _JsonRenderer(object):
         response = request.response
         registry = request.registry
 
+        # Do not return content with ``204 No Content``
+        if response.status_code == 204:
+            response.content_type = None
+            return ""
+
         # Serialise the ``data`` object to a JSON string using the
         # JSON renderer registered with Pyramid.
         renderer_factory = registry.queryUtility(IRendererFactory, name='json')
