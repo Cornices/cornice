@@ -464,6 +464,22 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
                             headers=headers)
         self.assertEqual(response.json['username'], 'man')
 
+    def test_multipart_form_data_one_field(self):
+        app = self.make_ordinary_app()
+        response = app.post('/signup',
+                            {'username': 'man'},
+                            content_type='multipart/form-data')
+        self.assertEqual(response.json['username'], 'man')
+
+    # Colander fails to parse multidict type return values
+    # Therefore, test requires different schema with multiple keys, '/form'
+    def test_multipart_form_data_multiple_fields(self):
+        app = self.make_ordinary_app()
+        response = app.post('/form',
+                            {'field1': 'man', 'field2': 'woman'},
+                            content_type='multipart/form-data')
+        self.assertEqual(response.json, {'field1': 'man', 'field2': 'woman'})
+
 
 @skip_if_no_colander
 class TestBoundSchemas(LoggingCatcher, TestCase):
@@ -748,6 +764,22 @@ class TestRequestDataExtractorsMarshmallow(LoggingCatcher, TestCase):
                             headers=headers)
         self.assertEqual(response.json['username'], 'man')
 
+    def test_multipart_form_data_one_field(self):
+        app = self.make_ordinary_app()
+        response = app.post('/m_signup',
+                            {'username': 'man'},
+                            content_type='multipart/form-data')
+        self.assertEqual(response.json['username'], 'man')
+    
+    # Marshmallow fails to parse multidict type return values
+    # Therefore, test requires different schema with multiple keys, '/m_form'
+    def test_multipart_form_data_multiple_fields(self):
+        app = self.make_ordinary_app()
+        response = app.post('/m_form',
+                            {'field1': 'man', 'field2': 'woman'},
+                            content_type='multipart/form-data')
+        self.assertEqual(response.json, {'field1': 'man', 'field2': 'woman'})
+    
 
 @skip_if_no_marshmallow
 class TestValidatorEdgeCasesMarshmallow(TestCase):

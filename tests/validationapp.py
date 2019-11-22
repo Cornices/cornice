@@ -175,6 +175,7 @@ if COLANDER:
     foobaz = Service(name="foobaz", path="/foobaz")
     email_service = Service(name='newsletter', path='/newsletter')
     item_service = Service(name='item', path='/item/{item_id}')
+    form_service = Service(name="form", path="/form")
 
 
     class SignupSchema(MappingSchema):
@@ -312,6 +313,16 @@ if COLANDER:
     def item(request):
         return request.validated['path']
 
+    class FormSchema(MappingSchema):
+        field1 = SchemaNode(String())
+        field2 = SchemaNode(String())
+
+
+    @form_service.post(schema=FormSchema(),
+                       validators=(colander_body_validator,))
+    def form(request):
+        return request.validated
+
 try:
     import marshmallow
     try:
@@ -337,6 +348,7 @@ if MARSHMALLOW:
     m_foobaz = Service(name="m_foobaz", path="/m_foobaz")
     m_email_service = Service(name='m_newsletter', path='/m_newsletter')
     m_item_service = Service(name='m_item', path='/m_item/{item_id}')
+    m_form_service = Service(name="m_form", path="/m_form")
 
 
     class MSignupSchema(marshmallow.Schema):
@@ -494,6 +506,19 @@ if MARSHMALLOW:
         schema=MItemSchema(), validators=(marshmallow_validator,))
     def m_item_fails(request):
         return request.validated['path']
+
+    class MFormSchema(marshmallow.Schema):
+        class Meta:
+            strict = True
+            unknown = EXCLUDE
+        field1 = marshmallow.fields.String()
+        field2 = marshmallow.fields.String()
+
+
+    @m_form_service.post(
+        schema=MFormSchema, validators=(marshmallow_body_validator,))
+    def m_form(request):
+        return request.validated
 
 def includeme(config):
     config.include("cornice")

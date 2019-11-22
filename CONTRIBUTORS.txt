@@ -16,6 +16,7 @@ Cornice:
 * Anton D <anton@screwtop>
 * Areski <areski@gmail.com>
 * Ben Bangert <ben@groovie.org>
+* Andrew Birnberg
 * Bruno Binet <bruno.binet@gmail.com>
 * Bryan Zegar <bryanzegar@gmail.com>
 * Christian Benke <benkokakao@gmail.com>

@@ -2,11 +2,28 @@
 CHANGELOG
 #########
 
-3.6.0 (unreleased)
+3.7.0 (unreleased)
 ==================
 
 - Fix updating request.validated dict in ``colander_*_validator``
 - Check for ``MappingSchema`` instance in ``colander_*_validator`` (possibly breaking change)
+
+
+3.6.1 (2019-11-13)
+==================
+
+- Do not return content if response is ``204 No Content`` (fixes #521)
+
+3.6.0 (2019-07-24)
+==================
+
+- Add validation support for multipart/form-data (#510)
+
+
+3.5.1 (2019-01-24)
+==================
+
+- Fix usage of localizer in Errors when l18n is deactivated. (#505)
 
 
 3.5.0 (2019-01-15)
