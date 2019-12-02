@@ -5,8 +5,13 @@ CHANGELOG
 3.7.0 (unreleased)
 ==================
 
-- Fix updating request.validated dict in ``colander_*_validator``
-- Check for ``MappingSchema`` instance in ``colander_*_validator`` (possibly breaking change)
+**Breaking changes**
+
+- Check for ``MappingSchema`` instance in ``colander_*_validator`` (#503)
+
+**Bug fixes**
+
+- Fix updating request.validated dict in ``colander_*_validator`` (#503)
 
 
 3.6.1 (2019-11-13)
