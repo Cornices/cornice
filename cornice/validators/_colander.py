@@ -43,7 +43,9 @@ def _generate_colander_validator(location):
         if schema is None:
             return
 
-        if not isinstance(schema, colander.MappingSchema):
+        schema_instance = _ensure_instantiated(schema)
+
+        if not isinstance(schema_instance, colander.MappingSchema):
             raise TypeError("Schema should inherit from "
                             "colander.MappingSchema.")
 
@@ -64,7 +66,7 @@ def _generate_colander_validator(location):
                 :param dct: The class's class attributes.
                 :type dct: dict
                 """
-                class_attrs[location] = _ensure_instantiated(schema)
+                class_attrs[location] = schema_instance
                 return type(name, bases, class_attrs)
 
         class RequestSchema(with_metaclass(

@@ -5,7 +5,9 @@ CHANGELOG
 4.1.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+**Bug fixes**
+
+- Fix support of schema as class instead of instance (#523)
 
 
 4.0.0 (2019-12-02)
