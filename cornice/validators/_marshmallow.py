@@ -52,7 +52,7 @@ def _generate_marshmallow_validator(location):
         # see if the user wants to set any keyword arguments for their schema
         schema_kwargs = {}
         if 'schema_kwargs' in kwargs:
-            schema_kwargs = kwargs['schema_kwargs']
+            schema_kwargs = kwargs.get('schema_kwargs', {})
         schema = _instantiate_schema(schema, **schema_kwargs)
 
         class ValidatedField(marshmallow.fields.Field):
