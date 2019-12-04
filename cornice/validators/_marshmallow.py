@@ -27,7 +27,7 @@ def _generate_marshmallow_validator(location):
         the ``request.validated`` attribute.
 
         Keyword arguments to be included when initialising the marshmallow
-        schema can be passed as a dict in kwargs['schema_kwargs'] variable.
+        schema can be passed as a dict in ``kwargs['schema_kwargs']`` variable.
 
         .. note::
 
