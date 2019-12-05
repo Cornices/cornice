@@ -5,7 +5,7 @@ CHANGELOG
 4.1.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Add support for passing keyword arguments to marshmallow validator.
 
 
 4.0.1 (2019-12-02)
