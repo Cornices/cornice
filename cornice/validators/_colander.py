@@ -27,6 +27,7 @@ def _generate_colander_validator(location):
         .. note::
 
             If no schema is defined, this validator does nothing.
+            Schema should be of type :class:`~colander:colander.MappingSchema`.
 
         :param request: Current request
         :type request: :class:`~pyramid:pyramid.request.Request`
@@ -39,6 +40,12 @@ def _generate_colander_validator(location):
 
         if schema is None:
             return
+
+        schema_instance = _ensure_instantiated(schema)
+
+        if not isinstance(schema_instance, colander.MappingSchema):
+            raise TypeError("Schema should inherit from "
+                            "colander.MappingSchema.")
 
         class RequestSchemaMeta(type):
             """
@@ -57,7 +64,7 @@ def _generate_colander_validator(location):
                 :param dct: The class's class attributes.
                 :type dct: dict
                 """
-                class_attrs[location] = _ensure_instantiated(schema)
+                class_attrs[location] = schema_instance
                 return type(name, bases, class_attrs)
 
         class RequestSchema(colander.MappingSchema, metaclass=RequestSchemaMeta):  # noqa
@@ -65,7 +72,9 @@ def _generate_colander_validator(location):
             pass
 
         validator(request, RequestSchema(), deserializer, **kwargs)
-        request.validated = request.validated.get(location, {})
+        validated_location = request.validated.get(location, {})
+        request.validated.update(validated_location)
+        request.validated.pop(location, None)
 
     return _validator
 

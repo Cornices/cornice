@@ -138,7 +138,7 @@ def add_resource(klass, depth=1, **kw):
     setattr(klass, '_services', services)
 
     def callback(context, name, ob):
-        # get the callbacks registred by the inner services
+        # get the callbacks registered by the inner services
         # and call them from here when the @resource classes are being
         # scanned by venusian.
         for service in services.values():

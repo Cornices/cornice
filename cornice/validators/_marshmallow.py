@@ -24,6 +24,9 @@ def _generate_marshmallow_validator(location):
         The content of the location is deserialized, validated and stored in
         the ``request.validated`` attribute.
 
+        Keyword arguments to be included when initialising the marshmallow
+        schema can be passed as a dict in ``kwargs['schema_kwargs']`` variable.
+
         .. note::
 
             If no schema is defined, this validator does nothing.
@@ -44,10 +47,12 @@ def _generate_marshmallow_validator(location):
         if schema is None:
             return
 
-        schema = _instantiate_schema(schema)
+        # see if the user wants to set any keyword arguments for their schema
+        schema_kwargs = kwargs.get('schema_kwargs', {})
+        schema = _instantiate_schema(schema, **schema_kwargs)
 
         class ValidatedField(marshmallow.fields.Field):
-            def _deserialize(self, value, attr, data):
+            def _deserialize(self, value, attr, data, **kwargs):
                 schema.context.setdefault('request', request)
                 deserialized = schema.load(value)
                 # marshmallow 2.x returns a tuple, 3/x will always throw
@@ -182,8 +187,17 @@ def validator(request, schema=None, deserializer=None, **kwargs):
         request.validated.update(deserialized)
 
 
-def _instantiate_schema(schema):
+def _instantiate_schema(schema, **kwargs):
+    """
+    Returns an object of the given marshmallow schema.
+
+    :param schema: The marshmallow schema class with which the request should
+        be validated
+    :param kwargs: The keyword arguments that will be provided to the
+        marshmallow schema's constructor
+    :return: The object of the marshmallow schema
+    """
     if not inspect.isclass(schema):
         raise ValueError('You need to pass Marshmallow class instead '
                          'of schema instance')
-    return schema()
+    return schema(**kwargs)
