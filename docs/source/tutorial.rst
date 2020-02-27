@@ -169,7 +169,7 @@ mapping.  Add the following code to :file:`messaging/views.py`:
     import os
     import binascii
 
-    from pyramid.httpexceptions import HTTPUnauthorized
+    from pyramid.httpexceptions import HTTPUnauthorized, HTTPConflict
 
 
     def _create_token():
@@ -197,15 +197,16 @@ mapping.  Add the following code to :file:`messaging/views.py`:
         name = request.text
         if name in _USERS:
             request.errors.add('url', 'name', 'This user exists!')
-        else:
-            user = {'name': name, 'token': _create_token()}
-            request.validated['user'] = user
+            raise HTTPConflict()
+        user = {'name': name, 'token': _create_token()}
+        request.validated['user'] = user
 
 
 The validators work by filling the **request.validated**
 dictionary. When the validator finds errors, it adds them to the
-**request.errors** dictionary, and that will return a 400 with the
-errors.
+**request.errors** dictionary and raises a Conflict (409) error.
+Note that raising an error here still honors Cornice's built-in
+`request errors <https://cornice.readthedocs.io/en/latest/api.html#errors>`_.
 
 Let's try our application so far with CURL::
 
