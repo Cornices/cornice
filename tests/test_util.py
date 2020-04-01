@@ -9,7 +9,6 @@ from pyramid.interfaces import IRendererFactory
 from webtest import TestApp
 
 from cornice import util, Service
-from cornice.util import _JsonRenderer
 from .support import TestCase, CatchErrors
 
 
