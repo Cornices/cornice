@@ -1,12 +1,16 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+import json
+from unittest import mock
+
+import simplejson
 from pyramid.exceptions import ConfigurationError
 
 from cornice.resource import resource
 from cornice.service import (Service, get_services, clear_services,
                              decorate_view, _UnboundView)
-from cornice.util import func_name
+from cornice.util import func_name, json_error_handler
 
 from .support import TestCase, DummyRequest
 
@@ -137,6 +141,27 @@ class TestService(TestCase):
 
         method, view, args = service.definitions[0]
         self.assertIs(args['error_handler'], error_handler)
+
+    def test_default_error_renderer_configure(self):
+        # default error handler should be simplejson
+
+        with mock.patch('cornice.service.json_error_handler',
+                        wraps=json_error_handler) as mocked:
+            service = Service("error service", "/error_service")
+            self.assertIsNotNone(service.arguments['error_handler'])
+            mocked.assert_called_with(simplejson.dumps, {"use_decimal": True})
+
+        # if configured to use another renderer, simplejson should not be used
+        # by default
+
+        Service.configure_default_renderer("json")
+        with mock.patch('cornice.service.json_error_handler',
+                        wraps=json_error_handler) as mocked:
+            service = Service("error service", "/error_service")
+            self.assertIsNotNone(service.arguments['error_handler'])
+            mocked.assert_called_with(json.dumps)
+
+        Service.configure_default_renderer("simplejson")
 
     def test_decorators(self):
         service = Service("color", "/favorite-color")

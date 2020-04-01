@@ -1,7 +1,9 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+import simplejson
 from pyramid import testing
+from pyramid.interfaces import IRendererFactory
 from webtest import TestApp
 import mock
 
@@ -15,6 +17,9 @@ class TestCorniceSetup(TestCase):
     def setUp(self):
         self.config = testing.setUp()
 
+    def tearDown(self):
+        testing.tearDown()
+
     def _get_app(self):
         self.config.include('cornice')
 
@@ -23,6 +28,28 @@ class TestCorniceSetup(TestCase):
         self.config.add_cornice_service(failing_service)
 
         return TestApp(CatchErrors(self.config.make_wsgi_app()))
+
+    def test_default_renderer_is_simplejson(self):
+        self._get_app()
+        self.assertEqual(Service.renderer, 'simplejson')
+        renderer_factory = self.config.registry.queryUtility(
+            IRendererFactory, name='simplejson'
+        )
+        renderer = renderer_factory(None)
+        self.assertEqual(
+            renderer._serializer_patch,
+            simplejson.dumps
+        )
+
+    def test_default_renderer_is_configurable(self):
+        self.config.add_settings(cornice_default_renderer='myjson')
+        self._get_app()
+        self.assertEqual(Service.renderer, 'myjson')
+        renderer_factory = self.config.registry.queryUtility(
+            IRendererFactory, name='myjson'
+        )
+        renderer = renderer_factory(None)
+        self.assertIsNone(renderer._serializer_patch)
 
     def test_exception_handling_is_included_by_default(self):
         app = self._get_app()
@@ -38,13 +65,6 @@ class TestCorniceSetup(TestCase):
                         wraps=apply_filters) as mocked:
             app.post('/foo', status=404)
             self.assertFalse(mocked.called)
-
-    def test_exception_handling_is_included_by_default(self):
-        app = self._get_app()
-        with mock.patch('cornice.pyramidhook.apply_filters',
-                        wraps=apply_filters) as mocked:
-            app.post('/foo', status=404)
-            self.assertTrue(mocked.called)
 
     def test_exception_handling_raises_uncaught_errors(self):
         app = self._get_app()

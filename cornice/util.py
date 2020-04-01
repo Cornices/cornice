@@ -4,7 +4,6 @@
 import warnings
 
 import json
-import simplejson
 
 from pyramid import httpexceptions as exc
 from pyramid.compat import string_types
@@ -12,15 +11,24 @@ from pyramid.renderers import IRendererFactory
 from pyramid.response import Response
 
 
-__all__ = ['json_renderer', 'to_list', 'json_error', 'match_accept_header']
+__all__ = ['is_string', 'json_renderer_factory', 'to_list', 'func_name',
+           'json_error_handler', 'match_accept_header']
 
 
 def is_string(s):
     return isinstance(s, string_types)
 
 
-def json_renderer(helper):
-    return _JsonRenderer()
+def json_renderer_factory(simplejson_patch):
+    def _json_renderer(helper):
+        serializer_patch = None
+        if simplejson_patch:
+            import simplejson
+
+            serializer_patch = simplejson.dumps
+        return _JsonRenderer(serializer_patch=serializer_patch)
+
+    return _json_renderer
 
 
 class _JsonRenderer(object):
@@ -36,6 +44,9 @@ class _JsonRenderer(object):
                  #serializing-custom-objects
     """
     acceptable = ('application/json', 'text/plain')
+
+    def __init__(self, serializer_patch):
+        self._serializer_patch = serializer_patch
 
     def __call__(self, data, context):
         """Serialise the ``data`` with the Pyramid renderer."""
@@ -53,16 +64,18 @@ class _JsonRenderer(object):
         # JSON renderer registered with Pyramid.
         renderer_factory = registry.queryUtility(IRendererFactory, name='json')
 
-        # XXX Patched with ``simplejson.dumps(..., use-decimal=True)``
+        # If using 'simplejson' as renderer (default), will
+        # patch the serializer with ``simplejson.dumps(..., use-decimal=True)``
         # if the renderer has been configured to serialise using just
         # ``json.dumps(...)``.  This maintains backwards compatibility
         # with the Cornice renderer, whilst allowing Pyramid renderer
         # configuration via ``add_adapter`` calls, at the price of
         # rather fragile patching of instance properties.
-        if renderer_factory.serializer == json.dumps:
-            renderer_factory.serializer = simplejson.dumps
-        if 'use_decimal' not in renderer_factory.kw:
-            renderer_factory.kw['use_decimal'] = True
+        if self._serializer_patch:
+            if renderer_factory.serializer == json.dumps:
+                renderer_factory.serializer = self._serializer_patch
+            if 'use_decimal' not in renderer_factory.kw:
+                renderer_factory.kw['use_decimal'] = True
         renderer = renderer_factory(None)
 
         # XXX This call has the side effect of potentially setting the
@@ -85,19 +98,27 @@ def to_list(obj):
 
 
 class _JSONError(exc.HTTPError):
-    def __init__(self, errors, status=400):
+    def __init__(self, renderer, renderer_args, errors, status=400):
         body = {'status': 'error', 'errors': errors}
-        Response.__init__(self, simplejson.dumps(body, use_decimal=True))
+        Response.__init__(self, renderer(body, **renderer_args))
         self.status = status
         self.content_type = 'application/json'
 
 
-def json_error(request):
-    """Returns an HTTPError with the given status and message.
+def json_error_handler(renderer, renderer_args=None):
+    """Factory for json error handler.
 
-    The HTTP error content type is "application/json"
+    Allows the configuration of the serializer function to use as renderer
+    for JSON errors.
     """
-    return _JSONError(request.errors, request.errors.status)
+    def _json_error(request):
+        """Returns an HTTPError with the given status and message.
+
+        The HTTP error content type is "application/json"
+        """
+        return _JSONError(renderer=renderer, renderer_args=renderer_args or {},
+                          errors=request.errors, status=request.errors.status)
+    return _json_error
 
 
 def match_accept_header(func, context, request):

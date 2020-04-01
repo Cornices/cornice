@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import functools
+import json
+
 from pyramid.exceptions import ConfigurationError
 from pyramid.response import Response
 from cornice.validators import (
@@ -10,7 +12,7 @@ from cornice.validators import (
 )
 import venusian
 
-from cornice.util import is_string, to_list, json_error, func_name
+from cornice.util import is_string, to_list, json_error_handler, func_name
 
 
 SERVICES = []
@@ -155,6 +157,10 @@ class Service(object):
     mandatory_arguments = ('renderer',)
     list_arguments = ('validators', 'filters', 'cors_headers', 'cors_origins')
 
+    @classmethod
+    def configure_default_renderer(cls, renderer="simplejson"):
+        cls.renderer = renderer
+
     def __repr__(self):
         return u'<Service %s at %s>' % (
             self.name, self.pyramid_route or self.path)
@@ -241,10 +247,20 @@ class Service(object):
                 value.extend(to_list(conf.pop(arg)))
             arguments[arg] = value
 
+        if self.renderer == "simplejson":
+            # XXX: keep retrocompatibility
+            # when using 'simplejson' as renderer (default)
+            import simplejson
+
+            default_error_handler = json_error_handler(simplejson.dumps,
+                                                       {"use_decimal": True})
+        else:
+            default_error_handler = json_error_handler(json.dumps)
         # Allow custom error handler
-        arguments['error_handler'] = conf.pop('error_handler',
-                                              getattr(self, 'error_handler',
-                                                      json_error))
+        arguments['error_handler'] = conf.pop(
+            'error_handler',
+            getattr(self, 'error_handler', default_error_handler)
+        )
 
         # exclude some validators or filters
         if 'exclude' in conf:
