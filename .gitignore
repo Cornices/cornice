@@ -15,7 +15,6 @@ docs/build
 ._build.etag
 _build.py.bak*
 test
-nosetests.xml
 man
 .channel
 dist/
