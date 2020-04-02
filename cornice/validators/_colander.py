@@ -47,7 +47,7 @@ def _generate_colander_validator(location):
             raise TypeError("Schema should inherit from "
                             "colander.MappingSchema.")
 
-        class RequestSchemaMeta(type):
+        class RequestSchemaMeta(colander._SchemaMeta):
             """
             A metaclass that will inject a location class attribute into
             RequestSchema.

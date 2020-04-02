@@ -39,6 +39,7 @@ def _generate_marshmallow_validator(location):
             :func:`cornice.validators.extract_cstruct`
         """
         import marshmallow
+        import marshmallow.schema
         try:
             from marshmallow.utils import EXCLUDE
         except ImportError:
@@ -70,7 +71,7 @@ def _generate_marshmallow_validator(location):
             ordered = True
             unknown = EXCLUDE
 
-        class RequestSchemaMeta(type):
+        class RequestSchemaMeta(marshmallow.schema.SchemaMeta):
             """
             A metaclass that will inject a location class attribute into
             RequestSchema.
