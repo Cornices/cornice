@@ -13,7 +13,6 @@ from pyramid.httpexceptions import (
 from pyramid.exceptions import ConfigurationError
 from webtest import TestApp
 import mock
-from unittest import skip
 
 from cornice.resource import resource, view
 

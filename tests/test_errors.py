@@ -61,6 +61,7 @@ class TestErrorsTranslation(TestCase):
             self.assertFalse(mocked.called)
 
     def test_error_description_translation_called_when_translationstring(self):
-        with mock.patch('pyramid.i18n.Localizer.translate') as mocked:
+        with mock.patch('pyramid.i18n.Localizer.translate',
+                        return_value="translated") as mocked:
             resp = self.app.get('/error-service2', status=400).json
             self.assertTrue(mocked.called)

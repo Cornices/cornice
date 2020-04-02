@@ -4,15 +4,14 @@
 import json
 import mock
 
-import simplejson
 from pyramid.exceptions import ConfigurationError
 
 from cornice.resource import resource
 from cornice.service import (Service, get_services, clear_services,
                              decorate_view, _UnboundView)
-from cornice.util import func_name, json_error_handler
+from cornice.util import func_name, json_error_handler, default_bytes_adapter
 
-from .support import TestCase, DummyRequest
+from .support import TestCase, DummyRequest, skip_if_no_simplejson
 
 
 def _validator(req):
@@ -142,7 +141,10 @@ class TestService(TestCase):
         method, view, args = service.definitions[0]
         self.assertIs(args['error_handler'], error_handler)
 
+    @skip_if_no_simplejson
     def test_default_error_renderer_configure(self):
+        import simplejson
+
         # default error handler should be simplejson
 
         with mock.patch('cornice.service.json_error_handler',
@@ -154,12 +156,12 @@ class TestService(TestCase):
         # if configured to use another renderer, simplejson should not be used
         # by default
 
-        Service.configure_default_renderer("json")
+        Service.configure_default_renderer("cornicejson")
         with mock.patch('cornice.service.json_error_handler',
                         wraps=json_error_handler) as mocked:
             service = Service("error service", "/error_service")
             self.assertIsNotNone(service.arguments['error_handler'])
-            mocked.assert_called_with(json.dumps)
+            mocked.assert_called_with(json.dumps, {"default": default_bytes_adapter})
 
         Service.configure_default_renderer("simplejson")
 

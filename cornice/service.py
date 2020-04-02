@@ -12,8 +12,13 @@ from cornice.validators import (
 )
 import venusian
 
-from cornice.util import is_string, to_list, json_error_handler, func_name
-
+from cornice.util import (
+    is_string,
+    to_list,
+    json_error_handler,
+    func_name,
+    default_bytes_adapter,
+)
 
 SERVICES = []
 
@@ -150,7 +155,7 @@ class Service(object):
     :meth:`~put`, :meth:`~options` and :meth:`~delete` are decorators that can
     be used to decorate views.
     """
-    renderer = 'simplejson'
+    renderer = 'cornicejson'
     default_validators = DEFAULT_VALIDATORS
     default_filters = DEFAULT_FILTERS
 
@@ -255,7 +260,8 @@ class Service(object):
             default_error_handler = json_error_handler(simplejson.dumps,
                                                        {"use_decimal": True})
         else:
-            default_error_handler = json_error_handler(json.dumps)
+            default_error_handler = json_error_handler(
+                json.dumps, {"default": default_bytes_adapter})
         # Allow custom error handler
         arguments['error_handler'] = conf.pop(
             'error_handler',

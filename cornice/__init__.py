@@ -20,6 +20,12 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.security import NO_PERMISSION_REQUIRED
 from pyramid.settings import aslist, asbool
 
+# simplejson is optional
+try:
+    import simplejson  # noqa
+    SIMPLEJSON = True
+except ImportError:  # pragma: no cover
+    SIMPLEJSON = False
 
 logger = logging.getLogger('cornice')
 # Module version, as defined in PEP-0396.
@@ -76,28 +82,31 @@ def includeme(config):
 
     settings = config.get_settings()
 
-    # allow the cornice user to specify the default renderer for Services
-    default_renderer = settings.get('cornice_default_renderer', 'simplejson')
-    Service.configure_default_renderer(default_renderer)
-
-    # XXX For retrocompatibilty, if the default renderer is 'simplejson',
-    # patch the default JSON serializer of pyramid, ``json.dumps(...)``
-    # with ``simplejson.dumps(..., use_decimal=True)``
-    _simplejson_patch = default_renderer == 'simplejson'
-
-    json_renderer_factory = util.json_renderer_factory(
-        simplejson_patch=_simplejson_patch
-    )
-
     # localization request subscriber must be set before first call
     # for request.localizer (in wrap_request)
     if settings.get('available_languages'):
         setup_localization(config)
 
+    if SIMPLEJSON:
+        # XXX For retrocompatibilty, if simplejson is installed,
+        # the default renderer is 'simplejson', which patches the default
+        # JSON serializer of pyramid, ``json.dumps(...)`` with
+        # ``simplejson.dumps(..., use_decimal=True)``
+        Service.configure_default_renderer("simplejson")
+        simplejson_renderer = util.json_renderer_factory(
+            simplejson_patch=SIMPLEJSON
+        )
+        config.add_renderer("simplejson", simplejson_renderer)
+
+    # The default renderer is named 'cornicejson', which uses
+    # by default the serializer from the 'json' renderer configured by pyramid
+    # adding the required behavior to work with cornice.
+    default_renderer = util.json_renderer_factory()
+    config.add_renderer("cornicejson", default_renderer)
+
     config.add_directive('add_cornice_service', register_service_views)
     config.add_directive('add_cornice_resource', register_resource_views)
     config.add_subscriber(wrap_request, NewRequest)
-    config.add_renderer(default_renderer, json_renderer_factory)
     config.add_view_predicate('content_type', ContentTypePredicate)
     config.add_request_method(current_service, reify=True)
 

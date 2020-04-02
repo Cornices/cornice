@@ -11,15 +11,15 @@ from pyramid.renderers import IRendererFactory
 from pyramid.response import Response
 
 
-__all__ = ['is_string', 'json_renderer_factory', 'to_list', 'func_name',
-           'json_error_handler', 'match_accept_header']
+__all__ = ['is_string', 'json_renderer_factory', 'default_bytes_adapter',
+           'to_list', 'func_name', 'json_error_handler', 'match_accept_header']
 
 
 def is_string(s):
     return isinstance(s, string_types)
 
 
-def json_renderer_factory(simplejson_patch):
+def json_renderer_factory(simplejson_patch=False):
     def _json_renderer(helper):
         serializer_patch = None
         if simplejson_patch:
@@ -77,7 +77,6 @@ class _JsonRenderer(object):
             if 'use_decimal' not in renderer_factory.kw:
                 renderer_factory.kw['use_decimal'] = True
         renderer = renderer_factory(None)
-
         # XXX This call has the side effect of potentially setting the
         # ``response.content_type``.
         json_str = renderer(data, context)
@@ -94,6 +93,13 @@ def to_list(obj):
     """Convert an object to a list if it is not already one"""
     if not isinstance(obj, (list, tuple)):
         obj = [obj, ]
+    return obj
+
+
+def default_bytes_adapter(obj):
+    """Convert bytes objects to strings for json error renderer."""
+    if isinstance(obj, bytes):
+        return obj.decode('utf8')
     return obj
 
 

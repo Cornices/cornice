@@ -21,7 +21,7 @@ def get1(request):
 
 @service1.post()
 def post1(request):
-    return {"body": request.body}
+    return {"body": request.body.decode('utf-8')}
 
 
 @service2.get(accept="text/html")

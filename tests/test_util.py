@@ -2,14 +2,13 @@
 import json
 
 import mock
-import simplejson
 
 from pyramid import testing
 from pyramid.interfaces import IRendererFactory
 from webtest import TestApp
 
 from cornice import util, Service
-from .support import TestCase, CatchErrors
+from .support import TestCase, CatchErrors, skip_if_no_simplejson, skip_if_simplejson
 
 
 class TestDeprecatedUtils(TestCase):
@@ -42,6 +41,7 @@ class CurrentServiceTest(TestCase):
         self.assertEqual(util.current_service(request), None)
 
 
+@skip_if_no_simplejson
 class JSONRendererTest(TestCase):
     def setUp(self):
         self.config = testing.setUp()
@@ -66,7 +66,10 @@ class JSONRendererTest(TestCase):
 
         return TestApp(CatchErrors(self.config.make_wsgi_app()))
 
+    @skip_if_no_simplejson
     def test_default_renderer_gets_patched(self):
+        import simplejson
+
         app = self._get_app()
         response = app.get('/test')
         self.assertEqual(response.text, '{"result": 1}')
@@ -78,14 +81,13 @@ class JSONRendererTest(TestCase):
         self.assertIn("use_decimal", json_renderer_factory.kw)
         self.assertTrue(json_renderer_factory.kw["use_decimal"])
 
+    @skip_if_simplejson
     def test_configured_renderer_does_not_get_patched(self):
-        self.config.add_settings(cornice_default_renderer='cornicejson')
         app = self._get_app()
         response = app.get('/test')
         self.assertEqual(response.text, '{"result": 1}')
         json_renderer_factory = self._get_json_renderer_factory()
 
         # serializer should not have been patched
-        self.assertNotEqual(json_renderer_factory.serializer, simplejson.dumps)
         self.assertEqual(json_renderer_factory.serializer, json.dumps)
         self.assertNotIn("use_decimal", json_renderer_factory.kw)

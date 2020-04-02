@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import logging
 import logging.handlers
+import unittest
 import weakref
 
 try:
@@ -10,7 +11,6 @@ try:
 except ImportError:
     # Maybe we're running in python2.7?
     from unittest import TestCase  # NOQA
-
 from webob.dec import wsgify
 from webob import exc
 from pyramid.httpexceptions import HTTPException
@@ -18,6 +18,18 @@ from pyramid import testing
 
 from cornice.errors import Errors
 
+try:
+    import simplejson
+
+    SIMPLEJSON = True
+except ImportError:
+    SIMPLEJSON = False
+
+skip_if_no_simplejson = unittest.skipIf(SIMPLEJSON is False,
+                                        "simplejson is not installed.")
+
+skip_if_simplejson = unittest.skipIf(SIMPLEJSON is True,
+                                     "simplejson is installed.")
 
 logger = logging.getLogger('cornice')
 

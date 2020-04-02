@@ -73,7 +73,6 @@ class TestResource(TestCase):
             self.app.get("/fruits/1", headers={'Accept': 'application/json'}).json,
             {'name': 'apple'})
 
-
     def test_accept_headers_post(self):
         self.assertEqual(
             self.app.post("/fruits", headers={'Accept': 'text/plain', 'Content-Type': 'application/json'},
@@ -86,16 +85,16 @@ class TestResource(TestCase):
             {'test': 'yeah'})
 
     def test_406(self):
-            self.app.get(
-                "/fruits",
-                headers={'Accept': 'text/xml'},
-                status=406)
+        self.app.get(
+            "/fruits",
+            headers={'Accept': 'text/xml'},
+            status=406)
 
-            self.app.post(
-                "/fruits",
-                headers={'Accept': 'text/html'},
-                params=json.dumps({'test': 'yeah'}),
-                status=406)
+        self.app.post(
+            "/fruits",
+            headers={'Accept': 'text/html'},
+            params=json.dumps({'test': 'yeah'}),
+            status=406)
 
     def test_415(self):
         self.app.post(

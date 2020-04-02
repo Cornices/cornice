@@ -1,7 +1,6 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import simplejson
 from pyramid import testing
 from pyramid.interfaces import IRendererFactory
 from webtest import TestApp
@@ -9,7 +8,7 @@ import mock
 
 from cornice import Service
 from cornice.pyramidhook import apply_filters
-from .support import TestCase, CatchErrors
+from .support import TestCase, CatchErrors, skip_if_no_simplejson, skip_if_simplejson
 
 
 class TestCorniceSetup(TestCase):
@@ -29,7 +28,10 @@ class TestCorniceSetup(TestCase):
 
         return TestApp(CatchErrors(self.config.make_wsgi_app()))
 
+    @skip_if_no_simplejson
     def test_default_renderer_is_simplejson(self):
+        import simplejson
+
         self._get_app()
         self.assertEqual(Service.renderer, 'simplejson')
         renderer_factory = self.config.registry.queryUtility(
@@ -41,12 +43,12 @@ class TestCorniceSetup(TestCase):
             simplejson.dumps
         )
 
-    def test_default_renderer_is_configurable(self):
-        self.config.add_settings(cornice_default_renderer='myjson')
+    @skip_if_simplejson
+    def test_default_renderer_without_simplejson(self):
         self._get_app()
-        self.assertEqual(Service.renderer, 'myjson')
+        self.assertEqual(Service.renderer, 'cornicejson')
         renderer_factory = self.config.registry.queryUtility(
-            IRendererFactory, name='myjson'
+            IRendererFactory, name='cornicejson'
         )
         renderer = renderer_factory(None)
         self.assertIsNone(renderer._serializer_patch)
