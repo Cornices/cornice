@@ -8,6 +8,7 @@ from pyramid.interfaces import IRendererFactory
 from webtest import TestApp
 
 from cornice import util, Service
+from cornice.util import default_bytes_adapter
 from .support import TestCase, CatchErrors, skip_if_no_simplejson, skip_if_simplejson
 
 
@@ -91,3 +92,13 @@ class JSONRendererTest(TestCase):
         # serializer should not have been patched
         self.assertEqual(json_renderer_factory.serializer, json.dumps)
         self.assertNotIn("use_decimal", json_renderer_factory.kw)
+
+    def test_default_bytes_adapter(self):
+        string = "test_string"
+        bytestring = b"test_string"
+        self.assertEqual(
+            default_bytes_adapter(string),
+            default_bytes_adapter(bytestring)
+        )
+        unsupported = object()
+        self.assertEqual(unsupported, default_bytes_adapter(unsupported))
