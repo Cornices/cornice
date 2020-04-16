@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import functools
 from pyramid.exceptions import ConfigurationError
+from pyramid.interfaces import IRendererFactory
 from pyramid.response import Response
 from cornice.validators import (
     DEFAULT_VALIDATORS,
@@ -10,8 +11,7 @@ from cornice.validators import (
 )
 import venusian
 
-from cornice.util import is_string, to_list, json_error, func_name
-
+from cornice.util import is_string, to_list, func_name
 
 SERVICES = []
 
@@ -53,7 +53,7 @@ class Service(object):
 
     :param renderer:
         The renderer that should be used by this service. Default value is
-        'simplejson'.
+        'cornice'.
 
     :param description:
         The description of what the webservice does. This is primarily intended
@@ -96,7 +96,8 @@ class Service(object):
 
     :param error_handler:
         A callable which is used to render responses following validation
-        failures.  Defaults to 'json_error'.
+        failures.  By default it will call the registered renderer
+        `render_errors` method.
 
     :param traverse:
         A traversal pattern that will be passed on route declaration and that
@@ -148,7 +149,7 @@ class Service(object):
     :meth:`~put`, :meth:`~options` and :meth:`~delete` are decorators that can
     be used to decorate views.
     """
-    renderer = 'simplejson'
+    renderer = 'cornice'
     default_validators = DEFAULT_VALIDATORS
     default_filters = DEFAULT_FILTERS
 
@@ -216,6 +217,21 @@ class Service(object):
 
         info = venusian.attach(self, callback, category='pyramid', depth=depth)
 
+    def default_error_handler(self, request):
+        """Default error_handler.
+
+        Uses the renderer for the service to render `request.errors`.
+        Only works if the registered renderer for the Service exposes the
+        method `render_errors`, which is implemented by default by
+        :class:`cornice.renderer.CorniceRenderer`.
+
+        :param request: the current Request.
+        """
+        renderer = request.registry.queryUtility(
+            IRendererFactory, name=self.renderer
+        )
+        return renderer.render_errors(request)
+
     def get_arguments(self, conf=None):
         """Return a dictionary of arguments. Takes arguments from the :param
         conf: param and merges it with the arguments passed in the constructor.
@@ -242,9 +258,10 @@ class Service(object):
             arguments[arg] = value
 
         # Allow custom error handler
-        arguments['error_handler'] = conf.pop('error_handler',
-                                              getattr(self, 'error_handler',
-                                                      json_error))
+        arguments['error_handler'] = conf.pop(
+            'error_handler',
+            getattr(self, 'error_handler', self.default_error_handler)
+        )
 
         # exclude some validators or filters
         if 'exclude' in conf:
