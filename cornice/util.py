@@ -3,78 +3,14 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import warnings
 
-import json
-import simplejson
-
-from pyramid import httpexceptions as exc
 from pyramid.compat import string_types
-from pyramid.renderers import IRendererFactory
-from pyramid.response import Response
 
-
-__all__ = ['json_renderer', 'to_list', 'json_error', 'match_accept_header']
+__all__ = ['is_string', 'to_list', 'match_accept_header',
+           'ContentTypePredicate', 'current_service', 'func_name']
 
 
 def is_string(s):
     return isinstance(s, string_types)
-
-
-def json_renderer(helper):
-    return _JsonRenderer()
-
-
-class _JsonRenderer(object):
-    """We implement JSON serialization using a combination of our own custom
-      Content-Type logic `[1]`_ and Pyramid's default JSON rendering machinery.
-
-      This allows developers to config the JSON renderer using Pyramid's
-      configuration machinery `[2]`_.
-
-      .. _`[1]`: https://github.com/mozilla-services/cornice/pull/116 \
-                 #issuecomment-14355865
-      .. _`[2]`: http://pyramid.readthedocs.io/en/latest/narr/renderers.html \
-                 #serializing-custom-objects
-    """
-    acceptable = ('application/json', 'text/plain')
-
-    def __call__(self, data, context):
-        """Serialise the ``data`` with the Pyramid renderer."""
-        # Unpack the context.
-        request = context['request']
-        response = request.response
-        registry = request.registry
-
-        # Do not return content with ``204 No Content``
-        if response.status_code == 204:
-            response.content_type = None
-            return ""
-
-        # Serialise the ``data`` object to a JSON string using the
-        # JSON renderer registered with Pyramid.
-        renderer_factory = registry.queryUtility(IRendererFactory, name='json')
-
-        # XXX Patched with ``simplejson.dumps(..., use-decimal=True)``
-        # if the renderer has been configured to serialise using just
-        # ``json.dumps(...)``.  This maintains backwards compatibility
-        # with the Cornice renderer, whilst allowing Pyramid renderer
-        # configuration via ``add_adapter`` calls, at the price of
-        # rather fragile patching of instance properties.
-        if renderer_factory.serializer == json.dumps:
-            renderer_factory.serializer = simplejson.dumps
-        if 'use_decimal' not in renderer_factory.kw:
-            renderer_factory.kw['use_decimal'] = True
-        renderer = renderer_factory(None)
-
-        # XXX This call has the side effect of potentially setting the
-        # ``response.content_type``.
-        json_str = renderer(data, context)
-
-        # XXX So we (re)set it ourselves here, i.e.: *after* the previous call.
-        ctypes = request.accept.acceptable_offers(offers=self.acceptable)
-        if not ctypes:
-            ctypes = [(self.acceptable[0], 1.0)]
-        response.content_type = ctypes[0][0]
-        return json_str
 
 
 def to_list(obj):
@@ -82,22 +18,6 @@ def to_list(obj):
     if not isinstance(obj, (list, tuple)):
         obj = [obj, ]
     return obj
-
-
-class _JSONError(exc.HTTPError):
-    def __init__(self, errors, status=400):
-        body = {'status': 'error', 'errors': errors}
-        Response.__init__(self, simplejson.dumps(body, use_decimal=True))
-        self.status = status
-        self.content_type = 'application/json'
-
-
-def json_error(request):
-    """Returns an HTTPError with the given status and message.
-
-    The HTTP error content type is "application/json"
-    """
-    return _JSONError(request.errors, request.errors.status)
 
 
 def match_accept_header(func, context, request):

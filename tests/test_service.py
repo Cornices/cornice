@@ -1,7 +1,9 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
+import mock
 from pyramid.exceptions import ConfigurationError
+from pyramid.interfaces import IRendererFactory
 
 from cornice.resource import resource
 from cornice.service import (Service, get_services, clear_services,
@@ -137,6 +139,35 @@ class TestService(TestCase):
 
         method, view, args = service.definitions[0]
         self.assertIs(args['error_handler'], error_handler)
+
+    def test_default_error_handler(self):
+        # If not configured otherwise, Service.default_error_handler should
+        # be used to handle and render errors.
+        service = Service("error service", "/error_service")
+
+        @service.get()
+        def get_error(request):
+            return "error"
+
+        method, view, args = service.definitions[0]
+        self.assertEqual(args['error_handler'], service.default_error_handler)
+
+    def test_default_error_handler_calls_default_renderer(self):
+        # Default error handler should call `render_errors` on the
+        # registered renderer.
+        service = Service("error service", "/error_service")
+
+        renderer = mock.MagicMock()
+        renderer.render_errors.return_value = "rendered_errors"
+
+        request = mock.MagicMock()
+        request.registry.queryUtility.return_value = renderer
+
+        self.assertEqual(service.default_error_handler(request),
+                         "rendered_errors")
+        request.registry.queryUtility.assert_called_with(IRendererFactory,
+                                                         name=service.renderer)
+        renderer.render_errors.assert_called_with(request)
 
     def test_decorators(self):
         service = Service("color", "/favorite-color")

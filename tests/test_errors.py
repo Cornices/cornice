@@ -3,7 +3,7 @@ import mock
 from cornice.errors import Errors
 from cornice.service import Service
 from pyramid import testing
-from pyramid.i18n import TranslationString, Localizer
+from pyramid.i18n import TranslationString
 from webtest import TestApp
 
 from .support import TestCase, CatchErrors
@@ -55,12 +55,16 @@ class TestErrorsTranslation(TestCase):
     def tearDown(self):
         testing.tearDown()
 
+    @property
+    def _translate(self):
+        return "pyramid.i18n.Localizer.translate"
+
     def test_error_description_translation_not_called_when_string(self):
-        with mock.patch('pyramid.i18n.Localizer.translate') as mocked:
+        with mock.patch(self._translate) as mocked:
             resp = self.app.get('/error-service1', status=400).json
             self.assertFalse(mocked.called)
 
     def test_error_description_translation_called_when_translationstring(self):
-        with mock.patch('pyramid.i18n.Localizer.translate') as mocked:
+        with mock.patch(self._translate, return_value="Translated") as mocked:
             resp = self.app.get('/error-service2', status=400).json
             self.assertTrue(mocked.called)

@@ -180,15 +180,15 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
     def test_override_default_accept_issue_252(self):
         # Override default acceptable content_types for interoperate with
         # legacy applications i.e. ExtJS 3.
-        from cornice.util import _JsonRenderer
-        _JsonRenderer.acceptable += ('text/html',)
+        from cornice.renderer import CorniceRenderer
+        CorniceRenderer.acceptable += ('text/html',)
 
         app = TestApp(main({}))
 
         response = app.get('/service5', headers={'Accept': 'text/html'})
         self.assertEqual(response.content_type, "text/html")
         # revert the override
-        _JsonRenderer.acceptable = _JsonRenderer.acceptable[:-1]
+        CorniceRenderer.acceptable = CorniceRenderer.acceptable[:-1]
 
     def test_filters(self):
         app = TestApp(main({}))
