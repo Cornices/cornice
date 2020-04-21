@@ -9,7 +9,7 @@ with open(os.path.join(here, 'README.rst')) as f:
 with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
-requires = ['pyramid>=1.7', 'six', 'venusian']
+requires = ['pyramid>=1.7', 'venusian']
 
 entry_points = ""
 package_data = {}
@@ -21,12 +21,11 @@ setup(name='cornice',
       license='MPLv2.0',
       classifiers=[
           "Programming Language :: Python",
-          "Programming Language :: Python :: 2.6",
-          "Programming Language :: Python :: 2.7",
           "Programming Language :: Python :: 3",
           "Programming Language :: Python :: 3.5",
           "Programming Language :: Python :: 3.6",
           "Programming Language :: Python :: 3.7",
+          "Programming Language :: Python :: 3.8",
           "Framework :: Pylons",
           "Topic :: Internet :: WWW/HTTP",
           "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",

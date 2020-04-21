@@ -5,8 +5,6 @@
 import inspect
 import warnings
 
-from six import with_metaclass
-
 
 def _generate_colander_validator(location):
     """
@@ -49,7 +47,7 @@ def _generate_colander_validator(location):
             raise TypeError("Schema should inherit from "
                             "colander.MappingSchema.")
 
-        class RequestSchemaMeta(type):
+        class RequestSchemaMeta(colander._SchemaMeta):
             """
             A metaclass that will inject a location class attribute into
             RequestSchema.
@@ -69,8 +67,7 @@ def _generate_colander_validator(location):
                 class_attrs[location] = schema_instance
                 return type(name, bases, class_attrs)
 
-        class RequestSchema(with_metaclass(
-                RequestSchemaMeta, colander.MappingSchema)):
+        class RequestSchema(colander.MappingSchema, metaclass=RequestSchemaMeta):  # noqa
             """A schema to validate the request's location attributes."""
             pass
 

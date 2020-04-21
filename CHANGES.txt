@@ -5,8 +5,9 @@ CHANGELOG
 4.1.0 (unreleased)
 ==================
 
-- Add support for passing keyword arguments to marshmallow validator.
+**Breaking Changes**
 
+- Drop Python 2 support
 
 4.0.1 (2019-12-02)
 ==================
