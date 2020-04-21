@@ -5,8 +5,8 @@ import logging
 import pkg_resources
 from functools import partial
 
-from cornice import util
 from cornice.errors import Errors  # NOQA
+from cornice.renderer import CorniceRenderer
 from cornice.service import Service   # NOQA
 from cornice.pyramidhook import (
     wrap_request,
@@ -84,7 +84,7 @@ def includeme(config):
     config.add_directive('add_cornice_service', register_service_views)
     config.add_directive('add_cornice_resource', register_resource_views)
     config.add_subscriber(wrap_request, NewRequest)
-    config.add_renderer('simplejson', util.json_renderer)
+    config.add_renderer('cornice', CorniceRenderer())
     config.add_view_predicate('content_type', ContentTypePredicate)
     config.add_request_method(current_service, reify=True)
 
