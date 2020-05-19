@@ -8,6 +8,10 @@ CHANGELOG
 **Breaking Changes**
 
 - Drop Python 2 support
+- The default JSON renderer does not use ``simplejson.dumps()`` by default anymore, so the requirement has been dropped.
+
+Please refer to `upgrading docs <https://cornice.readthedocs.io/en/stable/upgrading.html>`_ for detailed migration instructions.
+
 
 4.0.1 (2019-12-02)
 ==================
