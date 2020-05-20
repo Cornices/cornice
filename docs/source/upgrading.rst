@@ -1,6 +1,35 @@
 Upgrading
 #########
 
+4.X to 5.X
+==========
+
+Upgrade your codebase to Python 3.
+
+In order to keep using ``simplejson`` with this release, add it explicitly as your project dependencies, and set it explicitly as the default renderer:
+
+.. code-block:: python
+
+    import simplejson
+    from cornice.render import CorniceRenderer
+
+    class SimpleJSONRenderer(CorniceRenderer):
+        def __init__(self, **kwargs):
+            kwargs["serializer"] = simplejson.dumps
+
+    config.add_renderer(None, SimpleJSONRenderer())
+
+See https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/renderers.html
+
+
+3.X to 4.X
+==========
+
+``request.validated`` is now always a ``colander.MappingSchema`` instance (``dict``) when using ``colander_*_validator()`` functions. 
+
+In order to use a different type (eg. ``SequenceSchema``), use ``colander_validator()`` and read it from ``request.validated['body']``.
+
+
 2.X to 3.X
 ==========
 
