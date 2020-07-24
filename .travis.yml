@@ -1,6 +1,7 @@
+os: linux
+dist: focal
 language: python
 python: 3.6
-sudo: false
 env:
     - TOX_ENV=flake8
     - TOX_ENV=docs
@@ -13,7 +14,7 @@ after_success:
   - pip install coveralls
   - coveralls
 
-matrix:
+jobs:
   include:
     - python: 3.5
       env:
@@ -22,15 +23,12 @@ matrix:
       env:
         - TOX_ENV=py36
     - python: 3.7
-      dist: xenial
       env:
         - TOX_ENV=py37
     - python: 3.7
-      dist: xenial
       env:
         - TOX_ENV=py37-raw
     - python: 3.8
-      dist: xenial
       env:
         - TOX_ENV=py38
 
