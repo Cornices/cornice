@@ -9,10 +9,20 @@ To use Cornice, install it::
 
     $ pip install cornice
 
+You'll also need **waitress** (see https://pypi.python.org/pypi/waitress)::
+
+    $ pip install waitress
+
 To start from scratch, you can use a `Cookiecutter <https://cookiecutter.readthedocs.io>`_ project template::
 
     $ pip install cookiecutter
     $ cookiecutter gh:Cornices/cookiecutter-cornice
+    ...
+
+Once your application is generated, go there and call *develop* against it::
+
+    $ cd myapp
+    $ python setup.py develop
     ...
 
 The template creates a working Cornice application.
