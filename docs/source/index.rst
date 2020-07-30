@@ -11,7 +11,7 @@ it is easy to use and you can get started in a matter of minutes.
 Show me some code!
 ==================
 
-A **full** Cornice WGSI application looks like this (this example is taken from
+A **full** Cornice WSGI application looks like this (this example is taken from
 the `demoapp project <https://github.com/Cornices/examples>`_)::
 
     from collections import defaultdict
