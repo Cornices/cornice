@@ -198,6 +198,27 @@ class TestService(TestCase):
         method, view, _ = service.definitions[4]
         self.assertEqual("PATCH", method)
 
+        @service.put()
+        def put_favorite_color(request):
+            return ""
+
+        method, view, _ = service.definitions[5]
+        self.assertEqual("PUT", method)
+
+        @service.delete()
+        def delete_favorite_color(request):
+            return ""
+
+        method, view, _ = service.definitions[6]
+        self.assertEqual("DELETE", method)
+
+        @service.options()
+        def favorite_color_options(request):
+            return ""
+
+        method, view, _ = service.definitions[7]
+        self.assertEqual("OPTIONS", method)
+
     def test_get_acceptable(self):
         # defining a service with different "accept" headers, we should be able
         # to retrieve this information easily
