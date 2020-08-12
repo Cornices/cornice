@@ -84,7 +84,7 @@ def includeme(config):
     config.add_directive('add_cornice_service', register_service_views)
     config.add_directive('add_cornice_resource', register_resource_views)
     config.add_subscriber(wrap_request, NewRequest)
-    config.add_renderer('cornice', CorniceRenderer())
+    config.add_renderer('cornicejson', CorniceRenderer())
     config.add_view_predicate('content_type', ContentTypePredicate)
     config.add_request_method(current_service, reify=True)
 

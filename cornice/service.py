@@ -53,7 +53,7 @@ class Service(object):
 
     :param renderer:
         The renderer that should be used by this service. Default value is
-        'cornice'.
+        'cornicejson'.
 
     :param description:
         The description of what the webservice does. This is primarily intended
@@ -149,7 +149,7 @@ class Service(object):
     :meth:`~put`, :meth:`~options` and :meth:`~delete` are decorators that can
     be used to decorate views.
     """
-    renderer = 'cornice'
+    renderer = 'cornicejson'
     default_validators = DEFAULT_VALIDATORS
     default_filters = DEFAULT_FILTERS
 
@@ -203,11 +203,6 @@ class Service(object):
 
         # add this service to the list of available services
         SERVICES.append(self)
-
-        # register aliases for the decorators
-        for verb in ('GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'):
-            setattr(self, verb.lower(),
-                    functools.partial(self.decorator, verb))
 
         # this callback will be called when config.scan (from pyramid) will
         # be triggered.
@@ -336,6 +331,84 @@ class Service(object):
             self.add_view(method, view, **kwargs)
             return view
         return wrapper
+
+    def get(self, **kwargs):
+        """Add the ability to define get using python's decorators
+        syntax.
+
+        For instance, it is possible to do this with this method::
+
+            service = Service("blah", "/blah")
+            @service.get(accept="application/json")
+            def my_view(request):
+                pass
+        """
+        return self.decorator("GET", **kwargs)
+
+    def post(self, **kwargs):
+        """Add the ability to define post using python's decorators
+        syntax.
+
+        For instance, it is possible to do this with this method::
+
+            service = Service("blah", "/blah")
+            @service.post(accept="application/json")
+            def my_view(request):
+                pass
+        """
+        return self.decorator("POST", **kwargs)
+
+    def put(self, **kwargs):
+        """Add the ability to define put using python's decorators
+        syntax.
+
+        For instance, it is possible to do this with this method::
+
+            service = Service("blah", "/blah")
+            @service.put(accept="application/json")
+            def my_view(request):
+                pass
+        """
+        return self.decorator("PUT", **kwargs)
+
+    def delete(self, **kwargs):
+        """Add the ability to define delete using python's decorators
+        syntax.
+
+        For instance, it is possible to do this with this method::
+
+            service = Service("blah", "/blah")
+            @service.delete(accept="application/json")
+            def my_view(request):
+                pass
+        """
+        return self.decorator("DELETE", **kwargs)
+
+    def options(self, **kwargs):
+        """Add the ability to define options using python's decorators
+        syntax.
+
+        For instance, it is possible to do this with this method::
+
+            service = Service("blah", "/blah")
+            @service.options(accept="application/json")
+            def my_view(request):
+                pass
+        """
+        return self.decorator("OPTIONS", **kwargs)
+
+    def patch(self, **kwargs):
+        """Add the ability to define patch using python's decorators
+        syntax.
+
+        For instance, it is possible to do this with this method::
+
+            service = Service("blah", "/blah")
+            @service.patch(accept="application/json")
+            def my_view(request):
+                pass
+        """
+        return self.decorator("PATCH", **kwargs)
 
     def filter_argumentlist(self, method, argname, filter_callables=False):
         """

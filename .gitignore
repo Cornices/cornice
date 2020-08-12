@@ -19,3 +19,4 @@ man
 .channel
 dist/
 .venv/
+.idea/

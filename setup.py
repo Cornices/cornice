@@ -15,7 +15,7 @@ entry_points = ""
 package_data = {}
 
 setup(name='cornice',
-      version='4.1.0.dev0',
+      version='5.0.3.dev0',
       description='Define Web Services in Pyramid.',
       long_description=README + '\n\n' + CHANGES,
       license='MPLv2.0',
@@ -30,6 +30,7 @@ setup(name='cornice',
           "Topic :: Internet :: WWW/HTTP",
           "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
           "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)", ],
+      python_requires='>=3.5',
       entry_points=entry_points,
       author='Mozilla Services',
       author_email='services-dev@mozilla.org',

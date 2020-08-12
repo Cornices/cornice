@@ -2,12 +2,34 @@
 CHANGELOG
 #########
 
-4.1.0 (unreleased)
+5.0.3 (unreleased)
+==================
+
+- Nothing changed yet.
+
+
+5.0.2 (2020-08-12)
+==================
+
+- Rename default renderer from ``cornice`` to ``cornicejson`` (#543)
+
+
+5.0.1 (2020-05-25)
+==================
+
+- Add setuptoools ``python_requires`` check
+
+
+5.0.0 (2020-05-19)
 ==================
 
 **Breaking Changes**
 
 - Drop Python 2 support
+- The default JSON renderer does not use ``simplejson.dumps()`` by default anymore, so the requirement has been dropped.
+
+Please refer to `upgrading docs <https://cornice.readthedocs.io/en/stable/upgrading.html>`_ for detailed migration instructions.
+
 
 4.0.1 (2019-12-02)
 ==================
