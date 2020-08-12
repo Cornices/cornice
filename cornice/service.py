@@ -53,7 +53,7 @@ class Service(object):
 
     :param renderer:
         The renderer that should be used by this service. Default value is
-        'cornice'.
+        'cornicejson'.
 
     :param description:
         The description of what the webservice does. This is primarily intended
@@ -149,7 +149,7 @@ class Service(object):
     :meth:`~put`, :meth:`~options` and :meth:`~delete` are decorators that can
     be used to decorate views.
     """
-    renderer = 'cornice'
+    renderer = 'cornicejson'
     default_validators = DEFAULT_VALIDATORS
     default_filters = DEFAULT_FILTERS
 
