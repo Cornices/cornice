@@ -149,11 +149,11 @@ class TestResource(TestCase):
     def test_explicit_collection_service_name(self):
         route_url = testing.DummyRequest().route_url
         # service must exist
-        self.assert_(route_url('collection_user_service'))
+        self.assertTrue(route_url('collection_user_service'))
 
     def test_explicit_service_name(self):
         route_url = testing.DummyRequest().route_url
-        self.assert_(route_url('user_service', id=42))  # service must exist
+        self.assertTrue(route_url('user_service', id=42))  # service must exist
 
     def test_acl_support_unauthenticated_thing_get(self):
         # calling a view with permissions without an auth'd user => 403
