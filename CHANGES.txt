@@ -8,6 +8,7 @@ CHANGELOG
 **Internal Changes**
 
 - Replaced ``mock`` by standard ``unittest.mock``
+- Replaced *Nose* test runner by *pytest*
 
 
 5.0.2 (2020-08-12)
