@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import json
+from unittest import mock
 
 from pyramid import testing
 from pyramid.authentication import AuthTktAuthenticationPolicy
@@ -11,7 +12,6 @@ from pyramid.httpexceptions import (
     HTTPOk, HTTPForbidden
 )
 from webtest import TestApp
-import mock
 
 from cornice.resource import add_resource, add_view
 

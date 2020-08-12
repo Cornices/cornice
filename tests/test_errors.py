@@ -1,4 +1,4 @@
-import mock
+from unittest import mock
 
 from cornice.errors import Errors
 from cornice.service import Service

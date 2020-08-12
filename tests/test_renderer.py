@@ -1,4 +1,5 @@
-import mock
+from unittest import mock
+
 from pyramid.interfaces import IJSONAdapter
 from pyramid.renderers import JSON
 from zope.interface import providedBy

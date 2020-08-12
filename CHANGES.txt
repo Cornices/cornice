@@ -5,7 +5,9 @@ CHANGELOG
 5.0.3 (unreleased)
 ==================
 
-- Nothing changed yet.
+**Internal Changes**
+
+- Replaced ``mock`` by standard ``unittest.mock``
 
 
 5.0.2 (2020-08-12)
