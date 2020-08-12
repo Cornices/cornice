@@ -2,10 +2,16 @@
 CHANGELOG
 #########
 
-5.0.2 (2020-08-12)
+5.0.3 (unreleased)
 ==================
 
 - Nothing changed yet.
+
+
+5.0.2 (2020-08-12)
+==================
+
+- Rename default renderer from ``cornice`` to ``cornicejson`` (#543)
 
 
 5.0.1 (2020-05-25)
