@@ -3,6 +3,6 @@ WebTest
 colander>=1.0b1
 marshmallow>=2.0.0,<3.0.0
 coverage
-mock
-nose
+pytest
+pytest-cov
 simplejson

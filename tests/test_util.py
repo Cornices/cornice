@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
-import mock
 import unittest
+from unittest import mock
 
 from cornice import util
 
