@@ -74,7 +74,8 @@ def _generate_colander_validator(location):
         validator(request, RequestSchema(), deserializer, **kwargs)
         validated_location = request.validated.get(location, {})
         request.validated.update(validated_location)
-        request.validated.pop(location, None)
+        if location not in validated_location:
+            request.validated.pop(location, None)
 
     return _validator
 

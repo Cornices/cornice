@@ -427,6 +427,14 @@ class TestRequestDataExtractors(LoggingCatcher, TestCase):
             self.assertIn('Schema should inherit from colander.MappingSchema.',
                           str(context))
 
+    def test_json_body_attribute_is_not_lost(self):
+        app = self.make_ordinary_app()
+        response = app.post_json(
+            '/body_signup',
+            {'body': {'username': 'hey'}}
+        )
+        self.assertEqual(response.json['data'], {'body': {'username': 'hey'}})
+
     def test_json_array_with_colander_validator(self):
         app = self.make_ordinary_app()
         response = app.post_json(
@@ -770,7 +778,7 @@ class TestRequestDataExtractorsMarshmallow(LoggingCatcher, TestCase):
                             {'username': 'man'},
                             content_type='multipart/form-data')
         self.assertEqual(response.json['username'], 'man')
-    
+
     # Marshmallow fails to parse multidict type return values
     # Therefore, test requires different schema with multiple keys, '/m_form'
     def test_multipart_form_data_multiple_fields(self):
@@ -779,7 +787,7 @@ class TestRequestDataExtractorsMarshmallow(LoggingCatcher, TestCase):
                             {'field1': 'man', 'field2': 'woman'},
                             content_type='multipart/form-data')
         self.assertEqual(response.json, {'field1': 'man', 'field2': 'woman'})
-    
+
 
 @skip_if_no_marshmallow
 class TestValidatorEdgeCasesMarshmallow(TestCase):
