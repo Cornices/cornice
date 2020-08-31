@@ -5,6 +5,10 @@ CHANGELOG
 5.0.3 (unreleased)
 ==================
 
+**Bug fixes**
+
+- Fix missing ``body``, ``headers``, ``path``, ``querystring`` when using ``*_validator`` Colander validators (#545)
+
 **Internal Changes**
 
 - Replaced ``mock`` by standard ``unittest.mock``
