@@ -171,6 +171,7 @@ if COLANDER:
     bound = Service(name="bound", path="/bound")
     group_signup = Service(name="group signup", path="/group_signup")
     body_group_signup = Service(name="body_group signup", path="/body_group_signup")
+    body_signup = Service(name="body signup", path="/body_signup")
     foobar = Service(name="foobar", path="/foobar")
     foobaz = Service(name="foobaz", path="/foobaz")
     email_service = Service(name='newsletter', path='/newsletter')
@@ -222,6 +223,16 @@ if COLANDER:
                             validators=(colander_validator,))
     def body_group_signup_post(request):
         return {'data': request.validated['body']}
+
+
+    class BodySignupSchema(MappingSchema):
+        body = SignupSchema()
+
+    @body_signup.post(schema=BodySignupSchema(),
+                      validators=(colander_body_validator,))
+    def body_signup_post(request):
+        return {'data': request.validated}
+
 
     def validate_bar(node, value):
         if value != 'open':
