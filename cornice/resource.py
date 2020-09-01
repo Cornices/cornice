@@ -3,6 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import warnings
+import functools
 
 import venusian
 
@@ -116,6 +117,9 @@ def add_resource(klass, depth=1, **kw):
         service_name = prefix + service_name
         service = services[service_name] = Service(name=service_name,
                                                    depth=2, **service_args)
+        # ensure the service comes with the same properties as the wrapped
+        # resource
+        functools.update_wrapper(service, klass)
 
         # initialize views
         for verb in ('get', 'post', 'put', 'delete', 'options', 'patch'):

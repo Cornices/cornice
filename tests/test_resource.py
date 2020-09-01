@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import json
+import functools
 from unittest import mock
 
 from pyramid import testing
@@ -29,6 +30,7 @@ def my_collection_acl(request):
 @resource(collection_path='/thing', path='/thing/{id}',
           name='thing_service')
 class Thing(object):
+    """This is a thing."""
 
     def __init__(self, request, context=None):
         self.request = request
@@ -45,6 +47,7 @@ class Thing(object):
 @resource(collection_path='/users', path='/users/{id}',
           name='user_service', factory=dummy_factory)
 class User(object):
+    """My user resource."""
 
     def __init__(self, request, context=None):
         self.request = request
@@ -218,6 +221,23 @@ class TestResource(TestCase):
             with mock.patch.object(self.authn_policy, 'authenticated_userid', return_value='alice'):
                 result = self.app.get('/thing', status=HTTPOk.code)
                 self.assertEqual("yay", result.json)
+
+    def test_service_wrapped_resource(self):
+        resources = {
+            'thing_service': Thing,
+            'user_service': User,
+        }
+
+        for name, service in (
+            (x.name, x) for x in self.config.registry.cornice_services.values()
+            if x.name in resources
+        ):
+            for attr in functools.WRAPPER_ASSIGNMENTS:
+                with self.subTest(service=name, attribute=attr):
+                    self.assertEqual(
+                        getattr(resources[name], attr, None),
+                        getattr(service, attr, None)
+                    )
 
 
 class NonAutocommittingConfigurationTestResource(TestCase):
