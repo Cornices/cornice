@@ -43,7 +43,7 @@ Here is an example of how to define cornice services in an imperative way:
                     description='Clear database content',
                     path='/__flush__')
 
-    flush.add_view("POST", flush_post, **kwargs):
+    flush.add_view("POST", flush_post)
 
     def includeme(config):
         config.add_cornice_service(flush)
