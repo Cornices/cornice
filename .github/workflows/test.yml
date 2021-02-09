@@ -1,0 +1,59 @@
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+name: Unit Testing
+jobs:
+  chore:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toxenv: [py35, py36, py37, py38, flake8]
+        include:
+          - toxenv: py35
+            python-version: "3.5"
+          - toxenv: py36
+            python-version: "3.6"
+          - toxenv: py37
+            python-version: "3.7"
+          - toxenv: py38
+            python-version: "3.8"
+          - toxenv: flake8
+            python-version: "3.X"
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install virtualenv
+        run: |
+          pip install virtualenv
+          virtualenv --python=python3 .venv
+
+      - name: Print environment
+        run: |
+          source .venv/bin/activate
+          python --version
+          pip --version
+
+      - name: Install dependencies
+        run: |
+          source .venv/bin/activate
+          pip install tox
+
+      - name: Tox
+        run: |
+          source .venv/bin/activate
+          tox -e ${{ matrix.toxenv }}
+
+      - name: Coveralls
+        uses: AndreMiras/coveralls-python-action@develop
+        if: matrix.toxenv != 'flake8'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
