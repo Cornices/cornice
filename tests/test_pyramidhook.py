@@ -24,7 +24,7 @@ from webtest import TestApp
 
 from cornice import Service
 from cornice.pyramidhook import register_service_views
-from cornice.util import func_name, ContentTypePredicate
+from cornice.util import func_name, ContentTypePredicate, current_service
 
 from .support import CatchErrors, dummy_factory
 
@@ -297,6 +297,42 @@ class TestRouteFromPyramid(TestCase):
     def test_no_route_or_path(self):
         with self.assertRaises(TypeError):
             Service(name="broken service",)
+
+
+class TestPrefixRouteFromPyramid(TestCase):
+
+    def setUp(self):
+        self.config = testing.setUp()
+        self.config.route_prefix = '/prefix'
+        self.config.include("cornice")
+        self.config.add_route('proute', '/from_pyramid')
+        self.config.scan("tests.test_pyramidhook")
+
+        def handle_response(request):
+            return {'service': request.current_service.name,
+                    'route': request.matched_route.name}
+        rserv = Service(name="ServiceWPyramidRoute", pyramid_route="proute")
+        rserv.add_view('GET', handle_response)
+
+        register_service_views(self.config, rserv)
+        self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
+
+    def test_service_routing(self):
+        result = self.app.get('/prefix/from_pyramid', status=200)
+        self.assertEqual('proute', result.json['route'])
+        self.assertEqual('ServiceWPyramidRoute', result.json['service'])
+
+
+    def test_no_route_or_path(self):
+        with self.assertRaises(TypeError):
+            Service(name="broken service",)
+
+    def test_current_service(self):
+        pyramid_app = self.app.app.app
+        request = mock.MagicMock()
+        request.matched_route = pyramid_app.routes_mapper.get_route("proute")
+        request.registry = pyramid_app.registry
+        assert current_service(request)
 
 class TestServiceWithNonpickleableSchema(TestCase):
     def setUp(self):

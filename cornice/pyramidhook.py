@@ -170,7 +170,7 @@ def register_service_views(config, service):
     services = config.registry.cornice_services
     if existing_route:
         route_name = existing_route
-        services[prefix + '__cornice' + existing_route] = service
+        services['__cornice' + existing_route] = service
     else:
         services[prefix + service.path] = service
 
