@@ -5,7 +5,14 @@ CHANGELOG
 5.0.4 (unreleased)
 ==================
 
-- Nothing changed yet.
+**New features**
+
+- Make services with pyramid routes accessible by current_service utility method (refs #550)
+- Update the generated service to look like the resource it is wrapping (#544)
+
+**Internal Changes**
+
+- Switch to Github Actions
 
 
 5.0.3 (2020-08-31)
