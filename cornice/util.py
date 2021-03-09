@@ -3,14 +3,12 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import warnings
 
-from pyramid.compat import string_types
-
 __all__ = ['is_string', 'to_list', 'match_accept_header',
            'ContentTypePredicate', 'current_service', 'func_name']
 
 
 def is_string(s):
-    return isinstance(s, string_types)
+    return isinstance(s, str)
 
 
 def to_list(obj):
@@ -106,7 +104,7 @@ class ContentTypePredicate(object):
 
 def func_name(f):
     """Return the name of a function or class method."""
-    if isinstance(f, string_types):
+    if isinstance(f, str):
         return f
     elif hasattr(f, '__qualname__'):  # pragma: no cover
         return f.__qualname__  # Python 3
