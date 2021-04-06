@@ -7,7 +7,6 @@ import unittest
 import warnings
 from unittest import mock
 
-from pyramid import compat
 from pyramid.request import Request
 from webtest import TestApp
 try:
@@ -609,11 +608,11 @@ class TestExtractedJSONValueTypes(unittest.TestCase):
     """
     def test_extracted_json_values(self):
         """Extracted JSON values are unicode in PY2."""
-        body = '{"foo": "bar", "currency": "\xe2\x82\xac"}'
-        request = Request.blank('/', body=compat.bytes_(body))
+        body = b'{"foo": "bar", "currency": "\xe2\x82\xac"}'
+        request = Request.blank('/', body=body)
         data = extract_cstruct(request)
-        self.assertEqual(type(data['body']['foo']), compat.text_type)
-        self.assertEqual(type(data['body']['currency']), compat.text_type)
+        self.assertEqual(type(data['body']['foo']), str)
+        self.assertEqual(type(data['body']['currency']), str)
         self.assertEqual(data['body']['currency'], u'€')
 
 
