@@ -2,7 +2,7 @@
 CHANGELOG
 #########
 
-5.2.0 (unreleased)
+5.2.0 (2021-04-06)
 ==================
 
 **Internal Changes**
