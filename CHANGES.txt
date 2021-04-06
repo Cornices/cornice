@@ -5,7 +5,9 @@ CHANGELOG
 5.2.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+**Internal Changes**
+
+- Support of Pyramid 2 (fixes #555)
 
 
 5.1.0 (2021-02-18)
