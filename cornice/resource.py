@@ -33,7 +33,7 @@ def resource(depth=2, **kw):
     return wrapper
 
 
-def add_resource(klass, depth=1, **kw):
+def add_resource(klass, depth=2, **kw):
     """Function to declare resources of a Class.
 
     All the methods of this class named by the name of HTTP resources
@@ -116,7 +116,7 @@ def add_resource(klass, depth=1, **kw):
                         klass.__name__.lower())
         service_name = prefix + service_name
         service = services[service_name] = Service(name=service_name,
-                                                   depth=2, **service_args)
+                                                   depth=depth, **service_args)
         # ensure the service comes with the same properties as the wrapped
         # resource
         functools.update_wrapper(service, klass)
