@@ -234,7 +234,7 @@ if COLANDER:
         return {'data': request.validated}
 
 
-    def validate_bar(node, value):
+    def validate_bar(node, value, **kwargs):
         if value != 'open':
             raise Invalid(node, "The bar is not open.")
 
@@ -303,7 +303,10 @@ if COLANDER:
             email = appstruct['body'].get('email')
             ref = appstruct['querystring'].get('ref')
             if email and ref and len(email) != ref:
-                self.raise_invalid('Invalid email length')
+                body_node, _ = self.children
+                exc = Invalid(body_node)
+                exc["email"] = 'Invalid email length'
+                raise exc
             return appstruct
 
 
@@ -378,7 +381,7 @@ if MARSHMALLOW:
         csrf_secret = marshmallow.fields.String()
 
         @marshmallow.validates_schema
-        def validate_csrf_secret(self, data):
+        def validate_csrf_secret(self, data, **kwargs):
             # simulate validation of session variables
             if self.context['request'].get_csrf() != data.get('csrf_secret'):
                 raise marshmallow.ValidationError('Wrong token')
@@ -443,7 +446,7 @@ if MARSHMALLOW:
         field = marshmallow.fields.List(marshmallow.fields.String(), many=True)
 
         @marshmallow.pre_load()
-        def normalize_field(self, data):
+        def normalize_field(self, data, **kwargs):
             if 'field' in data and not isinstance(data['field'], list):
                 data['field'] = [data['field']]
             return data
@@ -480,12 +483,12 @@ if MARSHMALLOW:
         querystring = marshmallow.fields.Nested(MRefererSchema)
 
         @marshmallow.validates_schema
-        def validate_email_length(self, data):
+        def validate_email_length(self, data, **kwargs):
             email = data['body'].get('email')
             ref = data['querystring'].get('ref')
             if email and ref and len(email) != ref:
                 raise marshmallow.ValidationError(
-                    {'email': 'Invalid email length'})
+                    {'body': {'email': 'Invalid email length'}})
 
     @m_email_service.post(
         schema=MNewsletterPayload, validators=(marshmallow_validator,))

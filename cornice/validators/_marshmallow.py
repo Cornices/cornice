@@ -40,10 +40,7 @@ def _generate_marshmallow_validator(location):
         """
         import marshmallow
         import marshmallow.schema
-        try:
-            from marshmallow.utils import EXCLUDE
-        except ImportError:
-            EXCLUDE = 'exclude'
+        from marshmallow.utils import EXCLUDE
 
         if schema is None:
             return
@@ -56,14 +53,6 @@ def _generate_marshmallow_validator(location):
             def _deserialize(self, value, attr, data, **kwargs):
                 schema.context.setdefault('request', request)
                 deserialized = schema.load(value)
-                # marshmallow 2.x returns a tuple, 3/x will always throw
-                # and returns just data
-                if isinstance(deserialized, tuple):
-                    deserialized, errors = deserialized[0], deserialized[1]
-                    # this should cover both non-strict and strict forms
-                    if errors:
-                        raise marshmallow.ValidationError(
-                            errors)  # pragma: no cover
                 return deserialized
 
         class Meta(object):
@@ -120,17 +109,11 @@ def _message_normalizer(exc, no_field_name="_schema"):
     :return:
     """
     if isinstance(exc.messages, dict):
-        if '_schema' in exc.messages:
-            new_dict = {}
-            # if not dict expect a list of dicts and normalize it to just dict
-            if not hasattr(exc.messages['_schema'], 'keys'):
-                for item in exc.messages['_schema']:
-                    new_dict.update(item)
-                return {'_schema': new_dict}
         return exc.messages
-    if len(exc.field_names) == 0:
+    field_names = exc.kwargs.get('field_names', [])
+    if len(field_names) == 0:
         return {no_field_name: exc.messages}
-    return dict((name, exc.messages) for name in exc.field_names)
+    return dict((name, exc.messages) for name in field_names)
 
 
 def validator(request, schema=None, deserializer=None, **kwargs):
@@ -167,13 +150,6 @@ def validator(request, schema=None, deserializer=None, **kwargs):
     cstruct = deserializer(request)
     try:
         deserialized = schema.load(cstruct)
-        # marshmallow 2.x returns a tuple, 3/x will always throw
-        # and returns just data
-        if isinstance(deserialized, tuple):
-            deserialized, errors = deserialized[0], deserialized[1]
-            # this should cover both non-strict and strict forms
-            if errors:
-                raise marshmallow.ValidationError(errors)
     except marshmallow.ValidationError as err:
         # translate = request.localizer.translate
         normalized_errors = _message_normalizer(err)
