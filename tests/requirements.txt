@@ -1,7 +1,7 @@
 Sphinx
 WebTest
 colander>=1.0b1
-marshmallow>=2.0.0,<3.0.0
+marshmallow>=3.0.0rc1,<4.0
 coverage
 pytest
 pytest-cov

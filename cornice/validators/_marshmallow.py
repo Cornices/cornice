@@ -128,9 +128,15 @@ def _message_normalizer(exc, no_field_name="_schema"):
                     new_dict.update(item)
                 return {'_schema': new_dict}
         return exc.messages
-    if len(exc.field_names) == 0:
+    if hasattr(exc, 'field_names'):
+        field_names = exc.field_names
+    elif hasattr(exc, 'kwargs') and 'field_names' in exc.kwargs:
+        field_names = exc.kwargs['field_names']
+    else:
+        field_names = []
+    if len(field_names) == 0:
         return {no_field_name: exc.messages}
-    return dict((name, exc.messages) for name in exc.field_names)
+    return dict((name, exc.messages) for name in field_names)
 
 
 def validator(request, schema=None, deserializer=None, **kwargs):
