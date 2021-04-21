@@ -5,7 +5,9 @@ CHANGELOG
 5.2.1 (unreleased)
 ==================
 
-- Nothing changed yet.
+**Breaking changes**
+
+- Drop support of Marshmallow < 3
 
 
 5.2.0 (2021-04-06)
