@@ -656,8 +656,12 @@ class TestServiceDefinitionMarshmallow(LoggingCatcher, TestCase):
         response = app.post_json('/m_newsletter?ref=2', params=content,
                                  status=400)
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json['errors'][0]['description'],
-                         'Invalid email length')
+        error = {
+            'location': 'body',
+            'name': 'email',
+            'description': 'Invalid email length'
+        }
+        self.assertEqual(response.json['errors'][0], error)
 
     def test_validated_path_content_from_schema(self):
         # Test validation request.matchdict.  (See #411)
