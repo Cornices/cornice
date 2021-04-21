@@ -303,7 +303,10 @@ if COLANDER:
             email = appstruct['body'].get('email')
             ref = appstruct['querystring'].get('ref')
             if email and ref and len(email) != ref:
-                self.raise_invalid('Invalid email length')
+                body_node, _ = self.children
+                exc = Invalid(body_node)
+                exc["email"] = 'Invalid email length'
+                raise exc
             return appstruct
 
 
