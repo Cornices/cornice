@@ -25,6 +25,7 @@ Cornice:
 * Daniel M. Weeks <dan@danweeks.net>
 * David Charboneau <david@thecharboneaus.net>
 * David Grant <seizethedave@gmail.com>
+* Dion Peters <petersdion@gmail.com>
 * Elias <elias@stupeflix.com>
 * Gabriela Surita <gsurita@mozilla.com>
 * Gael Pasgrimaud <gael@gawel.org>
@@ -76,6 +77,7 @@ Cornice:
 * Ryan Kelly <ryan@rfk.id.au>
 * Scott Bowers <sbbowers@gmail.com>
 * Sebastian Hanula <sebastian.hanula@gmail.com>
+* Sergey Safonov <spoof@spoofa.info>
 * sghill <steve@sghill.net>
 * Simone Marzola <marzolasimone@gmail.com>
 * Tarek Ziade <tarek@ziade.org>
@@ -89,4 +91,3 @@ Cornice:
 * Ymage <o2heltem@gmail.com>
 * Volodymyr Maksymiv <vmaksymiv@quintagroup.com>
 * Walter Danilo Galante <walterdangalante@gmail.com>
-* Sergey Safonov <spoof@spoofa.info>
