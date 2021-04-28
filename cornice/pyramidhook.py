@@ -14,7 +14,7 @@ from cornice.service import decorate_view
 from cornice.errors import Errors
 from cornice.util import (
     is_string, to_list, match_accept_header, match_content_type_header,
-    content_type_matches,
+    content_type_matches, current_service
 )
 from cornice.cors import (
     get_cors_validator,
@@ -98,9 +98,7 @@ def get_fallback_view(service):
 def apply_filters(request, response):
     if request.matched_route is not None:
         # do some sanity checking on the response using filters
-        services = request.registry.cornice_services
-        pattern = request.matched_route.pattern
-        service = services.get(pattern, None)
+        service = current_service(request)
         if service is not None:
             kwargs, ob = getattr(request, "cornice_args", ({}, None))
             for _filter in kwargs.get('filters', []):
