@@ -9,6 +9,10 @@ CHANGELOG
 
 - Drop support of Marshmallow < 3
 
+**Bug fixes**
+
+- Correctly determine service with pyramid route to ensure filters are applied and apply_cors_post_request is called
+
 
 5.2.0 (2021-04-06)
 ==================
@@ -53,7 +57,7 @@ CHANGELOG
 5.0.1 (2020-05-25)
 ==================
 
-- Add setuptoools ``python_requires`` check
+- Add setuptools ``python_requires`` check
 
 
 5.0.0 (2020-05-19)
