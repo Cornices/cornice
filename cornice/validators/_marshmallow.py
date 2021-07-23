@@ -80,7 +80,7 @@ def _generate_marshmallow_validator(location):
                 """
 
                 class_attrs[location] = ValidatedField(
-                    required=True, load_from=location)
+                    required=True, metadata={"load_from": location})
                 class_attrs['Meta'] = Meta
                 return type(name, bases, class_attrs)
 
