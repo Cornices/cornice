@@ -4,6 +4,8 @@
 import fnmatch
 import functools
 
+from pyramid.settings import asbool
+
 
 CORS_PARAMETERS = ('cors_headers', 'cors_enabled', 'cors_origins',
                    'cors_credentials', 'cors_max_age',
@@ -87,23 +89,35 @@ def ensure_origin(service, request, response=None, **kwargs):
     response = response or request.response
 
     # Don't check this twice.
-    if not request.info.get('cors_checked', False):
-        method = _get_method(request)
+    if request.info.get('cors_checked', False):
+        return response
 
-        origin = request.headers.get('Origin')
-        if origin:
-            if not any([fnmatch.fnmatchcase(origin, o)
-                        for o in service.cors_origins_for(method)]):
-                request.errors.add('header', 'Origin',
-                                   '%s not allowed' % origin)
-            elif service.cors_support_credentials_for(method):
-                response.headers['Access-Control-Allow-Origin'] = origin
-            else:
-                if any([o == "*" for o in service.cors_origins_for(method)]):
-                    response.headers['Access-Control-Allow-Origin'] = '*'
-                else:
-                    response.headers['Access-Control-Allow-Origin'] = origin
-        request.info['cors_checked'] = True
+    origin = request.headers.get('Origin')
+    if not origin:
+        always_cors = asbool(
+            request.registry.settings.get("cornice.always_cors")
+        )
+        # With this setting, if the service origins has "*", then
+        # always return CORS headers.
+        origins = getattr(service, "cors_origins", [])
+        if always_cors and "*" in origins:
+            origin = "*"
+        else:
+            return response
+
+    method = _get_method(request)
+    if not any([fnmatch.fnmatchcase(origin, o)
+                for o in service.cors_origins_for(method)]):
+        request.errors.add('header', 'Origin',
+                           '%s not allowed' % origin)
+    elif service.cors_support_credentials_for(method):
+        response.headers['Access-Control-Allow-Origin'] = origin
+    else:
+        if any([o == "*" for o in service.cors_origins_for(method)]):
+            response.headers['Access-Control-Allow-Origin'] = '*'
+        else:
+            response.headers['Access-Control-Allow-Origin'] = origin
+    request.info['cors_checked'] = True
     return response
 
 

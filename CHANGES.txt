@@ -9,6 +9,10 @@ CHANGELOG
 
 - Drop support of Marshmallow < 3
 
+**New features**
+
+- Add ``cornice.always_cors`` setting to force CORS headers in responses when services origins is ``*``.
+
 **Bug fixes**
 
 - Correctly determine service with pyramid route to ensure filters are applied and apply_cors_post_request is called

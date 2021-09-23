@@ -367,3 +367,21 @@ class TestAuthenticatedCORS(TestCase):
         self.app.options('/spam', status=200,
                          headers={'Origin': 'notmyidea.org',
                                   'Access-Control-Request-Method': 'POST'})
+
+
+class TestAlwaysCORS(TestCase):
+
+    def setUp(self):
+        self.config = testing.setUp()
+        self.config.include('cornice')
+        self.config.add_settings({ "cornice.always_cors": True })
+        self.config.add_route('noservice', '/noservice')
+        self.config.scan('tests.test_cors')
+        self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
+
+    def tearDown(self):
+        testing.tearDown()
+
+    def test_response_returns_CORS_headers_without_origin(self):
+        resp = self.app.post('/bacon/response', status=200)
+        self.assertIn('Access-Control-Allow-Origin', resp.headers)
