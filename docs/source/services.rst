@@ -88,6 +88,12 @@ and appropriate headers validation.
                     cors_origins=('*',),
                     cors_max_age=3600)
 
+
+.. note::
+
+    When ``*`` is among CORS origins and the setting ``cornice.always_cors`` is set to ``true``,
+    then CORS response headers are always returned.
+
 There are also a number of parameters that are related to the support of
 CORS (Cross Origin Resource Sharing). You can read the CORS specification
 at http://www.w3.org/TR/cors/ and see :class:`the exhaustive list of options in Cornice <cornice.service.Service>`.

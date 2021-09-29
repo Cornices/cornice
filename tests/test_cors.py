@@ -367,3 +367,37 @@ class TestAuthenticatedCORS(TestCase):
         self.app.options('/spam', status=200,
                          headers={'Origin': 'notmyidea.org',
                                   'Access-Control-Request-Method': 'POST'})
+
+
+class TestAlwaysCORS(TestCase):
+
+    def setUp(self):
+        self.config = testing.setUp()
+        self.config.include('cornice')
+        self.config.add_settings({ "cornice.always_cors": True })
+        self.config.add_route('noservice', '/noservice')
+        self.config.scan('tests.test_cors')
+        self.app = TestApp(CatchErrors(self.config.make_wsgi_app()))
+
+    def tearDown(self):
+        testing.tearDown()
+
+    def test_response_returns_CORS_headers_without_origin(self):
+        resp = self.app.post('/bacon/response', status=200)
+        self.assertIn('Access-Control-Allow-Origin', resp.headers)
+
+    def test_response_does_not_return_CORS_headers_if_no_origin(self):
+        resp = self.app.put('/squirel')
+        self.assertNotIn('Access-Control-Allow-Origin', resp.headers)
+
+    def test_preflight_checks_origin_when_not_star(self):
+        self.app.options('/squirel',
+                         headers={'Origin': 'notmyidea.org',
+                                  'Access-Control-Request-Method': 'PUT'},
+                         status=400)
+        self.app.put('/squirel',
+                     headers={'Origin': 'notmyidea.org'},
+                     status=400)
+
+    def test_checks_origin_when_not_star(self):
+        self.app.put('/squirel', headers={'Origin': 'not foobar'}, status=400)
