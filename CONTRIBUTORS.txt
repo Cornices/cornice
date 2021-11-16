@@ -46,6 +46,7 @@ Cornice:
 * Jon Staley <jon.staley@fundingoptions.com>
 * Joshua Immanuel <josh@hipro.co.in>
 * Josip Delic <delijati@googlemail.com>
+* Karthikeyan Singaravelan <tir.karthi@gmail.com>
 * Kit Randel <kit@nocturne.net.nz>
 * Laurence Rowe <laurence@lrowe.co.uk>
 * Lorenzo Gil Sanchez <lorenzo.gil.sanchez@gmail.com>

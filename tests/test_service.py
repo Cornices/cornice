@@ -252,29 +252,29 @@ class TestService(TestCase):
         # be able to retrieve this information easily
         service = Service("color", "/favorite-color")
         service.add_view("GET", lambda x: "blue", content_type="text/plain")
-        self.assertEquals(service.get_contenttypes("GET"), ['text/plain'])
+        self.assertEqual(service.get_contenttypes("GET"), ['text/plain'])
 
         service.add_view("GET", lambda x: "blue",
                          content_type="application/json")
-        self.assertEquals(service.get_contenttypes("GET"),
-                          ['text/plain', 'application/json'])
+        self.assertEqual(service.get_contenttypes("GET"),
+                         ['text/plain', 'application/json'])
 
         # adding a view for the POST method should not break everything :-)
         service.add_view("POST", lambda x: "ok", content_type=('foo/bar'))
-        self.assertEquals(service.get_contenttypes("GET"),
-                          ['text/plain', 'application/json'])
+        self.assertEqual(service.get_contenttypes("GET"),
+                         ['text/plain', 'application/json'])
         # and of course the list of supported ingress content-types should be
         # available for the "POST" as well.
-        self.assertEquals(service.get_contenttypes("POST"),
-                          ['foo/bar'])
+        self.assertEqual(service.get_contenttypes("POST"),
+                         ['foo/bar'])
 
         # it is possible to give supported ingress content-types dynamically at
         # run-time. You don't always want to have the callables when retrieving
         # all the supported content-types
         service.add_view("POST", lambda x: "ok",
                          content_type=lambda r: "application/json")
-        self.assertEquals(len(service.get_contenttypes("POST")), 2)
-        self.assertEquals(len(service.get_contenttypes("POST", True)), 1)
+        self.assertEqual(len(service.get_contenttypes("POST")), 2)
+        self.assertEqual(len(service.get_contenttypes("POST", True)), 1)
 
     def test_get_validators(self):
         # defining different validators for the same services, even with
