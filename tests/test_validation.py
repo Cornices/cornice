@@ -85,8 +85,8 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
         error_location = response.json['errors'][0]['location']
         error_name = response.json['errors'][0]['name']
         error_description = response.json['errors'][0]['description']
-        self.assertEquals('header', error_location)
-        self.assertEquals('Accept', error_name)
+        self.assertEqual('header', error_location)
+        self.assertEqual('Accept', error_name)
         self.assertIn('application/json', error_description)
         self.assertIn('text/plain', error_description)
 
@@ -201,9 +201,9 @@ class TestServiceDefinition(LoggingCatcher, TestCase):
 
         # it is possible to have more than one value with the same name in the
         # querystring
-        self.assertEquals(b'{"field": ["5"]}', app.get('/foobaz?field=5').body)
-        self.assertEquals(b'{"field": ["5", "2"]}',
-                          app.get('/foobaz?field=5&field=2').body)
+        self.assertEqual(b'{"field": ["5"]}', app.get('/foobaz?field=5').body)
+        self.assertEqual(b'{"field": ["5", "2"]}',
+                         app.get('/foobaz?field=5&field=2').body)
 
     def test_content_type_missing(self):
         # test that a Content-Type request headers is present
@@ -628,9 +628,9 @@ class TestServiceDefinitionMarshmallow(LoggingCatcher, TestCase):
 
         # it is possible to have more than one value with the same name in the
         # querystring
-        self.assertEquals(b'{"field": ["5"]}', app.get('/m_foobaz?field=5').body)
-        self.assertEquals(b'{"field": ["5", "2"]}',
-                          app.get('/m_foobaz?field=5&field=2').body)
+        self.assertEqual(b'{"field": ["5"]}', app.get('/m_foobaz?field=5').body)
+        self.assertEqual(b'{"field": ["5", "2"]}',
+                         app.get('/m_foobaz?field=5&field=2').body)
 
     def test_validated_body_content_from_schema(self):
         app = TestApp(main({}))

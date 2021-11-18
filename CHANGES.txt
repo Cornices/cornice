@@ -5,7 +5,9 @@ CHANGELOG
 6.1.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+**Internal Changes**
+
+- Refactory ``unittest`` aliases for Python 3.11 compatibility
 
 
 6.0.0 (2021-09-29)
