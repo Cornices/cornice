@@ -7,6 +7,7 @@ CHANGELOG
 
 **Internal Changes**
 
+- Add deserializer to Cornice params (#565)
 - Refactory ``unittest`` aliases for Python 3.11 compatibility
 
 
