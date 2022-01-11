@@ -2,10 +2,10 @@
 Cornice
 =======
 
-|readthedocs| |pypi| |travis| |master-coverage|
+|readthedocs| |pypi| |github-actions| |master-coverage|
 
-.. |travis| image:: https://travis-ci.org/Cornices/cornice.svg?branch=master
-    :target: https://travis-ci.org/Cornices/cornice
+.. |github-actions| image:: https://github.com/Cornices/cornice/workflows/Unit%20Testing/badge.svg
+    :target: https://github.com/Cornices/cornice/actions?query=workflow%3A%22Unit+Testing%22
 
 .. |readthedocs| image:: https://readthedocs.org/projects/cornice/badge/?version=latest
     :target: https://cornice.readthedocs.io/en/latest/
