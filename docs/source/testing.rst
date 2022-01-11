@@ -11,11 +11,7 @@ just setup ``tox`` and run it inside the toplevel project directory::
 
 To run a single test inside a specific Python environment, do e.g.::
 
-    tox -e py27 tests/test_validation.py:TestServiceDefinition.test_content_type_missing
-
-or::
-
-    tox -e py27 tests.test_validation:TestServiceDefinition.test_content_type_missing
+    tox -e py39 tests/test_validation.py::TestServiceDefinition::test_content_type_missing
 
 
 Testing cornice services
