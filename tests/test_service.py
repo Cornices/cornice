@@ -44,7 +44,7 @@ class TestService(TestCase):
     def tearDown(self):
         clear_services()
 
-    def test_service_instanciation(self):
+    def test_service_instantiation(self):
         service = Service("coconuts", "/migrate")
         self.assertEqual(service.name, "coconuts")
         self.assertEqual(service.path, "/migrate")
@@ -74,7 +74,7 @@ class TestService(TestCase):
             self.assertEqual(args[arg], getattr(Service, arg, None))
 
         # calling this method on a configured service should use the values
-        # passed at instanciation time as default values
+        # passed at instantiation time as default values
         service = Service("coconuts", "/migrate", renderer="html")
         args = service.get_arguments({})
         self.assertEqual(args['renderer'], 'html')
@@ -395,8 +395,8 @@ class TestService(TestCase):
                     cors_origins=('*'), cors_enabled=False)
             .cors_enabled)
 
-    def test_cors_headers_for_service_instanciation(self):
-        # When definining services, it's possible to add headers. This tests
+    def test_cors_headers_for_service_instantiation(self):
+        # When defining services, it's possible to add headers. This tests
         # it is possible to list all the headers supported by a service.
         service = Service('coconuts', '/migrate',
                           cors_headers=('X-Header-Coconut'))
@@ -413,7 +413,7 @@ class TestService(TestCase):
         self.assertIn('X-Header-Foobar', service.cors_supported_headers_for())
 
     def test_cors_headers_extension(self):
-        # definining headers in the service and in the view
+        # defining headers in the service and in the view
         service = Service('coconuts', '/migrate',
                           cors_headers=('X-Header-Foobar'))
         service.add_view('POST', _stub, cors_headers=('X-Header-Barbaz'))
