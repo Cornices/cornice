@@ -183,11 +183,11 @@ class TestResource(TestCase):
     def test_explicit_collection_service_name(self):
         route_url = testing.DummyRequest().route_url
         # service must exist
-        self.assert_(route_url('collection_user_service'))
+        self.assertTrue(route_url('collection_user_service'))
 
     def test_explicit_service_name(self):
         route_url = testing.DummyRequest().route_url
-        self.assert_(route_url('user_service', id=42))  # service must exist
+        self.assertTrue(route_url('user_service', id=42))  # service must exist
 
     @mock.patch('cornice.resource.Service')
     def test_factory_is_autowired(self, mocked_service):
