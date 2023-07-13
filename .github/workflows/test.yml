@@ -11,22 +11,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        toxenv: [py35, py36, py37, py38, flake8]
+        toxenv: [py38, py39, py310, py311, flake8]
         include:
-          - toxenv: py35
-            python-version: "3.5"
-          - toxenv: py36
-            python-version: "3.6"
-          - toxenv: py37
-            python-version: "3.7"
           - toxenv: py38
             python-version: "3.8"
           - toxenv: py39
             python-version: "3.9"
           - toxenv: py310
             python-version: "3.10"
+          - toxenv: py311
+            python-version: "3.11"
           - toxenv: flake8
-            python-version: "3.X"
+            python-version: "3.11"
 
     steps:
       - uses: actions/checkout@v2
