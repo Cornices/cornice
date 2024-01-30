@@ -3,9 +3,16 @@ updates:
 - package-ecosystem: pip
   directory: "/"
   schedule:
-    interval: daily
-  open-pull-requests-limit: 10
-  ignore:
-  - dependency-name: marshmallow
-    versions:
-    - 3.2.1
+    interval: weekly
+  open-pull-requests-limit: 99
+  groups:
+    all-dependencies:
+      update-types: ["major", "minor", "patch"]
+- package-ecosystem: "github-actions"
+  directory: "/"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 99
+  groups:
+    all-dependencies:
+      update-types: ["major", "minor", "patch"]
