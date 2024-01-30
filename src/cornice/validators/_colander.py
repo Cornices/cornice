@@ -17,6 +17,7 @@ def _generate_colander_validator(location):
         location.
     :rtype: callable
     """
+
     def _validator(request, schema=None, deserializer=None, **kwargs):
         """
         Validate the location against the schema defined on the service.
@@ -44,14 +45,14 @@ def _generate_colander_validator(location):
         schema_instance = _ensure_instantiated(schema)
 
         if not isinstance(schema_instance, colander.MappingSchema):
-            raise TypeError("Schema should inherit from "
-                            "colander.MappingSchema.")
+            raise TypeError("Schema should inherit from " "colander.MappingSchema.")
 
         class RequestSchemaMeta(colander._SchemaMeta):
             """
             A metaclass that will inject a location class attribute into
             RequestSchema.
             """
+
             def __new__(cls, name, bases, class_attrs):
                 """
                 Instantiate the RequestSchema class.
@@ -69,6 +70,7 @@ def _generate_colander_validator(location):
 
         class RequestSchema(colander.MappingSchema, metaclass=RequestSchemaMeta):  # noqa
             """A schema to validate the request's location attributes."""
+
             pass
 
         validator(request, RequestSchema(), deserializer, **kwargs)
@@ -80,10 +82,10 @@ def _generate_colander_validator(location):
     return _validator
 
 
-body_validator = _generate_colander_validator('body')
-headers_validator = _generate_colander_validator('headers')
-path_validator = _generate_colander_validator('path')
-querystring_validator = _generate_colander_validator('querystring')
+body_validator = _generate_colander_validator("body")
+headers_validator = _generate_colander_validator("headers")
+path_validator = _generate_colander_validator("path")
+querystring_validator = _generate_colander_validator("querystring")
 
 
 def validator(request, schema=None, deserializer=None, **kwargs):
@@ -106,6 +108,7 @@ def validator(request, schema=None, deserializer=None, **kwargs):
         :func:`cornice.validators.extract_cstruct`
     """
     import colander
+
     from cornice.validators import extract_cstruct
 
     if deserializer is None:
@@ -122,7 +125,7 @@ def validator(request, schema=None, deserializer=None, **kwargs):
         translate = request.localizer.translate
         error_dict = e.asdict(translate=translate)
         for name, msg in error_dict.items():
-            location, _, field = name.partition('.')
+            location, _, field = name.partition(".")
             request.errors.add(location, field, msg)
     else:
         request.validated.update(deserialized)
@@ -131,9 +134,9 @@ def validator(request, schema=None, deserializer=None, **kwargs):
 def _ensure_instantiated(schema):
     if inspect.isclass(schema):
         warnings.warn(
-            "Setting schema to a class is deprecated. "
-            " Set schema to an instance instead.",
+            "Setting schema to a class is deprecated. " " Set schema to an instance instead.",
             DeprecationWarning,
-            stacklevel=2)
+            stacklevel=2,
+        )
         schema = schema()
     return schema

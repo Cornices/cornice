@@ -3,8 +3,15 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import warnings
 
-__all__ = ['is_string', 'to_list', 'match_accept_header',
-           'ContentTypePredicate', 'current_service', 'func_name']
+
+__all__ = [
+    "is_string",
+    "to_list",
+    "match_accept_header",
+    "ContentTypePredicate",
+    "current_service",
+    "func_name",
+]
 
 
 def is_string(s):
@@ -14,7 +21,9 @@ def is_string(s):
 def to_list(obj):
     """Convert an object to a list if it is not already one"""
     if not isinstance(obj, (list, tuple)):
-        obj = [obj, ]
+        obj = [
+            obj,
+        ]
     return obj
 
 
@@ -34,7 +43,7 @@ def match_accept_header(func, context, request):
         It obtains the request object as single argument.
     """
     acceptable = to_list(func(request))
-    request.info['acceptable'] = acceptable
+    request.info["acceptable"] = acceptable
     return len(request.accept.acceptable_offers(acceptable)) > 0
 
 
@@ -56,20 +65,19 @@ def match_content_type_header(func, context, request):
         It obtains the request object as single argument.
     """
     supported_contenttypes = to_list(func(request))
-    request.info['supported_contenttypes'] = supported_contenttypes
+    request.info["supported_contenttypes"] = supported_contenttypes
     return content_type_matches(request, supported_contenttypes)
 
 
 def extract_json_data(request):
-    warnings.warn("Use ``cornice.validators.extract_cstruct()`` instead",
-                  DeprecationWarning)
+    warnings.warn("Use ``cornice.validators.extract_cstruct()`` instead", DeprecationWarning)
     from cornice.validators import extract_cstruct
-    return extract_cstruct(request)['body']
+
+    return extract_cstruct(request)["body"]
 
 
 def extract_form_urlencoded_data(request):
-    warnings.warn("Use ``cornice.validators.extract_cstruct()`` instead",
-                  DeprecationWarning)
+    warnings.warn("Use ``cornice.validators.extract_cstruct()`` instead", DeprecationWarning)
     return request.POST
 
 
@@ -90,11 +98,12 @@ class ContentTypePredicate(object):
       http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/hooks.html
       #view-and-route-predicates
     """
+
     def __init__(self, val, config):
         self.val = val
 
     def text(self):
-        return 'content_type = %s' % (self.val,)
+        return "content_type = %s" % (self.val,)
 
     phash = text
 
@@ -106,10 +115,10 @@ def func_name(f):
     """Return the name of a function or class method."""
     if isinstance(f, str):
         return f
-    elif hasattr(f, '__qualname__'):  # pragma: no cover
+    elif hasattr(f, "__qualname__"):  # pragma: no cover
         return f.__qualname__  # Python 3
-    elif hasattr(f, 'im_class'):  # pragma: no cover
-        return '{0}.{1}'.format(f.im_class.__name__, f.__name__)  # Python 2
+    elif hasattr(f, "im_class"):  # pragma: no cover
+        return "{0}.{1}".format(f.im_class.__name__, f.__name__)  # Python 2
     else:  # pragma: no cover
         return f.__name__  # Python 2
 
@@ -125,5 +134,5 @@ def current_service(request):
         pattern = request.matched_route.pattern
         name = request.matched_route.name
         # try pattern first, then route name else return None
-        service = services.get(pattern, services.get('__cornice' + name))
+        service = services.get(pattern, services.get("__cornice" + name))
         return service

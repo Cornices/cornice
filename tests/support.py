@@ -5,27 +5,26 @@ import logging
 import logging.handlers
 import weakref
 
+
 try:
     from unittest2 import TestCase
 except ImportError:
     # Maybe we're running in python2.7?
     from unittest import TestCase  # NOQA
 
-from webob.dec import wsgify
-from webob import exc
-from pyramid.httpexceptions import HTTPException
-from pyramid import testing
-
 from cornice.errors import Errors
+from pyramid import testing
+from pyramid.httpexceptions import HTTPException
+from webob import exc
+from webob.dec import wsgify
 
 
-logger = logging.getLogger('cornice')
+logger = logging.getLogger("cornice")
 
 
 class DummyContext(object):
-
     def __repr__(self):
-        return 'context!'
+        return "context!"
 
 
 class DummyRequest(testing.DummyRequest):
@@ -96,8 +95,7 @@ class LoggingCatcher(object):
         called, unless *flush* is False (this is useful to get e.g. all
         warnings then all info messages).
         """
-        messages = [log.getMessage() for log in self.loghandler.buffer
-                    if log.levelno == level]
+        messages = [log.getMessage() for log in self.loghandler.buffer if log.levelno == level]
         if flush:
             self.loghandler.flush()
         return messages
@@ -106,7 +104,7 @@ class LoggingCatcher(object):
 class CatchErrors(object):
     def __init__(self, app):
         self.app = app
-        if hasattr(app, 'registry'):
+        if hasattr(app, "registry"):
             self.registry = app.registry
 
     @wsgify

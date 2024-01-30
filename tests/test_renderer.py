@@ -1,11 +1,11 @@
 from unittest import mock
 
+from cornice import CorniceRenderer
+from cornice.renderer import JSONError, bytes_adapter
 from pyramid.interfaces import IJSONAdapter
 from pyramid.renderers import JSON
 from zope.interface import providedBy
 
-from cornice import CorniceRenderer
-from cornice.renderer import bytes_adapter, JSONError
 from .support import TestCase
 
 
@@ -28,10 +28,7 @@ class TestRenderer(TestCase):
     def test_renderer_has_bytes_adapter_by_default(self):
         renderer = CorniceRenderer()
         self.assertEqual(
-            renderer.components.adapters.lookup(
-                (providedBy(bytes()),),
-                IJSONAdapter
-            ),
+            renderer.components.adapters.lookup((providedBy(bytes()),), IJSONAdapter),
             bytes_adapter,
         )
 
@@ -54,7 +51,4 @@ class TestRenderer(TestCase):
         result = renderer.render_errors(request)
         self.assertIsInstance(result, JSONError)
         self.assertEqual(result.status_int, 418)
-        self.assertEqual(
-            result.json_body,
-            {"status": "error", "errors": ["error_1", "error_2"]}
-        )
+        self.assertEqual(result.json_body, {"status": "error", "errors": ["error_1", "error_2"]})

@@ -7,8 +7,8 @@ from pyramid.i18n import TranslationString
 
 
 class Errors(list):
-    """Holds Request errors
-    """
+    """Holds Request errors"""
+
     def __init__(self, status=400, localizer=None):
         self.status = status
         self.localizer = localizer
@@ -16,24 +16,20 @@ class Errors(list):
 
     def add(self, location, name=None, description=None, **kw):
         """Registers a new error."""
-        allowed = ('body', 'querystring', 'url', 'header', 'path',
-                   'cookies', 'method')
-        if location != '' and location not in allowed:
-            raise ValueError('%r not in %s' % (location, allowed))
+        allowed = ("body", "querystring", "url", "header", "path", "cookies", "method")
+        if location != "" and location not in allowed:
+            raise ValueError("%r not in %s" % (location, allowed))
 
         if isinstance(description, TranslationString) and self.localizer:
             description = self.localizer.translate(description)
 
-        self.append(dict(
-            location=location,
-            name=name,
-            description=description, **kw))
+        self.append(dict(location=location, name=name, description=description, **kw))
 
     @classmethod
     def from_json(cls, string):
         """Transforms a json string into an `Errors` instance"""
         obj = json.loads(string.decode())
-        return Errors.from_list(obj.get('errors', []))
+        return Errors.from_list(obj.get("errors", []))
 
     @classmethod
     def from_list(cls, obj):
