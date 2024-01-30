@@ -1,5 +1,6 @@
 VENV := $(shell echo $${VIRTUAL_ENV-.venv})
 PYTHON = $(VENV)/bin/python
+SPHINX_BUILD = $(shell realpath ${VENV})/bin/sphinx-build
 INSTALL_STAMP = $(VENV)/.install.stamp
 
 .PHONY: all
@@ -34,7 +35,7 @@ format: install
 	$(VENV)/bin/ruff format src tests
 
 docs: install
-	cd docs && $(MAKE) html SPHINXBUILD=$(VENV)/bin/sphinx-build
+	cd docs && $(MAKE) html SPHINXBUILD=$(SPHINX_BUILD)
 
 .IGNORE: clean
 clean:
