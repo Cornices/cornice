@@ -34,12 +34,12 @@ build-backend = "setuptools.build_meta"
 [project.optional-dependencies]
 dev = [
     "ruff",
-    "pytest",
-    "pytest-cache",
-    "pytest-cov",
-    "webtest",
+    "pytest<9",
+    "pytest-cache<2",
+    "pytest-cov<5",
+    "WebTest<4",
     "marshmallow<4",
-    "colander",
+    "colander<3",
 ]
 
 [tool.pip-tools]
