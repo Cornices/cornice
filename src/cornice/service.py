@@ -2,16 +2,18 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import functools
+
+import venusian
 from pyramid.exceptions import ConfigurationError
 from pyramid.interfaces import IRendererFactory
 from pyramid.response import Response
-from cornice.validators import (
-    DEFAULT_VALIDATORS,
-    DEFAULT_FILTERS,
-)
-import venusian
 
-from cornice.util import is_string, to_list, func_name
+from cornice.util import func_name, is_string, to_list
+from cornice.validators import (
+    DEFAULT_FILTERS,
+    DEFAULT_VALIDATORS,
+)
+
 
 SERVICES = []
 
@@ -21,7 +23,6 @@ def clear_services():
 
 
 def get_services(names=None, exclude=None):
-
     def _keep(service):
         if exclude is not None and service.name in exclude:
             # excluded !
@@ -149,25 +150,33 @@ class Service(object):
     :meth:`~put`, :meth:`~options` and :meth:`~delete` are decorators that can
     be used to decorate views.
     """
-    renderer = 'cornicejson'
+
+    renderer = "cornicejson"
     default_validators = DEFAULT_VALIDATORS
     default_filters = DEFAULT_FILTERS
 
-    mandatory_arguments = ('renderer',)
-    list_arguments = ('validators', 'filters', 'cors_headers', 'cors_origins')
+    mandatory_arguments = ("renderer",)
+    list_arguments = ("validators", "filters", "cors_headers", "cors_origins")
 
     def __repr__(self):
-        return u'<Service %s at %s>' % (
-            self.name, self.pyramid_route or self.path)
+        return "<Service %s at %s>" % (self.name, self.pyramid_route or self.path)
 
-    def __init__(self, name, path=None, description=None, cors_policy=None,
-                 depth=1, pyramid_route=None, **kw):
+    def __init__(
+        self,
+        name,
+        path=None,
+        description=None,
+        cors_policy=None,
+        depth=1,
+        pyramid_route=None,
+        **kw,
+    ):
         self.name = name
         self.path = path
         self.pyramid_route = pyramid_route
 
         if not self.path and not self.pyramid_route:
-            raise TypeError('You need to pass path or pyramid_route arg')
+            raise TypeError("You need to pass path or pyramid_route arg")
 
         self.description = description
         self.cors_expose_all_headers = True
@@ -175,14 +184,14 @@ class Service(object):
 
         if cors_policy:
             for key, value in cors_policy.items():
-                kw.setdefault('cors_' + key, value)
+                kw.setdefault("cors_" + key, value)
 
         for key in self.list_arguments:
             # default_{validators,filters} and {filters,validators} don't
             # have to be mutables, so we need to create a new list from them
             extra = to_list(kw.get(key, []))
             kw[key] = []
-            kw[key].extend(getattr(self, 'default_%s' % key, []))
+            kw[key].extend(getattr(self, "default_%s" % key, []))
             kw[key].extend(extra)
 
         self.arguments = self.get_arguments(kw)
@@ -190,10 +199,10 @@ class Service(object):
             # avoid squashing Service.decorator if ``decorator``
             # argument is used to specify a default pyramid view
             # decorator
-            if key != 'decorator':
+            if key != "decorator":
                 setattr(self, key, value)
 
-        if hasattr(self, 'acl'):
+        if hasattr(self, "acl"):
             raise ConfigurationError("'acl' is not supported")
 
         # instantiate some variables we use to keep track of what's defined for
@@ -210,7 +219,7 @@ class Service(object):
             config = context.config.with_package(info.module)
             config.add_cornice_service(self)
 
-        info = venusian.attach(self, callback, category='pyramid', depth=depth)
+        info = venusian.attach(self, callback, category="pyramid", depth=depth)
 
     def default_error_handler(self, request):
         """Default error_handler.
@@ -222,9 +231,7 @@ class Service(object):
 
         :param request: the current Request.
         """
-        renderer = request.registry.queryUtility(
-            IRendererFactory, name=self.renderer
-        )
+        renderer = request.registry.queryUtility(IRendererFactory, name=self.renderer)
         return renderer.render_errors(request)
 
     def get_arguments(self, conf=None):
@@ -253,15 +260,14 @@ class Service(object):
             arguments[arg] = value
 
         # Allow custom error handler
-        arguments['error_handler'] = conf.pop(
-            'error_handler',
-            getattr(self, 'error_handler', self.default_error_handler)
+        arguments["error_handler"] = conf.pop(
+            "error_handler", getattr(self, "error_handler", self.default_error_handler)
         )
 
         # exclude some validators or filters
-        if 'exclude' in conf:
-            for item in to_list(conf.pop('exclude')):
-                for container in arguments['validators'], arguments['filters']:
+        if "exclude" in conf:
+            for item in to_list(conf.pop("exclude")):
+                for container in arguments["validators"], arguments["filters"]:
                     if item in container:
                         container.remove(item)
 
@@ -270,7 +276,7 @@ class Service(object):
 
         # if some keys have been defined service-wide, then we need to add
         # them to the returned dict.
-        if hasattr(self, 'arguments'):
+        if hasattr(self, "arguments"):
             for key, value in self.arguments.items():
                 if key not in arguments:
                     arguments[key] = value
@@ -292,17 +298,17 @@ class Service(object):
         """
         method = method.upper()
 
-        if 'klass' in kwargs and not callable(view):
-            view = _UnboundView(kwargs['klass'], view)
+        if "klass" in kwargs and not callable(view):
+            view = _UnboundView(kwargs["klass"], view)
 
         args = self.get_arguments(kwargs)
 
         # remove 'factory' if present,
         # it's not a valid pyramid view param
-        if 'factory' in args:
-            del args['factory']
+        if "factory" in args:
+            del args["factory"]
 
-        if hasattr(self, 'get_view_wrapper'):
+        if hasattr(self, "get_view_wrapper"):
             view = self.get_view_wrapper(kwargs)(view)
         self.definitions.append((method, view, args))
 
@@ -311,10 +317,10 @@ class Service(object):
             self.defined_methods.append(method)
 
         # auto-define a HEAD method if we have a definition for GET.
-        if method == 'GET':
-            self.definitions.append(('HEAD', view, args))
-            if 'HEAD' not in self.defined_methods:
-                self.defined_methods.append('HEAD')
+        if method == "GET":
+            self.definitions.append(("HEAD", view, args))
+            if "HEAD" not in self.defined_methods:
+                self.defined_methods.append("HEAD")
 
     def decorator(self, method, **kwargs):
         """Add the ability to define methods using python's decorators
@@ -327,9 +333,11 @@ class Service(object):
             def my_view(request):
                 pass
         """
+
         def wrapper(view):
             self.add_view(method, view, **kwargs)
             return view
+
         return wrapper
 
     def get(self, **kwargs):
@@ -434,7 +442,7 @@ class Service(object):
                                  This toggles filtering the callables (default:
                                  False)
         """
-        return self.filter_argumentlist(method, 'accept', filter_callables)
+        return self.filter_argumentlist(method, "accept", filter_callables)
 
     def get_contenttypes(self, method, filter_callables=False):
         """return a list of supported ingress content-type headers that were
@@ -447,8 +455,7 @@ class Service(object):
                                  This toggles filtering the callables (default:
                                  False)
         """
-        return self.filter_argumentlist(method, 'content_type',
-                                        filter_callables)
+        return self.filter_argumentlist(method, "content_type", filter_callables)
 
     def get_validators(self, method):
         """return a list of validators for the given method.
@@ -457,8 +464,8 @@ class Service(object):
         """
         validators = []
         for meth, view, args in self.definitions:
-            if meth.upper() == method.upper() and 'validators' in args:
-                for validator in args['validators']:
+            if meth.upper() == method.upper() and "validators" in args:
+                for validator in args["validators"]:
                     if validator not in validators:
                         validators.append(validator)
         return validators
@@ -482,8 +489,8 @@ class Service(object):
         """
         headers = set()
         for meth, _, args in self.definitions:
-            if args.get('cors_enabled', True):
-                exposed_headers = args.get('cors_headers', ())
+            if args.get("cors_enabled", True):
+                exposed_headers = args.get("cors_headers", ())
                 if method is not None:
                     if meth.upper() == method.upper():
                         return set(exposed_headers)
@@ -496,15 +503,15 @@ class Service(object):
         """Return an iterable of methods supported by CORS"""
         methods = []
         for meth, _, args in self.definitions:
-            if args.get('cors_enabled', True) and meth not in methods:
+            if args.get("cors_enabled", True) and meth not in methods:
                 methods.append(meth)
         return methods
 
     @property
     def cors_supported_origins(self):
-        origins = set(getattr(self, 'cors_origins', ()))
+        origins = set(getattr(self, "cors_origins", ()))
         for _, _, args in self.definitions:
-            origins |= set(args.get('cors_origins', ()))
+            origins |= set(args.get("cors_origins", ()))
         return origins
 
     def cors_origins_for(self, method):
@@ -512,7 +519,7 @@ class Service(object):
         origins = set()
         for meth, view, args in self.definitions:
             if meth.upper() == method.upper():
-                origins |= set(args.get('cors_origins', ()))
+                origins |= set(args.get("cors_origins", ()))
 
         if not origins:
             origins = self.cors_origins
@@ -526,9 +533,9 @@ class Service(object):
         """
         for meth, view, args in self.definitions:
             if method and meth.upper() == method.upper():
-                return args.get('cors_credentials', False)
+                return args.get("cors_credentials", False)
 
-        if getattr(self, 'cors_credentials', False):
+        if getattr(self, "cors_credentials", False):
             return self.cors_credentials
         return False
 
@@ -536,11 +543,11 @@ class Service(object):
         max_age = None
         for meth, view, args in self.definitions:
             if method and meth.upper() == method.upper():
-                max_age = args.get('cors_max_age', None)
+                max_age = args.get("cors_max_age", None)
                 break
 
         if max_age is None:
-            max_age = getattr(self, 'cors_max_age', None)
+            max_age = getattr(self, "cors_max_age", None)
         return max_age
 
 
@@ -555,19 +562,20 @@ def decorate_view(view, args, method, route_args={}):
     :param method: the HTTP method
     :param route_args: the args used for the associated route
     """
+
     def wrapper(request):
         # if the args contain a klass argument then use it to resolve the view
         # location (if the view argument isn't a callable)
         ob = None
         view_ = view
-        if 'klass' in args and not callable(view):
+        if "klass" in args and not callable(view):
             # XXX: given that request.context exists and root-factory
             # only expects request param, having params seems unnecessary
             # ob = args['klass'](request)
             params = dict(request=request)
-            if 'factory' in route_args:
-                params['context'] = request.context
-            ob = args['klass'](**params)
+            if "factory" in route_args:
+                params["context"] = request.context
+            ob = args["klass"](**params)
             if is_string(view):
                 view_ = getattr(ob, view.lower())
             elif isinstance(view, _UnboundView):
@@ -576,7 +584,7 @@ def decorate_view(view, args, method, route_args={}):
         # the validators can either be a list of callables or contain some
         # non-callable values. In which case we want to resolve them using the
         # object if any
-        validators = args.get('validators', ())
+        validators = args.get("validators", ())
         for validator in validators:
             if is_string(validator) and ob is not None:
                 validator = getattr(ob, validator)
@@ -592,19 +600,19 @@ def decorate_view(view, args, method, route_args={}):
                     response = view_(request)
             except Exception:
                 # cors headers need to be set if an exception was raised
-                request.info['cors_checked'] = False
+                request.info["cors_checked"] = False
                 raise
 
         # check for errors and return them if any
         if len(request.errors) > 0:
             # We already checked for CORS, but since the response is created
             # again, we want to do that again before returning the response.
-            request.info['cors_checked'] = False
-            return args['error_handler'](request)
+            request.info["cors_checked"] = False
+            return args["error_handler"](request)
 
         # if the view returns its own response, cors headers need to be set
         if isinstance(response, Response):
-            request.info['cors_checked'] = False
+            request.info["cors_checked"] = False
 
         # We can't apply filters at this level, since "response" may not have
         # been rendered into a proper Response object yet.  Instead, give the

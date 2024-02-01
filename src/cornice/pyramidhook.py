@@ -1,26 +1,34 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import functools
 import copy
+import functools
 import itertools
 
-from pyramid.httpexceptions import (HTTPMethodNotAllowed, HTTPNotAcceptable,
-                                    HTTPUnsupportedMediaType, HTTPException)
 from pyramid.exceptions import PredicateMismatch
+from pyramid.httpexceptions import (
+    HTTPException,
+    HTTPMethodNotAllowed,
+    HTTPNotAcceptable,
+    HTTPUnsupportedMediaType,
+)
 from pyramid.security import NO_PERMISSION_REQUIRED
 
-from cornice.service import decorate_view
-from cornice.errors import Errors
-from cornice.util import (
-    is_string, to_list, match_accept_header, match_content_type_header,
-    content_type_matches, current_service
-)
 from cornice.cors import (
-    get_cors_validator,
-    get_cors_preflight_view,
+    CORS_PARAMETERS,
     apply_cors_post_request,
-    CORS_PARAMETERS
+    get_cors_preflight_view,
+    get_cors_validator,
+)
+from cornice.errors import Errors
+from cornice.service import decorate_view
+from cornice.util import (
+    content_type_matches,
+    current_service,
+    is_string,
+    match_accept_header,
+    match_content_type_header,
+    to_list,
 )
 
 
@@ -48,37 +56,38 @@ def get_fallback_view(service):
             if method != request.method:
                 continue
 
-            if 'accept' in args:
-                acceptable.extend(
-                    service.get_acceptable(method, filter_callables=True))
-                acceptable.extend(
-                    request.info.get('acceptable', []))
+            if "accept" in args:
+                acceptable.extend(service.get_acceptable(method, filter_callables=True))
+                acceptable.extend(request.info.get("acceptable", []))
                 acceptable = list(set(acceptable))
 
                 # Now check if that was actually the source of the problem.
                 if not request.accept.acceptable_offers(offers=acceptable):
                     request.errors.add(
-                        'header', 'Accept',
-                        'Accept header should be one of {0}'.format(
-                            acceptable).encode('ascii'))
+                        "header",
+                        "Accept",
+                        "Accept header should be one of {0}".format(acceptable).encode("ascii"),
+                    )
                     request.errors.status = HTTPNotAcceptable.code
                     error = service.error_handler(request)
                     raise error
 
-            if 'content_type' in args:
+            if "content_type" in args:
                 supported_contenttypes.extend(
-                    service.get_contenttypes(method,
-                                             filter_callables=True))
-                supported_contenttypes.extend(
-                    request.info.get('supported_contenttypes', []))
+                    service.get_contenttypes(method, filter_callables=True)
+                )
+                supported_contenttypes.extend(request.info.get("supported_contenttypes", []))
                 supported_contenttypes = list(set(supported_contenttypes))
 
                 # Now check if that was actually the source of the problem.
                 if not content_type_matches(request, supported_contenttypes):
                     request.errors.add(
-                        'header', 'Content-Type',
-                        'Content-Type header should be one of {0}'.format(
-                            supported_contenttypes).encode('ascii'))
+                        "header",
+                        "Content-Type",
+                        "Content-Type header should be one of {0}".format(
+                            supported_contenttypes
+                        ).encode("ascii"),
+                    )
                     request.errors.status = HTTPUnsupportedMediaType.code
                     error = service.error_handler(request)
                     raise error
@@ -92,6 +101,7 @@ def get_fallback_view(service):
         # order to avoid unpredictable cases, we left this line in place and
         # excluded it from coverage.
         raise PredicateMismatch(service.name)  # pragma: no cover
+
     return _fallback_view
 
 
@@ -101,7 +111,7 @@ def apply_filters(request, response):
         service = current_service(request)
         if service is not None:
             kwargs, ob = getattr(request, "cornice_args", ({}, None))
-            for _filter in kwargs.get('filters', []):
+            for _filter in kwargs.get("filters", []):
                 if is_string(_filter) and ob is not None:
                     _filter = getattr(ob, _filter)
                 try:
@@ -119,7 +129,7 @@ def handle_exceptions(exc, request):
     # a new response started (the exception), so we need to do that again.
     if not isinstance(exc, HTTPException):
         raise
-    request.info['cors_checked'] = False
+    request.info["cors_checked"] = False
     return apply_filters(request, exc)
 
 
@@ -143,17 +153,17 @@ def wrap_request(event):
     request.add_response_callback(apply_filters)
     request.add_response_callback(add_nosniff_header)
 
-    if not hasattr(request, 'validated'):
-        setattr(request, 'validated', {})
+    if not hasattr(request, "validated"):
+        setattr(request, "validated", {})
 
-    if not hasattr(request, 'errors'):
+    if not hasattr(request, "errors"):
         if request.registry.settings.get("available_languages"):
-            setattr(request, 'errors', Errors(localizer=request.localizer))
+            setattr(request, "errors", Errors(localizer=request.localizer))
         else:
-            setattr(request, 'errors', Errors())
+            setattr(request, "errors", Errors())
 
-    if not hasattr(request, 'info'):
-        setattr(request, 'info', {})
+    if not hasattr(request, "info"):
+        setattr(request, "info", {})
 
 
 def register_service_views(config, service):
@@ -164,41 +174,48 @@ def register_service_views(config, service):
     """
     route_name = service.name
     existing_route = service.pyramid_route
-    prefix = config.route_prefix or ''
+    prefix = config.route_prefix or ""
     services = config.registry.cornice_services
     if existing_route:
         route_name = existing_route
-        services['__cornice' + existing_route] = service
+        services["__cornice" + existing_route] = service
     else:
         services[prefix + service.path] = service
 
     # before doing anything else, register a view for the OPTIONS method
     # if we need to
-    if service.cors_enabled and 'OPTIONS' not in service.defined_methods:
-        service.add_view('options', view=get_cors_preflight_view(service),
-                         permission=NO_PERMISSION_REQUIRED)
+    if service.cors_enabled and "OPTIONS" not in service.defined_methods:
+        service.add_view(
+            "options", view=get_cors_preflight_view(service), permission=NO_PERMISSION_REQUIRED
+        )
 
     # register the fallback view, which takes care of returning good error
     # messages to the user-agent
     cors_validator = get_cors_validator(service)
 
     # Cornice-specific arguments that pyramid does not know about
-    cornice_parameters = ('filters', 'validators', 'schema', 'klass',
-                          'error_handler', 'deserializer') + CORS_PARAMETERS
+    cornice_parameters = (
+        "filters",
+        "validators",
+        "schema",
+        "klass",
+        "error_handler",
+        "deserializer",
+    ) + CORS_PARAMETERS
 
     # 1. register route
 
     route_args = {}
 
-    if hasattr(service, 'factory'):
-        route_args['factory'] = service.factory
+    if hasattr(service, "factory"):
+        route_args["factory"] = service.factory
 
-    routes = config.get_predlist('route')
+    routes = config.get_predlist("route")
     for predicate in routes.sorter.names:
         # Do not let the custom predicates handle validation of Header Accept,
         # which will pass it through to pyramid. It is handled by
         # _fallback_view(), because it allows callable.
-        if predicate == 'accept':
+        if predicate == "accept":
             continue
 
         if hasattr(service, predicate):
@@ -211,7 +228,6 @@ def register_service_views(config, service):
     # 2. register view(s)
 
     for method, view, args in service.definitions:
-
         args = copy.copy(args)  # make a copy of the dict to not modify it
         # Deepcopy only the params we're possibly passing on to pyramid
         # (Some of those in cornice_parameters, e.g. ``schema``, may contain
@@ -220,10 +236,10 @@ def register_service_views(config, service):
             if item not in cornice_parameters:
                 args[item] = copy.deepcopy(args[item])
 
-        args['request_method'] = method
+        args["request_method"] = method
 
         if service.cors_enabled:
-            args['validators'].insert(0, cors_validator)
+            args["validators"].insert(0, cors_validator)
 
         decorated_view = decorate_view(view, dict(args), method, route_args)
 
@@ -232,8 +248,8 @@ def register_service_views(config, service):
                 del args[item]
 
         # filter predicates defined on Resource
-        route_predicates = config.get_predlist('route').sorter.names
-        view_predicates = config.get_predlist('view').sorter.names
+        route_predicates = config.get_predlist("route").sorter.names
+        view_predicates = config.get_predlist("view").sorter.names
         for pred in set(route_predicates).difference(view_predicates):
             if pred in args:
                 args.pop(pred)
@@ -243,7 +259,7 @@ def register_service_views(config, service):
         predicate_definitions = _pop_complex_predicates(args)
 
         if predicate_definitions:
-            empty_contenttype = [({'kind': 'content_type', 'value': ''},)]
+            empty_contenttype = [({"kind": "content_type", "value": ""},)]
             for predicate_list in predicate_definitions + empty_contenttype:
                 args = dict(args)  # make a copy of the dict to not modify it
 
@@ -252,21 +268,21 @@ def register_service_views(config, service):
 
                 # We register the same view multiple times with different
                 # accept / content_type / custom_predicates arguments
-                config.add_view(view=decorated_view, route_name=route_name,
-                                **args)
+                config.add_view(view=decorated_view, route_name=route_name, **args)
 
         else:
             # it is a simple view, we don't need to loop on the definitions
             # and just add it one time.
-            config.add_view(view=decorated_view, route_name=route_name,
-                            **args)
+            config.add_view(view=decorated_view, route_name=route_name, **args)
 
     if service.definitions:
         # Add the fallback view last
-        config.add_view(view=get_fallback_view(service),
-                        route_name=route_name,
-                        permission=NO_PERMISSION_REQUIRED,
-                        require_csrf=False)
+        config.add_view(
+            view=get_fallback_view(service),
+            route_name=route_name,
+            permission=NO_PERMISSION_REQUIRED,
+            require_csrf=False,
+        )
 
 
 def _pop_complex_predicates(args):
@@ -280,8 +296,8 @@ def _pop_complex_predicates(args):
     """
 
     # pop and prepare individual predicate lists
-    accept_list = _pop_predicate_definition(args, 'accept')
-    content_type_list = _pop_predicate_definition(args, 'content_type')
+    accept_list = _pop_predicate_definition(args, "accept")
+    content_type_list = _pop_predicate_definition(args, "content_type")
 
     # compute cartesian product of prepared lists, additionally
     # remove empty elements of input and output lists
@@ -305,7 +321,7 @@ def _pop_predicate_definition(args, kind):
     # returns an iterator. (In Python 2, it returned a list.)
     # http://getpython3.com/diveintopython3/ \
     # porting-code-to-python-3-with-2to3.html#map
-    values = list(map(lambda value: {'kind': kind, 'value': value}, values))
+    values = list(map(lambda value: {"kind": kind, "value": value}, values))
     return values
 
 
@@ -322,23 +338,22 @@ def _mungle_view_args(args, predicate_list):
 
     # map kind of argument value to function for resolving callables
     callable_map = {
-        'accept': match_accept_header,
-        'content_type': match_content_type_header,
+        "accept": match_accept_header,
+        "content_type": match_content_type_header,
     }
 
     # iterate and resolve all predicates
     for predicate_entry in predicate_list:
-
-        kind = predicate_entry['kind']
-        value = predicate_entry['value']
+        kind = predicate_entry["kind"]
+        value = predicate_entry["value"]
 
         # we need to build a custom predicate if argument value is a callable
-        predicates = args.get('custom_predicates', [])
+        predicates = args.get("custom_predicates", [])
         if callable(value):
             func = callable_map[kind]
             predicate_checker = functools.partial(func, value)
             predicates.append(predicate_checker)
-            args['custom_predicates'] = predicates
+            args["custom_predicates"] = predicates
         else:
             # otherwise argument value is just a scalar
             args[kind] = value

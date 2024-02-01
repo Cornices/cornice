@@ -2,7 +2,7 @@
 Cornice
 =======
 
-|readthedocs| |pypi| |github-actions| |master-coverage|
+|readthedocs| |pypi| |github-actions| |main-coverage|
 
 .. |github-actions| image:: https://github.com/Cornices/cornice/workflows/Unit%20Testing/badge.svg
     :target: https://github.com/Cornices/cornice/actions?query=workflow%3A%22Unit+Testing%22
@@ -11,8 +11,8 @@ Cornice
     :target: https://cornice.readthedocs.io/en/latest/
     :alt: Documentation Status
 
-.. |master-coverage| image::
-    https://coveralls.io/repos/Cornices/cornice/badge.svg?branch=master
+.. |main-coverage| image::
+    https://coveralls.io/repos/Cornices/cornice/badge.svg?branch=main
     :alt: Coverage
     :target: https://coveralls.io/r/Cornices/cornice
 

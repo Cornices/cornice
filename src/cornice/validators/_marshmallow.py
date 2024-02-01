@@ -46,12 +46,12 @@ def _generate_marshmallow_validator(location):
             return
 
         # see if the user wants to set any keyword arguments for their schema
-        schema_kwargs = kwargs.get('schema_kwargs', {})
+        schema_kwargs = kwargs.get("schema_kwargs", {})
         schema = _instantiate_schema(schema, **schema_kwargs)
 
         class ValidatedField(marshmallow.fields.Field):
             def _deserialize(self, value, attr, data, **kwargs):
-                schema.context.setdefault('request', request)
+                schema.context.setdefault("request", request)
                 deserialized = schema.load(value)
                 return deserialized
 
@@ -80,12 +80,14 @@ def _generate_marshmallow_validator(location):
                 """
 
                 class_attrs[location] = ValidatedField(
-                    required=True, metadata={"load_from": location})
-                class_attrs['Meta'] = Meta
+                    required=True, metadata={"load_from": location}
+                )
+                class_attrs["Meta"] = Meta
                 return type(name, bases, class_attrs)
 
         class RequestSchema(marshmallow.Schema, metaclass=RequestSchemaMeta):  # noqa
             """A schema to validate the request's location attributes."""
+
             pass
 
         validator(request, RequestSchema, deserializer, **kwargs)
@@ -94,10 +96,10 @@ def _generate_marshmallow_validator(location):
     return _validator
 
 
-body_validator = _generate_marshmallow_validator('body')
-headers_validator = _generate_marshmallow_validator('header')
-path_validator = _generate_marshmallow_validator('path')
-querystring_validator = _generate_marshmallow_validator('querystring')
+body_validator = _generate_marshmallow_validator("body")
+headers_validator = _generate_marshmallow_validator("header")
+path_validator = _generate_marshmallow_validator("path")
+querystring_validator = _generate_marshmallow_validator("querystring")
 
 
 def _message_normalizer(exc, no_field_name="_schema"):
@@ -110,7 +112,7 @@ def _message_normalizer(exc, no_field_name="_schema"):
     """
     if isinstance(exc.messages, dict):
         return exc.messages
-    field_names = exc.kwargs.get('field_names', [])
+    field_names = exc.kwargs.get("field_names", [])
     if len(field_names) == 0:
         return {no_field_name: exc.messages}
     return dict((name, exc.messages) for name in field_names)
@@ -136,6 +138,7 @@ def validator(request, schema=None, deserializer=None, **kwargs):
         :func:`cornice.validators.extract_cstruct`
     """
     import marshmallow
+
     from cornice.validators import extract_cstruct
 
     if deserializer is None:
@@ -145,7 +148,7 @@ def validator(request, schema=None, deserializer=None, **kwargs):
         return
 
     schema = _instantiate_schema(schema)
-    schema.context.setdefault('request', request)
+    schema.context.setdefault("request", request)
 
     cstruct = deserializer(request)
     try:
@@ -154,8 +157,8 @@ def validator(request, schema=None, deserializer=None, **kwargs):
         # translate = request.localizer.translate
         normalized_errors = _message_normalizer(err)
         for location, details in normalized_errors.items():
-            location = location if location != '_schema' else ''
-            if hasattr(details, 'items'):
+            location = location if location != "_schema" else ""
+            if hasattr(details, "items"):
                 for subfield, msg in details.items():
                     request.errors.add(location, subfield, msg)
             else:
@@ -175,6 +178,5 @@ def _instantiate_schema(schema, **kwargs):
     :return: The object of the marshmallow schema
     """
     if not inspect.isclass(schema):
-        raise ValueError('You need to pass Marshmallow class instead '
-                         'of schema instance')
+        raise ValueError("You need to pass Marshmallow class instead " "of schema instance")
     return schema(**kwargs)

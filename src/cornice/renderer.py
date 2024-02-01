@@ -6,16 +6,16 @@ from pyramid.response import Response
 def bytes_adapter(obj, request):
     """Convert bytes objects to strings for json error renderer."""
     if isinstance(obj, bytes):
-        return obj.decode('utf8')
+        return obj.decode("utf8")
     return obj
 
 
 class JSONError(exc.HTTPError):
     def __init__(self, serializer, serializer_kw, errors, status=400):
-        body = {'status': 'error', 'errors': errors}
+        body = {"status": "error", "errors": errors}
         Response.__init__(self, serializer(body, **serializer_kw))
         self.status = status
-        self.content_type = 'application/json'
+        self.content_type = "application/json"
 
 
 class CorniceRenderer(JSON):
@@ -30,7 +30,8 @@ class CorniceRenderer(JSON):
       .. _`[2]`: http://pyramid.readthedocs.io/en/latest/narr/renderers.html \
                  #serializing-custom-objects
     """
-    acceptable = ('application/json', 'text/plain')
+
+    acceptable = ("application/json", "text/plain")
 
     def __init__(self, *args, **kwargs):
         """Adds a `bytes` adapter by default."""
@@ -49,7 +50,7 @@ class CorniceRenderer(JSON):
             serializer=self.serializer,
             serializer_kw=serializer_kw,
             errors=request.errors,
-            status=request.errors.status
+            status=request.errors.status,
         )
 
     def render(self, value, system):
@@ -63,7 +64,7 @@ class CorniceRenderer(JSON):
                the user specify the Content-Type manually.
                TODO: maybe explain this a little better
         """
-        request = system.get('request')
+        request = system.get("request")
         if request is not None:
             response = request.response
 

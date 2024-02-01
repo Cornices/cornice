@@ -1,8 +1,0 @@
-Sphinx
-WebTest
-colander>=1.0b1
-marshmallow>=3.0.0rc1,<4.0
-coverage
-pytest
-pytest-cov
-simplejson

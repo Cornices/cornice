@@ -6,7 +6,7 @@ Full tutorial
 Let's create a full working application with **Cornice**. We want to
 create a light messaging service.
 
-You can find its whole source code at https://github.com/Cornices/examples/blob/master/messaging
+You can find its whole source code at https://github.com/Cornices/examples/blob/main/messaging
 
 Features:
 
@@ -307,4 +307,4 @@ A simple client to use against our service can do three things:
 Without going into great details, there's a Python CLI against messaging
 that uses Curses.
 
-See https://github.com/Cornices/examples/blob/master/messaging/messaging/client.py
+See https://github.com/Cornices/examples/blob/main/messaging/messaging/client.py
