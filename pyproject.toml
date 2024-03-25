@@ -36,7 +36,7 @@ dev = [
     "ruff",
     "pytest<9",
     "pytest-cache<2",
-    "pytest-cov<5",
+    "pytest-cov<6",
     "WebTest<4",
     "marshmallow<4",
     "colander<3",
