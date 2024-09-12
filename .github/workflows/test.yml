@@ -34,9 +34,6 @@ jobs:
       - name: Run unit tests
         run: make test
 
-      - name: Coveralls
-        uses: coverallsapp/github-action@v2
-
   docs:
     runs-on: ubuntu-latest
     needs: lint
