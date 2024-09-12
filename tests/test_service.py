@@ -3,11 +3,12 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 from unittest import mock
 
+from pyramid.exceptions import ConfigurationError
+from pyramid.interfaces import IRendererFactory
+
 from cornice.resource import resource
 from cornice.service import Service, _UnboundView, clear_services, decorate_view, get_services
 from cornice.util import func_name
-from pyramid.exceptions import ConfigurationError
-from pyramid.interfaces import IRendererFactory
 
 from .support import DummyRequest, TestCase
 

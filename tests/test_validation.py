@@ -784,15 +784,17 @@ class TestValidatorEdgeCasesMarshmallow(TestCase):
         self.assertEqual(len(request.errors), 0)
 
     def test_message_normalizer_no_field_names(self):
-        from cornice.validators._marshmallow import _message_normalizer
         from marshmallow.exceptions import ValidationError
+
+        from cornice.validators._marshmallow import _message_normalizer
 
         parsed = _message_normalizer(ValidationError("Test message"))
         self.assertEqual({"_schema": ["Test message"]}, parsed)
 
     def test_message_normalizer_field_names(self):
-        from cornice.validators._marshmallow import _message_normalizer
         from marshmallow.exceptions import ValidationError
+
+        from cornice.validators._marshmallow import _message_normalizer
 
         parsed = _message_normalizer(ValidationError("Test message", field_names=["test"]))
         self.assertEqual({"test": ["Test message"]}, parsed)

@@ -3,9 +3,10 @@
 
 import json
 
-from cornice.resource import resource, view
 from pyramid import testing
 from webtest import TestApp
+
+from cornice.resource import resource, view
 
 from .support import CatchErrors, TestCase
 

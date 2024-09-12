@@ -1,10 +1,11 @@
 from unittest import mock
 
-from cornice.errors import Errors
-from cornice.service import Service
 from pyramid import testing
 from pyramid.i18n import TranslationString
 from webtest import TestApp
+
+from cornice.errors import Errors
+from cornice.service import Service
 
 from .support import CatchErrors, TestCase
 

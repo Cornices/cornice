@@ -12,11 +12,12 @@ except ImportError:
     # Maybe we're running in python2.7?
     from unittest import TestCase  # NOQA
 
-from cornice.errors import Errors
 from pyramid import testing
 from pyramid.httpexceptions import HTTPException
 from webob import exc
 from webob.dec import wsgify
+
+from cornice.errors import Errors
 
 
 logger = logging.getLogger("cornice")
