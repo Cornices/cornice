@@ -1,10 +1,11 @@
 from unittest import mock
 
-from cornice import CorniceRenderer
-from cornice.renderer import JSONError, bytes_adapter
 from pyramid.interfaces import IJSONAdapter
 from pyramid.renderers import JSON
 from zope.interface import providedBy
+
+from cornice import CorniceRenderer
+from cornice.renderer import JSONError, bytes_adapter
 
 from .support import TestCase
 

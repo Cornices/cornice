@@ -5,7 +5,6 @@ import functools
 import json
 from unittest import mock
 
-from cornice.resource import resource, view
 from pyramid import testing
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
@@ -13,6 +12,8 @@ from pyramid.exceptions import ConfigurationError
 from pyramid.httpexceptions import HTTPForbidden, HTTPOk
 from pyramid.security import Allow
 from webtest import TestApp
+
+from cornice.resource import resource, view
 
 from .support import CatchErrors, TestCase, dummy_factory
 

@@ -5,13 +5,14 @@ import json
 from unittest import mock
 
 import pytest
-from cornice.resource import add_resource, add_view
 from pyramid import testing
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.httpexceptions import HTTPForbidden, HTTPOk
 from pyramid.security import Allow
 from webtest import TestApp
+
+from cornice.resource import add_resource, add_view
 
 from .support import CatchErrors, TestCase, dummy_factory
 

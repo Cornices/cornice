@@ -3,9 +3,10 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import json
 
-from cornice import Service
 from pyramid.config import Configurator
 from pyramid.httpexceptions import HTTPBadRequest
+
+from cornice import Service
 
 from .support import CatchErrors
 
@@ -159,6 +160,7 @@ try:
         drop,
         null,
     )
+
     from cornice.validators import colander_body_validator, colander_validator
 
     COLANDER = True

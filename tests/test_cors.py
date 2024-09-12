@@ -1,7 +1,6 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-from cornice.service import Service
 from pyramid import testing
 from pyramid.authentication import BasicAuthAuthenticationPolicy
 from pyramid.exceptions import HTTPBadRequest, NotFound
@@ -10,6 +9,8 @@ from pyramid.response import Response
 from pyramid.view import view_config
 from webtest import TestApp
 from zope.interface import implementer
+
+from cornice.service import Service
 
 from .support import CatchErrors, TestCase
 
