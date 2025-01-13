@@ -45,7 +45,7 @@ def _generate_colander_validator(location):
         schema_instance = _ensure_instantiated(schema)
 
         if not isinstance(schema_instance, colander.MappingSchema):
-            raise TypeError("Schema should inherit from " "colander.MappingSchema.")
+            raise TypeError("Schema should inherit from colander.MappingSchema.")
 
         class RequestSchemaMeta(colander._SchemaMeta):
             """
@@ -134,7 +134,7 @@ def validator(request, schema=None, deserializer=None, **kwargs):
 def _ensure_instantiated(schema):
     if inspect.isclass(schema):
         warnings.warn(
-            "Setting schema to a class is deprecated. " " Set schema to an instance instead.",
+            "Setting schema to a class is deprecated. Set schema to an instance instead.",
             DeprecationWarning,
             stacklevel=2,
         )

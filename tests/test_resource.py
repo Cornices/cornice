@@ -95,7 +95,7 @@ class TestResourceWarning(TestCase):
             def __init__(self, request, context=None):
                 pass
 
-        msg = "Warning: collection_pyramid_route and " "pyramid_route are not distinct."
+        msg = "Warning: collection_pyramid_route and pyramid_route are not distinct."
         mocked_warn.assert_called_with(msg)
 
     def test_routes_with_paths(self):

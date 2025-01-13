@@ -92,7 +92,7 @@ def add_resource(klass, depth=2, **kw):
 
     if "collection_pyramid_route" in kw:
         if kw["collection_pyramid_route"] == kw["pyramid_route"]:
-            msg = "Warning: collection_pyramid_route and " "pyramid_route are not distinct."
+            msg = "Warning: collection_pyramid_route and pyramid_route are not distinct."
             warnings.warn(msg)
 
         prefixes = ("", "collection_")
