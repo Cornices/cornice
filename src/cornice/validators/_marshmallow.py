@@ -178,5 +178,5 @@ def _instantiate_schema(schema, **kwargs):
     :return: The object of the marshmallow schema
     """
     if not inspect.isclass(schema):
-        raise ValueError("You need to pass Marshmallow class instead " "of schema instance")
+        raise ValueError("You need to pass Marshmallow class instead of schema instance")
     return schema(**kwargs)
