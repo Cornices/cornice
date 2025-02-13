@@ -1,6 +1,6 @@
 ---
 name: Project is unmaintained
-about: Show that project is unmaintained
+about: 'Warning: project is unmaintained'
 title: ''
 labels: ''
 assignees: ''
