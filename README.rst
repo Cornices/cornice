@@ -2,6 +2,10 @@
 Cornice
 =======
 
+.. warning::
+
+    🚀 **Maintainer Wanted!** This project is looking for a new steward to keep it alive! 🌱 If you still care for this project 🛠️, drop a comment or a PR! 🎉✨
+
 |readthedocs| |pypi| |github-actions| |main-coverage|
 
 .. |github-actions| image:: https://github.com/Cornices/cornice/workflows/Unit%20Testing/badge.svg
