@@ -181,6 +181,7 @@ def register_service_views(config, service):
         services["__cornice" + existing_route] = service
     else:
         services[prefix + service.path] = service
+        service.pyramid_route = route_name
 
     # before doing anything else, register a view for the OPTIONS method
     # if we need to
