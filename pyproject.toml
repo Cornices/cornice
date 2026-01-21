@@ -40,6 +40,7 @@ dev = [
     "WebTest<4",
     "marshmallow<4",
     "colander<3",
+    "pip-tools<8",
 ]
 
 [tool.pip-tools]
