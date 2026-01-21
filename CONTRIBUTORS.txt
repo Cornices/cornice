@@ -3,20 +3,20 @@ Cornice:
 
 * Akim Sadaoui <akim.sadaoui@arkena.com>
 * Alessandro Amici <alexamici@gmail.com>
+* Alex Marandon <contact@alexmarandon.com>
 * Alexandre Bourget <alex@bourget.cc>
 * Alexis Metaireau <alexis@notmyidea.org>
-* Alex Marandon <contact@alexmarandon.com>
 * Anaël Beutot <abeutot@oserror.org>
 * Andilab <andrzej.kostanski@gmail.com>
+* Andre Caron <andre.l.caron@gmail.com>
 * Andreas Motl <github.amo@netfrag.org>
 * Andreas Zeidler <andi@pyfidelity.com>
-* Andre Caron <andre.l.caron@gmail.com>
+* Andrew Birnberg
 * Andrew Brookins <a.m.brookins@gmail.com>
 * Antoine Leclair <antoineleclair@gmail.com>
 * Anton D <anton@screwtop>
 * Areski <areski@gmail.com>
 * Ben Bangert <ben@groovie.org>
-* Andrew Birnberg
 * Bruno Binet <bruno.binet@gmail.com>
 * Bryan Zegar <bryanzegar@gmail.com>
 * Christian Benke <benkokakao@gmail.com>
@@ -27,12 +27,12 @@ Cornice:
 * David Grant <seizethedave@gmail.com>
 * Dion Peters <petersdion@gmail.com>
 * Elias <elias@stupeflix.com>
+* G.Tjebbes <g.t@majerti.fr>
 * Gabriela Surita <gsurita@mozilla.com>
 * Gael Pasgrimaud <gael@gawel.org>
-* George V. Reilly <george@reilly.org>
 * George Mamalakis <mamalos@gmail.com>
+* George V. Reilly <george@reilly.org>
 * Graham Higgins <gjh-github@bel-epa.com>
-* G.Tjebbes <g.t@majerti.fr>
 * Guillaume Gauvrit <guillaume@gandi.net>
 * Henddher Pedroza <henddher.pedroza@gmail.com>
 * James Arthur <thruflo@gmail.com>
@@ -60,9 +60,9 @@ Cornice:
 * Markus Zapke-Gründemann <markus@keimlink.de>
 * Mathieu Bridon <bochecha@fedoraproject.org>
 * Mathieu Leplatre <mathieu@mozilla.com>
-* Matthias Lehmann <ml@lalisio.com>
-* Matthias <matthias@itemfire.com>
 * Matt Skinner <skinner.m.c@gmail.com>
+* Matthias <matthias@itemfire.com>
+* Matthias Lehmann <ml@lalisio.com>
 * Myroslav Opyr <myroslav@quintagroup.com>
 * Nicolas Dietrich <nicodietrich@gmail.com>
 * Niko Wenselowski <niko@nerdno.de>
@@ -70,13 +70,14 @@ Cornice:
 * Paul Smith <paulsmith@pobox.com>
 * Ralph Bean <rbean@redhat.com>
 * Ramana Rao <treerao@gmail.com>
-* Rémy HUBSCHER <rhubscher@mozilla.com>
 * rforkel <rforkel@rforkel-ubuntu.gulp.biz>
 * Rickert Mulder <circlingthesun@gmail.com>
+* Ridge Nairn <ridge@nairn.co.nz>
 * Rob Miller <rob@kalistra.com>
 * Rob van der Linde <robvdl@gmail.com>
 * Roman Kozlovskyi <kroman0@users.noreply.github.com>
 * Ryan Kelly <ryan@rfk.id.au>
+* Rémy HUBSCHER <rhubscher@mozilla.com>
 * Scott Bowers <sbbowers@gmail.com>
 * Sebastian Hanula <sebastian.hanula@gmail.com>
 * Sergey Safonov <spoof@spoofa.info>
@@ -90,6 +91,6 @@ Cornice:
 * tsauerwein <tobias.sauerwein@camptocamp.com>
 * Victor Ng <crankycoder@gmail.com>
 * Vincent Fretin <vincent.fretin@gmail.com>
-* Ymage <o2heltem@gmail.com>
 * Volodymyr Maksymiv <vmaksymiv@quintagroup.com>
 * Walter Danilo Galante <walterdangalante@gmail.com>
+* Ymage <o2heltem@gmail.com>
