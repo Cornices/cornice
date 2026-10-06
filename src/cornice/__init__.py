@@ -3,8 +3,8 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import logging
 from functools import partial
+from importlib.metadata import version
 
-import pkg_resources
 from pyramid.events import NewRequest
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound
 from pyramid.security import NO_PERMISSION_REQUIRED
@@ -24,7 +24,7 @@ from cornice.util import ContentTypePredicate, current_service
 
 logger = logging.getLogger("cornice")
 # Module version, as defined in PEP-0396.
-__version__ = pkg_resources.get_distribution(__package__).version
+__version__ = version(__package__)
 
 
 def set_localizer_for_languages(event, available_languages, default_locale_name):
