@@ -3,7 +3,7 @@
 import datetime
 import os
 import sys
-import pkg_resources
+from importlib import metadata
 try:
     import mozilla_sphinx_theme
 except ImportError:
@@ -24,7 +24,7 @@ copyright = u'2011-{}, Mozilla Services'.format(this_year)
 # built documents.
 #
 # The short X.Y version.
-version =  pkg_resources.get_distribution('cornice').version
+version =  metadata.version('cornice')
 # The full version, including alpha/beta/rc tags.
 release = version
 
