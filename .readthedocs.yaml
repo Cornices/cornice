@@ -1,0 +1,22 @@
+# Read the Docs configuration file.
+# https://docs.readthedocs.io/en/stable/config-file/v2.html
+
+version: 2
+
+build:
+  os: ubuntu-24.04
+  tools:
+    python: "3.12"
+  jobs:
+    post_checkout:
+      # setuptools-scm needs the 6.1.0 tag, which a depth-50 clone may omit.
+      - git fetch --tags
+
+sphinx:
+  configuration: docs/source/conf.py
+
+python:
+  install:
+    - requirements: docs/requirements.txt
+    - method: pip
+      path: .
