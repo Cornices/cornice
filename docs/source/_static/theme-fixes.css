@@ -1,0 +1,8 @@
+/*
+ * Sphinx clears code blocks so they sit below floated figures. The Mozilla
+ * theme floats the sidebar, so the first code block drops below that float
+ * and leaves a blank gap. Keep those clears inside the page body.
+ */
+div.bodywrapper {
+    display: flow-root;
+}

@@ -34,6 +34,7 @@ html_theme_path = [os.path.dirname(mozilla_sphinx_theme.__file__)]
 
 html_theme = 'mozilla'
 html_static_path = ['_static']
+html_css_files = ['theme-fixes.css']
 htmlhelp_basename = 'Cornicedoc'
 
 latex_documents = [
