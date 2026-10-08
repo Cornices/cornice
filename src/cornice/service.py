@@ -50,7 +50,10 @@ class Service(object):
         The path the service is available at. Should also be unique.
 
     :param pyramid_route:
-        Use existing pyramid route instead of creating new one.
+        Use an existing Pyramid route instead of creating one. When omitted,
+        registration stores the generated route name here so the pattern,
+        including any route prefix, can be read from Pyramid's introspector.
+        That stored name is not treated as a caller-supplied route.
 
     :param renderer:
         The renderer that should be used by this service. Default value is
@@ -174,6 +177,8 @@ class Service(object):
         self.name = name
         self.path = path
         self.pyramid_route = pyramid_route
+        # True once registration stores a generated route name on pyramid_route.
+        self._cornice_generated_route = False
 
         if not self.path and not self.pyramid_route:
             raise TypeError("You need to pass path or pyramid_route arg")
