@@ -27,6 +27,11 @@ reuse existing routes from your application too.
                     description='Clear database content',
                     pyramid_route='flush_path')
 
+When ``pyramid_route`` is omitted, Cornice creates the route and stores its
+name on the service. Pyramid's route introspector then has the pattern for
+that name, including any route prefix. Registering the same service with
+another configurator still creates the route.
+
 See :class:`cornice.service.Service` for an exhaustive list of options.
 
 Imperatively

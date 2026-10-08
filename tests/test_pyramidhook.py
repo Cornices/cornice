@@ -342,6 +342,90 @@ class TestPrefixRouteFromPyramid(TestCase):
         assert current_service(request)
 
 
+class TestGeneratedPyramidRoute(TestCase):
+    def _register(self, service, prefix):
+        config = testing.setUp()
+        config.route_prefix = prefix
+        config.include("cornice")
+        config.add_cornice_service(service)
+        app = TestApp(CatchErrors(config.make_wsgi_app()))
+        return config, app
+
+    def test_prefix_is_visible_and_service_can_be_registered_twice(self):
+        service = Service(name="prefixed-items", path="/items")
+
+        def view(request):
+            return {
+                "route": request.matched_route.name,
+                "pattern": request.matched_route.pattern,
+                "service": request.current_service.name,
+            }
+
+        service.add_view("GET", view)
+
+        config, app = self._register(service, "/v1")
+        try:
+            self.assertEqual(service.pyramid_route, "prefixed-items")
+            self.assertTrue(service._cornice_generated_route)
+            self.assertIn("/v1/items", config.registry.cornice_services)
+            self.assertNotIn("__corniceprefixed-items", config.registry.cornice_services)
+            route = config.introspector.get("routes", "prefixed-items")
+            self.assertEqual(route["pattern"], "/v1/items")
+            self.assertEqual(
+                app.get("/v1/items").json,
+                {
+                    "route": "prefixed-items",
+                    "pattern": "/v1/items",
+                    "service": "prefixed-items",
+                },
+            )
+        finally:
+            testing.tearDown()
+
+        # The same Service object is reused by later configurators, as in a
+        # test suite that builds several TestApps. The generated route name
+        # must not be mistaken for a caller-supplied route.
+        config, app = self._register(service, "/v2")
+        try:
+            self.assertIn("/v2/items", config.registry.cornice_services)
+            self.assertEqual(app.get("/v2/items").json["pattern"], "/v2/items")
+            self.assertEqual(
+                config.introspector.get("routes", "prefixed-items")["pattern"],
+                "/v2/items",
+            )
+        finally:
+            testing.tearDown()
+
+    def test_user_supplied_route_is_not_replaced(self):
+        service = Service(name="kept-route", pyramid_route="proute")
+        service.add_view("GET", lambda request: request.matched_route.pattern)
+
+        config = testing.setUp()
+        try:
+            config.include("cornice")
+            config.add_route("proute", "/from_pyramid")
+            config.add_cornice_service(service)
+            app = TestApp(CatchErrors(config.make_wsgi_app()))
+            self.assertEqual(service.pyramid_route, "proute")
+            self.assertFalse(service._cornice_generated_route)
+            self.assertIn("__corniceproute", config.registry.cornice_services)
+            self.assertEqual(app.get("/from_pyramid").json, "/from_pyramid")
+        finally:
+            testing.tearDown()
+
+        config = testing.setUp()
+        try:
+            config.include("cornice")
+            config.add_route("proute", "/elsewhere")
+            config.add_cornice_service(service)
+            app = TestApp(CatchErrors(config.make_wsgi_app()))
+            self.assertEqual(service.pyramid_route, "proute")
+            self.assertFalse(service._cornice_generated_route)
+            self.assertEqual(app.get("/elsewhere").json, "/elsewhere")
+        finally:
+            testing.tearDown()
+
+
 class TestServiceWithNonpickleableSchema(TestCase):
     def setUp(self):
         self.config = testing.setUp()

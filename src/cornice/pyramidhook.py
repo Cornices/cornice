@@ -173,12 +173,20 @@ def register_service_views(config, service):
     :param service: the service object containing the definitions
     """
     route_name = service.name
-    existing_route = service.pyramid_route
+    # A caller-supplied pyramid_route names a route the application creates.
+    # Registration also stores a generated route name on that attribute so the
+    # prefixed pattern can be read from Pyramid's introspector. A generated
+    # name must not skip add_route: the same Service is often registered with
+    # more than one configurator.
+    if service._cornice_generated_route:
+        user_route = None
+    else:
+        user_route = service.pyramid_route
     prefix = config.route_prefix or ""
     services = config.registry.cornice_services
-    if existing_route:
-        route_name = existing_route
-        services["__cornice" + existing_route] = service
+    if user_route:
+        route_name = user_route
+        services["__cornice" + user_route] = service
     else:
         services[prefix + service.path] = service
 
@@ -221,9 +229,11 @@ def register_service_views(config, service):
         if hasattr(service, predicate):
             route_args[predicate] = getattr(service, predicate)
 
-    # register route when not using exiting pyramid routes
-    if not existing_route:
+    # register route when not using existing pyramid routes
+    if not user_route:
         config.add_route(route_name, service.path, **route_args)
+        service.pyramid_route = route_name
+        service._cornice_generated_route = True
 
     # 2. register view(s)
 
