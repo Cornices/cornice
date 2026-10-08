@@ -22,3 +22,5 @@ dist/
 .venv/
 venv/
 .idea/
+.DS_Store
+.python-version

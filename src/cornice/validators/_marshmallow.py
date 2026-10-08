@@ -3,6 +3,12 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import inspect
+from contextvars import ContextVar
+
+from cornice.validators._marshmallow_compat import EXCLUDE, set_schema_context
+
+
+cornice_request: ContextVar = ContextVar("cornice_request")
 
 
 def _generate_marshmallow_validator(location):
@@ -40,7 +46,6 @@ def _generate_marshmallow_validator(location):
         """
         import marshmallow
         import marshmallow.schema
-        from marshmallow.utils import EXCLUDE
 
         if schema is None:
             return
@@ -51,13 +56,12 @@ def _generate_marshmallow_validator(location):
 
         class ValidatedField(marshmallow.fields.Field):
             def _deserialize(self, value, attr, data, **kwargs):
-                schema.context.setdefault("request", request)
+                cornice_request.set(request)
+                set_schema_context(schema, "request", request)
                 deserialized = schema.load(value)
                 return deserialized
 
         class Meta(object):
-            strict = True
-            ordered = True
             unknown = EXCLUDE
 
         class RequestSchemaMeta(marshmallow.schema.SchemaMeta):
@@ -79,9 +83,7 @@ def _generate_marshmallow_validator(location):
                 :type dct: dict
                 """
 
-                class_attrs[location] = ValidatedField(
-                    required=True, metadata={"load_from": location}
-                )
+                class_attrs[location] = ValidatedField(required=True, data_key=location)
                 class_attrs["Meta"] = Meta
                 return type(name, bases, class_attrs)
 
@@ -100,22 +102,6 @@ body_validator = _generate_marshmallow_validator("body")
 headers_validator = _generate_marshmallow_validator("header")
 path_validator = _generate_marshmallow_validator("path")
 querystring_validator = _generate_marshmallow_validator("querystring")
-
-
-def _message_normalizer(exc, no_field_name="_schema"):
-    """
-    Normally `normalize_messages` will exist on `ValidationError` but pre 2.10
-    versions don't have it
-    :param exc:
-    :param no_field_name:
-    :return:
-    """
-    if isinstance(exc.messages, dict):
-        return exc.messages
-    field_names = exc.kwargs.get("field_names", [])
-    if len(field_names) == 0:
-        return {no_field_name: exc.messages}
-    return dict((name, exc.messages) for name in field_names)
 
 
 def validator(request, schema=None, deserializer=None, **kwargs):
@@ -148,14 +134,14 @@ def validator(request, schema=None, deserializer=None, **kwargs):
         return
 
     schema = _instantiate_schema(schema)
-    schema.context.setdefault("request", request)
+    cornice_request.set(request)
+    set_schema_context(schema, "request", request)
 
     cstruct = deserializer(request)
     try:
         deserialized = schema.load(cstruct)
     except marshmallow.ValidationError as err:
-        # translate = request.localizer.translate
-        normalized_errors = _message_normalizer(err)
+        normalized_errors = err.messages
         for location, details in normalized_errors.items():
             location = location if location != "_schema" else ""
             if hasattr(details, "items"):
