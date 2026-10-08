@@ -11,6 +11,7 @@ deps
 html
 docs/build
 .coverage
+coverage.lcov
 *~
 ._build.etag
 _build.py.bak*
