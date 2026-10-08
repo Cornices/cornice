@@ -4,8 +4,8 @@ Cornice
 
 |readthedocs| |pypi| |github-actions| |main-coverage|
 
-.. |github-actions| image:: https://github.com/Cornices/cornice/workflows/Unit%20Testing/badge.svg
-    :target: https://github.com/Cornices/cornice/actions?query=workflow%3A%22Unit+Testing%22
+.. |github-actions| image:: https://github.com/Cornices/cornice/actions/workflows/test.yml/badge.svg
+    :target: https://github.com/Cornices/cornice/actions/workflows/test.yml
 
 .. |readthedocs| image:: https://readthedocs.org/projects/cornice/badge/?version=latest
     :target: https://cornice.readthedocs.io/en/latest/

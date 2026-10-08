@@ -1,4 +1,8 @@
-on: pull_request
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 
 jobs:
   lint:
@@ -33,6 +37,16 @@ jobs:
 
       - name: Run unit tests
         run: make test
+
+      - name: Write LCOV report
+        if: github.event_name == 'push' && matrix.python-version == '3.14'
+        run: .venv/bin/coverage lcov -o coverage.lcov
+
+      - name: Coveralls
+        if: github.event_name == 'push' && matrix.python-version == '3.14'
+        uses: coverallsapp/github-action@v2
+        with:
+          path-to-lcov: coverage.lcov
 
   docs:
     runs-on: ubuntu-latest
