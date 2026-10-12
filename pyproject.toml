@@ -34,7 +34,7 @@ build-backend = "setuptools.build_meta"
 [project.optional-dependencies]
 dev = [
     "ruff",
-    "pytest<9",
+    "pytest<10",
     "pytest-cache<2",
     "pytest-cov<7",
     "WebTest<4",
