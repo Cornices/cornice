@@ -4,14 +4,13 @@ Testing
 Running tests
 -------------
 
-To run all tests in all Python environments configured in ``tox.ini``,
-just setup ``tox`` and run it inside the toplevel project directory::
+To run the test suite::
 
-    tox
+    make test
 
-To run a single test inside a specific Python environment, do e.g.::
+To run a single test::
 
-    tox -e py39 tests/test_validation.py::TestServiceDefinition::test_content_type_missing
+    .venv/bin/pytest tests/test_validation.py::TestServiceDefinition::test_content_type_missing
 
 
 Testing cornice services

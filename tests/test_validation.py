@@ -816,3 +816,73 @@ class TestContextSchemas(LoggingCatcher, TestCase):
         self.assertTrue(response.json["somefield"] > 0)
         response = app.post_json("/bound", {"csrf_secret": "secret"})
         self.assertNotEqual(response.json["somefield"], old)
+
+    def test_request_context_does_not_outlive_validation(self):
+        from cornice.validators import cornice_request
+
+        app = self.make_ordinary_app()
+        app.post_json("/m_bound", {"csrf_secret": "secret"})
+        with self.assertRaises(LookupError):
+            cornice_request.get()
+
+    def test_nested_validation_restores_the_previous_request(self):
+        from cornice.validators import cornice_request
+
+        outer = DummyRequest()
+        token = cornice_request.set(outer)
+        try:
+            app = self.make_ordinary_app()
+            app.post_json("/m_bound", {"csrf_secret": "secret"})
+            self.assertIs(cornice_request.get(), outer)
+        finally:
+            cornice_request.reset(token)
+
+
+@skip_if_no_marshmallow
+class TestSchemaLevelMarshmallowErrors(TestCase):
+    def test_string_error_is_reported_as_schema_error(self):
+        import marshmallow
+
+        class Schema(marshmallow.Schema):
+            @marshmallow.validates_schema
+            def reject(self, data, **kwargs):
+                raise marshmallow.ValidationError("nope")
+
+        request = DummyRequest()
+        request.validated = {}
+        marshmallow_validator(request, schema=Schema, deserializer=lambda req: {})
+        self.assertEqual(len(request.errors), 1)
+        self.assertEqual(request.errors[0]["location"], "")
+        self.assertEqual(request.errors[0]["name"], "")
+        self.assertEqual(request.errors[0]["description"], ["nope"])
+
+
+class TestCorniceImportsWithoutMarshmallow(TestCase):
+    def test_import_cornice_without_marshmallow(self):
+        import subprocess
+        import sys
+
+        script = "\n".join(
+            [
+                "import sys",
+                "class _BlockMarshmallow:",
+                "    def find_spec(self, fullname, path, target=None):",
+                "        if fullname == 'marshmallow' or fullname.startswith('marshmallow.'):",
+                "            raise ModuleNotFoundError(fullname)",
+                "        return None",
+                "sys.meta_path.insert(0, _BlockMarshmallow())",
+                "for name in list(sys.modules):",
+                "    if name == 'marshmallow' or name.startswith(('marshmallow.', 'cornice')):",
+                "        del sys.modules[name]",
+                "    elif name == 'cornice':",
+                "        del sys.modules[name]",
+                "import cornice",
+            ]
+        )
+        completed = subprocess.run(
+            [sys.executable, "-c", script],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)

@@ -330,13 +330,13 @@ if COLANDER:
 
 try:
     import marshmallow
+    from marshmallow import EXCLUDE
 
     from cornice.validators import (
         cornice_request,
         marshmallow_body_validator,
         marshmallow_validator,
     )
-    from cornice.validators._marshmallow_compat import EXCLUDE
 
     MARSHMALLOW = True
 except ImportError:

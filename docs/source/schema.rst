@@ -215,7 +215,7 @@ places on the request:
         querystring = marshmallow.fields.Nested(Querystring)
 
         @marshmallow.validates_schema(skip_on_field_errors=True)
-        def validate_multiple_fields(self, data):
+        def validate_multiple_fields(self, data, **kwargs):
             username = data['body'].get('username')
             referrer = data['querystring'].get('referrer')
             if username == referrer:
@@ -247,19 +247,26 @@ The general pattern in this case is:
         return {'OK': 1}
 
 
-Marshmallow schemas have access to request as context object which can be handy
-for things like CSRF validation:
+During validation, Cornice stores the current request in
+``cornice_request``. The value is cleared when validation returns, including
+when a nested schema was validating. Marshmallow 4 removed ``Schema.context``,
+and ``missing=`` has been ``load_default=`` since marshmallow 3.13.
+``@validates_schema`` receives ``partial``, ``many``, and ``unknown`` keyword
+arguments, so the method needs ``**kwargs``.
 
 .. code-block:: python
 
+    import random
+
+    from cornice.validators import cornice_request
+
     class MNeedsContextSchema(marshmallow.Schema):
-        somefield = marshmallow.fields.Float(missing=lambda: random.random())
+        somefield = marshmallow.fields.Float(load_default=lambda: random.random())
         csrf_secret = marshmallow.fields.String()
 
         @marshmallow.validates_schema
-        def validate_csrf_secret(self, data):
-            # simulate validation of session variables
-            if self.context['request'].get_csrf() != data.get('csrf_secret'):
+        def validate_csrf_secret(self, data, **kwargs):
+            if cornice_request.get().get_csrf() != data.get('csrf_secret'):
                 raise marshmallow.ValidationError('Wrong token')
 
 
