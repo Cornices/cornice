@@ -3,6 +3,46 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import inspect
+from contextlib import contextmanager
+from contextvars import ContextVar
+from importlib.metadata import version
+
+
+cornice_request: ContextVar = ContextVar("cornice_request")
+
+_MARSHMALLOW_V4 = None
+
+
+def _marshmallow_v4():
+    """Return whether the installed marshmallow is 4 or newer.
+
+    Resolved on first validation, not at import, so Cornice can load when
+    marshmallow is not installed.
+    """
+    global _MARSHMALLOW_V4
+    if _MARSHMALLOW_V4 is None:
+        _MARSHMALLOW_V4 = int(version("marshmallow").split(".")[0]) >= 4
+    return _MARSHMALLOW_V4
+
+
+def set_schema_context(schema, key, value):
+    """Store context on a Marshmallow 3 schema.
+
+    Marshmallow 4 removed ``Schema.context``. Callers use ``cornice_request``.
+    """
+    if not _marshmallow_v4():  # pragma: no cover
+        schema.context.setdefault(key, value)
+
+
+@contextmanager
+def _request_context(request, schema):
+    """Expose ``request`` for the duration of one validation call."""
+    token = cornice_request.set(request)
+    try:
+        set_schema_context(schema, "request", request)
+        yield
+    finally:
+        cornice_request.reset(token)
 
 
 def _generate_marshmallow_validator(location):
@@ -40,7 +80,7 @@ def _generate_marshmallow_validator(location):
         """
         import marshmallow
         import marshmallow.schema
-        from marshmallow.utils import EXCLUDE
+        from marshmallow import EXCLUDE
 
         if schema is None:
             return
@@ -51,13 +91,10 @@ def _generate_marshmallow_validator(location):
 
         class ValidatedField(marshmallow.fields.Field):
             def _deserialize(self, value, attr, data, **kwargs):
-                schema.context.setdefault("request", request)
-                deserialized = schema.load(value)
-                return deserialized
+                with _request_context(request, schema):
+                    return schema.load(value)
 
         class Meta(object):
-            strict = True
-            ordered = True
             unknown = EXCLUDE
 
         class RequestSchemaMeta(marshmallow.schema.SchemaMeta):
@@ -79,9 +116,7 @@ def _generate_marshmallow_validator(location):
                 :type dct: dict
                 """
 
-                class_attrs[location] = ValidatedField(
-                    required=True, metadata={"load_from": location}
-                )
+                class_attrs[location] = ValidatedField(required=True, data_key=location)
                 class_attrs["Meta"] = Meta
                 return type(name, bases, class_attrs)
 
@@ -100,22 +135,6 @@ body_validator = _generate_marshmallow_validator("body")
 headers_validator = _generate_marshmallow_validator("header")
 path_validator = _generate_marshmallow_validator("path")
 querystring_validator = _generate_marshmallow_validator("querystring")
-
-
-def _message_normalizer(exc, no_field_name="_schema"):
-    """
-    Normally `normalize_messages` will exist on `ValidationError` but pre 2.10
-    versions don't have it
-    :param exc:
-    :param no_field_name:
-    :return:
-    """
-    if isinstance(exc.messages, dict):
-        return exc.messages
-    field_names = exc.kwargs.get("field_names", [])
-    if len(field_names) == 0:
-        return {no_field_name: exc.messages}
-    return dict((name, exc.messages) for name in field_names)
 
 
 def validator(request, schema=None, deserializer=None, **kwargs):
@@ -148,23 +167,21 @@ def validator(request, schema=None, deserializer=None, **kwargs):
         return
 
     schema = _instantiate_schema(schema)
-    schema.context.setdefault("request", request)
-
-    cstruct = deserializer(request)
-    try:
-        deserialized = schema.load(cstruct)
-    except marshmallow.ValidationError as err:
-        # translate = request.localizer.translate
-        normalized_errors = _message_normalizer(err)
-        for location, details in normalized_errors.items():
-            location = location if location != "_schema" else ""
-            if hasattr(details, "items"):
-                for subfield, msg in details.items():
-                    request.errors.add(location, subfield, msg)
-            else:
-                request.errors.add(location, location, details)
-    else:
-        request.validated.update(deserialized)
+    with _request_context(request, schema):
+        cstruct = deserializer(request)
+        try:
+            deserialized = schema.load(cstruct)
+        except marshmallow.ValidationError as err:
+            normalized_errors = err.normalized_messages()
+            for location, details in normalized_errors.items():
+                location = location if location != "_schema" else ""
+                if hasattr(details, "items"):
+                    for subfield, msg in details.items():
+                        request.errors.add(location, subfield, msg)
+                else:
+                    request.errors.add(location, location, details)
+        else:
+            request.validated.update(deserialized)
 
 
 def _instantiate_schema(schema, **kwargs):
